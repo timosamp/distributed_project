@@ -13,7 +13,7 @@ from urllib.parse import urlparse
 from uuid import uuid4
 
 
-class wallet:
+class Wallet:
 
     def __init__(self):
         ##set

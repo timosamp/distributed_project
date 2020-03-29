@@ -15,6 +15,12 @@ class node:
 
     # slef.ring[]   #here we store information for every node, as its id, its address (ip:port) its public key and its balance
 
+    def create_genesis_block():
+        # Manually construct a block with
+        # index zero and arbitrary previous hash
+        return block(0, date.datetime.now(), "Genesis Block", "0")
+
+
     def create_new_block(self):
         pass
 
