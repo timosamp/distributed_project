@@ -21,11 +21,9 @@ class Blockchain:
         genesis_block.hash = genesis_block.compute_hash()
         self.chain.append(genesis_block)
 
-
     @property
     def last_block(self):
         return self.chain[-1]
-
 
     def add_block(self, block, proof):
         """
@@ -47,7 +45,8 @@ class Blockchain:
         self.chain.append(block)
         return True
 
-    def is_valid_proof(self, block, block_hash):
+    @staticmethod
+    def is_valid_proof(block, block_hash):
         """
         Check if block_hash is valid hash of block and satisfies
         the difficulty criteria.
@@ -55,7 +54,8 @@ class Blockchain:
         return (block_hash.startswith('0' * Blockchain.difficulty) and
                 block_hash == block.compute_hash())
 
-    def proof_of_work(self, block):
+    @staticmethod
+    def proof_of_work(block):
         """
         Function that tries different values of nonce to get a hash
         that satisfies our difficulty criteria.
