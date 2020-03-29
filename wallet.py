@@ -18,14 +18,18 @@ class wallet:
     def __init__(self):
         ##set
 
+        # Create a pair of private and public key
         self.private_key, self.public_key = self.create_RSA_pairKeys()
 
-    # self_address
+        # Set the public key as the wallet's adders
+        self.address = self.public_key
+
     # self.transactions
 
     # def balance():
 
-    def create_RSA_pairKeys(self):
+    @staticmethod
+    def create_RSA_pairKeys():
         key = RSA.generate(2048)
         public_key = key.publickey().exportKey("PEM")
         private_key = key.exportKey("PEM")

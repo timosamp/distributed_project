@@ -1,7 +1,7 @@
+import Blockchain as Blockchain
 import requests
 from flask import Flask, jsonify, request, render_template
 from flask_cors import CORS
-
 
 import block
 import node
@@ -10,9 +10,7 @@ import wallet
 import transaction
 import wallet
 
-
 ### JUST A BASIC EXAMPLE OF A REST API WITH FLASK
-
 
 
 app = Flask(__name__)
@@ -20,8 +18,7 @@ CORS(app)
 blockchain = Blockchain()
 
 
-#.......................................................................................
-
+# .......................................................................................
 
 
 # get all transactions in the blockchain
@@ -32,7 +29,6 @@ def get_transactions():
 
     response = {'transactions': transactions}
     return jsonify(response), 200
-
 
 
 # run it once fore every node
