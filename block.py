@@ -1,13 +1,17 @@
 
 import blockchain
 
+import time
 
 class Block:
 	def __init__(self):
 		##set
 
 		#self.previousHash
-		#self.timestamp
+
+		# Timestamp of block creation
+		self.timestamp = time.time()
+
 		#self.hash
 		#self.nonce
 		#self.listOfTransactions
