@@ -154,12 +154,13 @@ def create_chain_from_dump(chain_dump):
 # the node's chain. The block is first verified by the node
 # and then added to the chain.
 @app.route('/add_block', methods=['POST'])
-def validate_and_add_block():
+def verify_and_add_block():
     block_data = request.get_json()
     block = Block(block_data["index"],
                   block_data["transactions"],
-                  block_data["timestamp",
-                             block_data["previous_hash"]])
+                  block_data["timestamp"],
+                  block_data["previous_hash"],
+                  block_data["nonce"])
 
     proof = block_data['hash']
     added = blockchain.add_block(block, proof)
@@ -168,7 +169,6 @@ def validate_and_add_block():
         return "The block was discarded by the node", 400
 
     return "Block added to the chain", 201
-
 
 # endpoint to query unconfirmed transactions
 @app.route('/pending_tx')

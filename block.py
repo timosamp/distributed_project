@@ -4,7 +4,7 @@ import hashlib as hasher
 
 
 class Block:
-    def __init__(self, index, transactions, timestamp, previous_hash):
+    def __init__(self, index, transactions, timestamp, previous_hash, nonce=0):
 
         """
         Constructor for the `Block` class.
@@ -16,7 +16,7 @@ class Block:
         self.index = index
         self.timestamp = timestamp
         self.previous_hash = previous_hash
-        self.nonce = 0
+        self.nonce = nonce
         self.listOfTransactions = transactions
         # self.hash = self.compute_block()
 
@@ -26,7 +26,8 @@ class Block:
         sha.update(str(self.index) +
                    str(self.listOfTransactions) +
                    str(self.timestamp) +
-                   str(self.previous_hash))
+                   str(self.previous_hash) +
+                   str(self.nonce))
         return sha.hexdigest()
 
     # def compute_hash(self):

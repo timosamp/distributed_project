@@ -16,7 +16,7 @@ class Blockchain:
         the chain. The block has index 0, previous_hash as 0, and
         a valid hash.
         """
-        genesis_block = Block(0, [], time.time(), "0")
+        genesis_block = Block(0, [], 0, "0")
         genesis_block.hash = genesis_block.compute_hash()
         self.chain.append(genesis_block)
 
@@ -37,7 +37,7 @@ class Blockchain:
         if previous_hash != block.previous_hash:
             return False
 
-        if not self.is_valid_proof(block, proof):
+        if not Blockchain.is_valid_proof(block, proof):
             return False
 
         block.hash = proof
@@ -111,5 +111,5 @@ class Blockchain:
         self.add_block(new_block, proof)
 
         self.unconfirmed_transactions = []
-        return new_block.index
 
+        return True
