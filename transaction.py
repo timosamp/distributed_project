@@ -1,11 +1,12 @@
 from collections import OrderedDict
 
 import binascii
-import hashlib
 
 import Crypto
 import Crypto.Random
+
 from Crypto.Hash import SHA
+from Crypto.Hash.SHA import SHA1Hash
 from Crypto.PublicKey import RSA
 from Crypto.Signature import PKCS1_v1_5
 
@@ -15,51 +16,91 @@ from flask import Flask, jsonify, request, render_template
 
 class Transaction:
 
-    def __init__(self, sender_address, recipient_address, amount, transaction_inputs, sender_private_key):
-        ##set
+    def __init__(self, sender_address, recipient_address, amount, utxos, sender_private_key):
 
         # self.sender_address: To public key του wallet από το οποίο προέρχονται τα χρήματα
         self.sender_address = sender_address
 
         # self.receiver_address: To public key του wallet στο οποίο θα καταλήξουν τα χρήματα
-        self.receiver_address = recipient_address
+        self.recipient_address = recipient_address
 
         # self.amount: το ποσό που θα μεταφερθεί
         self.amount = amount
 
-        # self.transaction_id: το hash του transaction
-
         # self.transaction_inputs: λίστα από Transaction Input (ids)
-        self.transaction_inputs = transaction_inputs
+        self.transaction_inputs = self.create_list_of_input_transactions(utxos)
 
         # self.transaction_outputs: λίστα από Transaction Output
-        self.transaction_outputs
+        self.transaction_outputs = self.create_list_of_output_transactions(utxos)
 
-        # create the hash/id of the transaction
+        # create the hash/id of the transaction -- το hash του transaction
         self.transaction_id = self.transaction_hash()
 
         # selfSignature - I'm not sure if this suppose to be here
+        self.transaction_signature = self.sign_transaction(sender_private_key)
 
-
-        pass
-
-    def to_dict(self):
-        pass
+    # def to_dict(self):
+    #     pass
 
     def sign_transaction(self, key):
         """
         Sign transaction with private key
         """
-        pass
+
+        # Create a hash value of the whole message
+        sha_hash = SHA.new(str(self.sender_address) +
+                           str(self.recipient_address) +
+                           str(self.amount) +
+                           str(self.transaction_inputs) +
+                           str(self.transaction_outputs) +
+                           str(self.transaction_id))
+
+        # Construct an instance of the crypto object
+        cipher = PKCS1_v1_5.new(key)
+
+        # Create and return the signature
+        return cipher.sign(sha_hash)
 
     def transaction_hash(self):
-        sha = hashlib.sha256
+        sha = SHA.new()
         sha.update(str(self.sender_address) +
-                   str(self.receiver_address) +
+                   str(self.recipient_address) +
                    str(self.amount) +
                    str(self.transaction_inputs) +
                    str(self.transaction_outputs))
         return sha.hexdigest()
+
+    def create_list_of_output_transactions(self, utxos):
+
+        # Create recipient's output transaction
+        receiver_output_transaction = TransactionOutput(self.transaction_id, self.recipient_address, self.amount)
+
+        # compute first the total amount of the utxos
+        utxos_amount = 0
+        for utxo in utxos:
+            utxos_amount += utxo.amount
+
+        # Then compute sender's change
+        change = utxos_amount - self.amount
+
+        # Create sender's output transaction
+        sender_output_transaction = TransactionOutput(self.transaction_id, self.sender_address, change)
+
+        # return the set of the output transactions
+        return {receiver_output_transaction, sender_output_transaction}
+
+    @staticmethod
+    def create_list_of_input_transactions(utxos):
+
+        # Init a set - list
+        input_transactions = set()
+
+        # Create the input transactions and append them into a list - set
+        for utxo in utxos:
+            input_transactions.add(TransactionInput(utxo.outputTransactionId))
+
+        # Return the list of input_transactions
+        return input_transactions
 
 
 class TransactionOutput:
@@ -70,10 +111,10 @@ class TransactionOutput:
         self.outputTransactionId = self.output_transaction_hash()
 
     def output_transaction_hash(self):
-        sha = hashlib.sha256
-        sha.update(str(self.transaction_id) +
-                   str(self.recipient_address) +
-                   str(self.amount))
+        # Create id of output transaction by hashing
+        sha = SHA.new(str(self.transaction_id) +
+                      str(self.recipient_address) +
+                      str(self.amount))
         return sha.hexdigest()
 
 

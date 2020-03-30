@@ -2,6 +2,7 @@ import binascii
 
 import Crypto
 import Crypto.Random
+
 from Crypto.Hash import SHA
 from Crypto.PublicKey import RSA
 from Crypto.Signature import PKCS1_v1_5
@@ -24,7 +25,8 @@ class Wallet:
         # Set the public key as the wallet's adders
         self.address = self.public_key
 
-    # self.transactions
+        # list of unspent transactions - previous output transactions
+        utoxs = set()
 
     # def balance():
 
@@ -37,8 +39,6 @@ class Wallet:
 
         # broadcast the transaction to the whole network
         pass
-
-
 
     @staticmethod
     def create_RSA_pairKeys():
