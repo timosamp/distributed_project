@@ -28,6 +28,18 @@ class Wallet:
 
     # def balance():
 
+    def sendCoinsTo(self, recAddr):
+        # check if the sender have the amount which is trying to send (check balance)
+
+        # create a new transaction with receivers public key
+
+        # sign this transaction with the private key of the sender's wallet
+
+        # broadcast the transaction to the whole network
+        pass
+
+
+
     @staticmethod
     def create_RSA_pairKeys():
         key = RSA.generate(2048)

@@ -4,21 +4,24 @@ import wallet
 
 class node:
     def __init__(self):
-        self.NBC = 100;
+        self.NBC = 100
 
-    ##set
+        ##set
 
-    # self.chain
-    # self.current_id_count
-    # self.NBCs
-    # self.mywallet = wallet
+        # self.chain
+        # self.current_id_count
+        # self.NBCs
+        # self.mywallet = wallet
 
-    # slef.ring[]   #here we store information for every node, as its id, its address (ip:port) its public key and its balance
+        # the address to other participating members of the network
+        peers = set()
 
-    def create_genesis_block():
-        # Manually construct a block with
-        # index zero and arbitrary previous hash
-        return block(0, date.datetime.now(), "Genesis Block", "0")
+        # slef.ring[]   #here we store information for every node, as its id, its address (ip:port) its public key and its balance
+
+    # def create_genesis_block():
+    #     # Manually construct a block with
+    #     # index zero and arbitrary previous hash
+    #     return block(0, date.datetime.now(), "Genesis Block", "0")
 
 
     def create_new_block(self):

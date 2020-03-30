@@ -1,6 +1,6 @@
 import blockchain
 
-import hashlib as hasher
+import hashlib
 
 
 class Block:
@@ -12,6 +12,7 @@ class Block:
         :param transactions:  List of transactions.
         :param timestamp:     Time of generation of the block.
         :param previous_hash: Hash of the previous block in the chain which this block is part of.
+        :param nonce: by default 0.
         """
         self.index = index
         self.timestamp = timestamp
@@ -20,9 +21,9 @@ class Block:
         self.listOfTransactions = transactions
         # self.hash = self.compute_block()
 
-    def compute_block(self):
+    def compute_hash(self):
         # calculate self.hash
-        sha = hasher.sha256()
+        sha = hashlib.sha256()
         sha.update(str(self.index) +
                    str(self.listOfTransactions) +
                    str(self.timestamp) +

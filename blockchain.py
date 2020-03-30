@@ -1,5 +1,7 @@
 from block import Block
+from transaction import Transaction
 import time
+
 
 
 class Blockchain:
@@ -13,10 +15,14 @@ class Blockchain:
     def create_genesis_block(self):
         """
         A function to generate genesis block and appends it to
-        the chain. The block has index 0, previous_hash as 0, and
-        a valid hash.
+        the chain. The block has index 0, previous_hash as 1, nonce 0
+        and a valid hash.
         """
-        genesis_block = Block(0, [], 0, "0")
+
+        # Transaction with sender's wallet address 0
+        firstTransaction = Transaction
+
+        genesis_block = Block(0, [firstTransaction], 0, "1", 0)
         genesis_block.hash = genesis_block.compute_hash()
         self.chain.append(genesis_block)
 

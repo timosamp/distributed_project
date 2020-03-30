@@ -16,7 +16,6 @@ import wallet
 import transaction
 import wallet
 
-
 app = Flask(__name__)
 CORS(app)
 blockchain = Blockchain()
@@ -169,6 +168,7 @@ def verify_and_add_block():
         return "The block was discarded by the node", 400
 
     return "Block added to the chain", 201
+
 
 # endpoint to query unconfirmed transactions
 @app.route('/pending_tx')
