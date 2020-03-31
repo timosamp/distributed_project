@@ -33,5 +33,22 @@ class Block:
                       str(self.previous_hash))
         return sha.hexdigest()
 
+    def to_dict(self):
+
+        # Init the list of dictionaries
+        list_of_transaction_dict = []
+
+        # Create all the sub dictionaries of transactions and append them into the list
+        for transaction in self.transactions:
+            list_of_transaction_dict.append(transaction.to_dict())
+
+        # Create the dictionary of the instance
+        dict_of_block = self.__dict__
+
+        # Correct to value of the transaction's list
+        dict_of_block["transactions"] = list_of_transaction_dict
+
+        return dict_of_block
+
 # def add_transaction(transaction transaction, blockchain blockchain):
 # add a transaction to the block
