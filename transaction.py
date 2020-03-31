@@ -16,7 +16,11 @@ from flask import Flask, jsonify, request, render_template
 
 class Transaction:
 
-    def __init__(self, sender_address, recipient_address, amount, utxos=None, sender_private_key=None):
+    def __init__(self, sender_address, recipient_address, amount, timestamp,
+                 transaction_inputs=None, transaction_outputs=None, signature=None):
+
+        # Timestamp of the creation
+        self.timestamp = timestamp
 
         # self.sender_address: To public key του wallet από το οποίο προέρχονται τα χρήματα
         self.sender_address = sender_address
@@ -27,29 +31,45 @@ class Transaction:
         # self.amount: το ποσό που θα μεταφερθεί
         self.amount = amount
 
-        # self.transaction_inputs: λίστα από Transaction Input (ids)
-        if utxos is not None:
-            self.transaction_inputs = self.create_list_of_input_transactions(utxos)
-        else:
-            self.transaction_inputs = {}
-
-        # self.transaction_outputs: λίστα από Transaction Output
-        if utxos is not None:
-            self.transaction_outputs = self.create_list_of_output_transactions(utxos)
-        else:
-            self.transaction_outputs = {}
-
         # create the hash/id of the transaction -- το hash του transaction
         self.transaction_id = self.transaction_hash()
 
+        # self.transaction_inputs: λίστα από Transaction Input (ids)
+        self.transaction_inputs = transaction_inputs
+
+        # self.transaction_outputs: λίστα από Transaction Output
+        self.transaction_outputs = transaction_outputs
+
         # selfSignature - I'm not sure if this suppose to be here
-        if sender_private_key is not None:
-            self.transaction_signature = self.sign_transaction(sender_private_key)
+        if signature is not None:
+            self.transaction_signature = signature
         else:
-            self.transaction_signature = "First Transaction"
+            self.transaction_signature = "Not signed"
 
     # def to_dict(self):
     #     pass
+
+    @classmethod
+    def with_utxos(cls, sender_address, recipient_address, amount, timestamp, utxos):
+
+        # create transaction
+        transaction = Transaction(sender_address, recipient_address, amount, timestamp)
+
+        # self.transaction_inputs: λίστα από Transaction Input (ids)
+        transaction.create_list_of_input_transactions(utxos)
+
+        # self.transaction_outputs: λίστα από Transaction Output
+        transaction.create_list_of_output_transactions(utxos)
+
+        return transaction
+
+    @classmethod
+    def generic(cls, recipient_address, amount, timestamp):
+
+        # create transaction
+        transaction = Transaction("", recipient_address, amount, timestamp)
+
+        return transaction
 
     def sign_transaction(self, key):
         """
@@ -57,7 +77,8 @@ class Transaction:
         """
 
         # Create a hash value of the whole message
-        sha_hash = SHA.new(str(self.sender_address) +
+        sha_hash = SHA.new(str(self.timestamp) +
+                           str(self.sender_address) +
                            str(self.recipient_address) +
                            str(self.amount) +
                            str(self.transaction_inputs) +
@@ -72,11 +93,12 @@ class Transaction:
 
     def transaction_hash(self):
         sha = SHA.new()
-        sha.update(str(self.sender_address) +
+        sha.update(str(self.timestamp) +
+                   str(self.sender_address) +
                    str(self.recipient_address) +
-                   str(self.amount) +
-                   str(self.transaction_inputs) +
-                   str(self.transaction_outputs))
+                   str(self.amount))
+        # str(self.transaction_inputs) +
+        # str(self.transaction_outputs))
         return sha.hexdigest()
 
     def create_list_of_output_transactions(self, utxos):

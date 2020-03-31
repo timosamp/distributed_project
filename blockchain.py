@@ -5,12 +5,35 @@ import time
 
 
 class Blockchain:
+
     # difficulty of our PoW algorithm
     difficulty = 2
 
     def __init__(self):
+
         self.unconfirmed_transactions = []
         self.chain = []
+
+        # the address to other participating members of the network
+        self.peers = []
+
+
+    def add_new_transaction(self, transaction):
+        # Add a new transaction which is broadcasted
+        # Fixme: Any verification?
+        self.unconfirmed_transactions.append(transaction)
+
+    def get_transactions(self):
+        # Init the list
+        all_transactions = []
+
+        # Iterate all the blockchain
+        for block in self.chain:
+            for transaction in block.transactions:
+                all_transactions.append(transaction)
+
+        # Return the list
+        return all_transactions
 
     def create_genesis_block(self, recipient_addr):
         """
@@ -27,13 +50,22 @@ class Blockchain:
 
         self.chain.append(genesis_block)
 
+    def create_chain_from_dump(self, chain_dump):
+        for idx, block_data in enumerate(chain_dump):
+            if idx == 0:
+                continue  # skip genesis block
+            block = Block(block_data["index"],
+                          block_data["transactions"],
+                          block_data["timestamp"],
+                          block_data["previous_hash"],
+                          block_data["nonce"])
 
+            block.hash = block_data['hash']
 
-    @property
-    def last_block(self):
-        # Return last block of the blockchain
+            added = self.add_block(block)
+            if not added:
+                raise Exception("The chain dump is tampered!!")
 
-        return self.chain[-1]
 
     def add_block(self, block):
         """
@@ -55,6 +87,11 @@ class Blockchain:
 
         return True
 
+    @property
+    def last_block(self):
+        # Return last block of the blockchain
+        return self.chain[-1]
+
     @staticmethod
     def proof_of_work(block):
         """
@@ -69,10 +106,6 @@ class Blockchain:
             computed_hash = block.compute_hash()
 
         block.hash = computed_hash
-
-    def add_new_transaction(self, transaction):
-        # Add a new transaction which is broadcasted
-        self.unconfirmed_transactions.append(transaction)
 
     @classmethod
     def is_valid_proof(cls, block):

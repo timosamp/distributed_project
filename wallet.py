@@ -11,7 +11,7 @@ from transaction import Transaction, TransactionOutput
 
 import hashlib
 import json
-from time import time
+import time
 from urllib.parse import urlparse
 from uuid import uuid4
 
@@ -28,6 +28,10 @@ class Wallet:
 
         # list of unspent transactions - previous output transactions
         self.utxos = []
+
+    def wallet_address(self):
+        # Return the address of the wallet's owner
+        return self.address
 
     def balance(self):
         # Init the amount variable
@@ -62,8 +66,10 @@ class Wallet:
 
         # Create a new transaction with receivers public key.
         # Sign this transaction with the private key of the sender's wallet.
-        transaction = Transaction(self.address, recipient_address, amount, sub_list_of_utxos, self.private_key)
+        transaction = Transaction.with_utxos(self.address, recipient_address, amount, time.time(), sub_list_of_utxos)
 
+        # Sign the transaction
+        transaction.sign_transaction(self.private_key)
 
         # We need to add into wallet's utxos list the new transaction output for the change
         # The second instance into the list is the sender's output transaction
