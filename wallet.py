@@ -7,6 +7,8 @@ from Crypto.Hash import SHA
 from Crypto.PublicKey import RSA
 from Crypto.Signature import PKCS1_v1_5
 
+from transaction import Transaction, TransactionOutput
+
 import hashlib
 import json
 from time import time
@@ -26,19 +28,52 @@ class Wallet:
         self.address = self.public_key
 
         # list of unspent transactions - previous output transactions
-        utoxs = set()
+        self.utxos = []
 
-    # def balance():
+    def balance(self):
+        # Init the amount variable
+        total_amount = 0
 
-    def sendCoinsTo(self, recAddr):
+        # Iterate the utxos list and sum the whole available amount of the wallet
+        for utxo in self.utxos:
+            total_amount += utxo.amount
+
+        # Return the total amount
+        return total_amount
+
+
+    def sendCoinsTo(self, recipient_address, amount):
         # check if the sender have the amount which is trying to send (check balance)
+        if self.balance() < amount:
+            return False
 
-        # create a new transaction with receivers public key
+        # Collect a bunch of utxos with sum amount bigger than amount want to be sent
 
-        # sign this transaction with the private key of the sender's wallet
+        # Init the sub list and utxos_amount
+        sub_list_of_utxos = []
+        utxos_amount = 0
 
-        # broadcast the transaction to the whole network
-        pass
+        # Iterate utxos' list, pop utxos and add their amount to the utxos_amount,
+        # until the required amount is reached and append them into a sub list
+        # which will be given to the new transaction.
+        while utxos_amount < amount:
+            utxo = self.utxos.pop()
+            utxos_amount += utxo.amount
+            sub_list_of_utxos.append(utxo)
+
+        # Create a new transaction with receivers public key.
+        # Sign this transaction with the private key of the sender's wallet.
+        transaction = Transaction(self.address, recipient_address, amount, sub_list_of_utxos, self.private_key)
+
+
+        # We need to add into wallet's utxos list the new transaction output for the change
+        # The second instance into the list is the sender's output transaction
+        self.utxos.append(transaction.transaction_outputs[1])
+
+        # FIXME: Broadcast the transaction to the whole network
+
+        # Return true if transaction creation and broadcast is finished successfully
+        return True
 
     @staticmethod
     def create_RSA_pairKeys():
