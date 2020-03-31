@@ -3,7 +3,6 @@ from transaction import Transaction
 import time
 
 
-
 class Blockchain:
 
     # difficulty of our PoW algorithm

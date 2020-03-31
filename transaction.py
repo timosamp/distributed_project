@@ -46,8 +46,27 @@ class Transaction:
         else:
             self.transaction_signature = "Not signed"
 
-    # def to_dict(self):
-    #     pass
+    def to_dict(self):
+
+        # Create a list of dictionaries of transaction inputs
+        list_of_dict_transaction_inputs = []
+        for transaction_input in self.transaction_inputs:
+            list_of_dict_transaction_inputs.append(transaction_input.__dict__)
+
+        # Create a list of dictionaries of transaction outputs
+        list_of_dict_transaction_outputs = []
+        for transaction_output in self.transaction_outputs:
+            list_of_dict_transaction_outputs.append(transaction_output.__dict__)
+
+        # Create the object's dictionary
+        transaction_dict = self.__dict__
+
+        # Change the values of the two list so they could be recoverable
+        transaction_dict["transaction_outputs"] = list_of_dict_transaction_outputs
+        transaction_dict["transaction_inputs"] = list_of_dict_transaction_inputs
+
+        # Return the dictionary
+        return transaction_dict
 
     @classmethod
     def with_utxos(cls, sender_address, recipient_address, amount, timestamp, utxos):
@@ -149,6 +168,7 @@ class TransactionOutput:
                       str(self.recipient_address) +
                       str(self.amount))
         return sha.hexdigest()
+
 
 
 class TransactionInput:

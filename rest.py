@@ -16,18 +16,17 @@ from transaction import Transaction
 
 app = Flask(__name__)
 CORS(app)
-blockchain = Blockchain()
-blockchain.create_genesis_block()
 
 # .......................................................................................
 
 # create a node
 node = Node(0)
+
+# Take its blockchain
 blockchain = node.blockchain
 
-
 # the address to other participating members of the network
-peers = set()
+peers = node.peers
 
 
 # get all transactions in the blockchain
