@@ -31,12 +31,11 @@ peers = set()
 
 
 # get all transactions in the blockchain
-# @app.route('/transactions/get', methods=['GET'])
-# def get_transactions():
-#     transactions = blockchain.transactions
-#
-#     response = {'transactions': transactions}
-#     return jsonify(response), 200
+@app.route('/transactions/get', methods=['GET'])
+def get_transactions():
+    list_of_transactions = blockchain.get_transactions()
+    response = {'transactions': list_of_transactions}
+    return jsonify(response), 200
 
 
 # endpoint to submit a new transaction. This will be used by
