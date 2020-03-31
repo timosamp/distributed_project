@@ -1,11 +1,15 @@
 import blockchain
 
-import hashlib
+from Crypto.Hash import SHA
 
 
 class Block:
-    def __init__(self, index, transactions, timestamp, previous_hash, nonce=0):
 
+    # Class variable for the capacity of the block
+    capacity = 10
+
+    # constructor of the class
+    def __init__(self, index, transactions, timestamp, previous_hash, nonce=0):
         """
         Constructor for the `Block` class.
         :param index:         Unique ID of the block.
@@ -18,28 +22,17 @@ class Block:
         self.timestamp = timestamp
         self.previous_hash = previous_hash
         self.nonce = nonce
-        self.listOfTransactions = transactions
-        # self.hash = self.compute_block()
+        self.transactions = transactions
+        self.current_hash = self.compute_hash()
 
     def compute_hash(self):
-        # calculate self.hash
-        sha = hashlib.sha256()
-        sha.update(str(self.index) +
-                   str(self.listOfTransactions) +
-                   str(self.timestamp) +
-                   str(self.previous_hash) +
-                   str(self.nonce))
+        # calculate block hash value
+        sha = SHA.new(str(self.index) +
+                      str(self.transactions) +
+                      str(self.timestamp) +
+                      str(self.nonce) +
+                      str(self.previous_hash))
         return sha.hexdigest()
-
-    # def compute_hash(self):
-    #     """
-    #     A function that return the hash of the block contents.
-    #     """
-    #     block_string = json.dumps(self.__dict__, sort_keys=True)
-    #     return sha256(block_string.encode()).hexdigest()
-
-
-
 
 
 # def add_transaction(transaction transaction, blockchain blockchain):

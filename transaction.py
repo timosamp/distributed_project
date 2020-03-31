@@ -16,7 +16,7 @@ from flask import Flask, jsonify, request, render_template
 
 class Transaction:
 
-    def __init__(self, sender_address, recipient_address, amount, utxos, sender_private_key):
+    def __init__(self, sender_address, recipient_address, amount, utxos=None, sender_private_key=None):
 
         # self.sender_address: To public key του wallet από το οποίο προέρχονται τα χρήματα
         self.sender_address = sender_address
@@ -28,16 +28,25 @@ class Transaction:
         self.amount = amount
 
         # self.transaction_inputs: λίστα από Transaction Input (ids)
-        self.transaction_inputs = self.create_list_of_input_transactions(utxos)
+        if utxos is not None:
+            self.transaction_inputs = self.create_list_of_input_transactions(utxos)
+        else:
+            self.transaction_inputs = {}
 
         # self.transaction_outputs: λίστα από Transaction Output
-        self.transaction_outputs = self.create_list_of_output_transactions(utxos)
+        if utxos is not None:
+            self.transaction_outputs = self.create_list_of_output_transactions(utxos)
+        else:
+            self.transaction_outputs = {}
 
         # create the hash/id of the transaction -- το hash του transaction
         self.transaction_id = self.transaction_hash()
 
         # selfSignature - I'm not sure if this suppose to be here
-        self.transaction_signature = self.sign_transaction(sender_private_key)
+        if sender_private_key is not None:
+            self.transaction_signature = self.sign_transaction(sender_private_key)
+        else:
+            self.transaction_signature = "First Transaction"
 
     # def to_dict(self):
     #     pass
@@ -82,6 +91,8 @@ class Transaction:
 
         # Then compute sender's change
         change = utxos_amount - self.amount
+
+        # FIXME: Check if the wallet has the required amount of money -- change >= 0
 
         # Create sender's output transaction
         sender_output_transaction = TransactionOutput(self.transaction_id, self.sender_address, change)

@@ -12,7 +12,7 @@ class Blockchain:
         self.unconfirmed_transactions = []
         self.chain = []
 
-    def create_genesis_block(self):
+    def create_genesis_block(self, recipient_addr):
         """
         A function to generate genesis block and appends it to
         the chain. The block has index 0, previous_hash as 1, nonce 0
@@ -20,11 +20,13 @@ class Blockchain:
         """
 
         # Transaction with sender's wallet address 0
-        firstTransaction = Transaction
+        first_transaction = Transaction("0", recipient_addr, 100 * 5)
 
-        genesis_block = Block(0, [firstTransaction], 0, "1", 0)
-        genesis_block.hash = genesis_block.compute_hash()
+        genesis_block = Block(len(self.chain), [first_transaction], 0, "1", 0)
+
         self.chain.append(genesis_block)
+
+
 
     @property
     def last_block(self):
