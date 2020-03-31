@@ -4,7 +4,6 @@ from Crypto.Hash import SHA
 
 
 class Block:
-
     # Class variable for the capacity of the block
     capacity = 10
 
@@ -23,7 +22,7 @@ class Block:
         self.previous_hash = previous_hash
         self.nonce = nonce
         self.transactions = transactions
-        self.current_hash = self.compute_hash()
+        self.hash = ""  # self.compute_hash()
 
     def compute_hash(self):
         # calculate block hash value
@@ -33,7 +32,6 @@ class Block:
                       str(self.nonce) +
                       str(self.previous_hash))
         return sha.hexdigest()
-
 
 # def add_transaction(transaction transaction, blockchain blockchain):
 # add a transaction to the block

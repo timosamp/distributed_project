@@ -23,6 +23,7 @@ class Blockchain:
         first_transaction = Transaction("0", recipient_addr, 100 * 5)
 
         genesis_block = Block(len(self.chain), [first_transaction], 0, "1", 0)
+        genesis_block.hash = genesis_block.compute_hash()
 
         self.chain.append(genesis_block)
 
@@ -30,9 +31,11 @@ class Blockchain:
 
     @property
     def last_block(self):
+        # Return last block of the blockchain
+
         return self.chain[-1]
 
-    def add_block(self, block, proof):
+    def add_block(self, block):
         """
         A function that adds the block to the chain after verification.
         Verification includes:
@@ -45,11 +48,11 @@ class Blockchain:
         if previous_hash != block.previous_hash:
             return False
 
-        if not Blockchain.is_valid_proof(block, proof):
+        if not Blockchain.is_valid_proof(block):
             return False
 
-        block.hash = proof
         self.chain.append(block)
+
         return True
 
     @staticmethod
@@ -65,39 +68,39 @@ class Blockchain:
             block.nonce += 1
             computed_hash = block.compute_hash()
 
-        return computed_hash
+        block.hash = computed_hash
 
     def add_new_transaction(self, transaction):
+        # Add a new transaction which is broadcasted
         self.unconfirmed_transactions.append(transaction)
 
     @classmethod
-    def is_valid_proof(cls, block, block_hash):
+    def is_valid_proof(cls, block):
         """
         Check if block_hash is valid hash of block and satisfies
         the difficulty criteria.
         """
-        return (block_hash.startswith('0' * Blockchain.difficulty) and
-                block_hash == block.compute_hash())
+        return (block.hash.startswith('0' * cls.difficulty) and
+                block.hash == block.compute_hash())
 
     @classmethod
     def check_chain_validity(cls, chain):
-        result = True
-        previous_hash = "0"
 
+        # Init previous hash to "1" -- Genesis block's hash value
+        previous_hash = "1"
+
+        # Iterate all the blockchain
         for block in chain:
-            block_hash = block.hash
-            # remove the hash field to recompute the hash again
-            # using `compute_hash` method.
-            delattr(block, "hash")
 
-            if not cls.is_valid_proof(block, block_hash) or \
+            # if the next condition doesn't hold then the block chain is not valid
+            if not cls.is_valid_proof(block) or \
                     previous_hash != block.previous_hash:
-                result = False
-                break
+                return False
 
-            block.hash, previous_hash = block_hash, block_hash
+            # Save block's hash to compare it with the next one
+            previous_hash = block.hash
 
-        return result
+        return True
 
     def mine(self):
         """
@@ -108,16 +111,21 @@ class Blockchain:
         if not self.unconfirmed_transactions:
             return False
 
-        last_block = self.last_block
+        last_block = self.last_block()
 
         new_block = Block(index=last_block.index + 1,
                           transactions=self.unconfirmed_transactions,
                           timestamp=time.time(),
-                          previous_hash=last_block.hash)
+                          previous_hash=last_block.hash,
+                          nonce=0)
 
-        proof = self.proof_of_work(new_block)
-        self.add_block(new_block, proof)
+        # Find the correct nonce
+        self.proof_of_work(new_block)
 
+        # Add new block in the chain
+        self.add_block(new_block)
+
+        # Init unconfirmed transactions' list
         self.unconfirmed_transactions = []
 
         return True

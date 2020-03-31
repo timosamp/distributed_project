@@ -19,7 +19,6 @@ from uuid import uuid4
 class Wallet:
 
     def __init__(self):
-        ##set
 
         # Create a pair of private and public key
         self.private_key, self.public_key = self.create_RSA_pairKeys()
