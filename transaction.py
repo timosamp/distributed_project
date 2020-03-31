@@ -46,6 +46,8 @@ class Transaction:
         else:
             self.transaction_signature = "Not signed"
 
+
+
     def to_dict(self):
 
         # Create a list of dictionaries of transaction inputs
@@ -67,6 +69,12 @@ class Transaction:
 
         # Return the dictionary
         return transaction_dict
+
+    @classmethod
+    def build_from_dict(cls):
+        # Fixme: not completed
+        return
+
 
     @classmethod
     def with_utxos(cls, sender_address, recipient_address, amount, timestamp, utxos):

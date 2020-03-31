@@ -50,5 +50,10 @@ class Block:
 
         return dict_of_block
 
+    @classmethod
+    def build_from_dict(cls):
+        # Fixme: not completed
+        return
+
 # def add_transaction(transaction transaction, blockchain blockchain):
 # add a transaction to the block
