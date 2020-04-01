@@ -130,7 +130,7 @@ class Transaction:
         cipher = PKCS1_v1_5.new(keys)
 
         # Create and return the signature
-        return cipher.sign(sha_hash)
+        self.transaction_signature = cipher.sign(sha_hash)
 
     def transaction_hash(self):
 

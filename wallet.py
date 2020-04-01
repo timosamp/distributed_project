@@ -84,8 +84,7 @@ class Wallet:
         #                                                                                    #
         # This line maybe shouldn't be here                                                  #
         # self.utxos.append(transaction.transaction_outputs[1])                              #
-
-        print("Transaction is added to the utxos' list")
+        # print("Transaction is added to the utxos' list")                                   #
 
         # FIXME: Broadcast the transaction to the whole network
 
