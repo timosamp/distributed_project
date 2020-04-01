@@ -21,7 +21,7 @@ class Wallet:
     def __init__(self):
 
         # Create a pair of private and public key
-        self.private_key, self.public_key = self.create_RSA_pairKeys()
+        self.private_key, self.public_key, self.keys = self.create_RSA_pairKeys()
 
         # Set the public key as the wallet's adders
         self.address = self.public_key
@@ -42,6 +42,8 @@ class Wallet:
         # Iterate the utxos list and sum the whole available amount of the wallet
         for utxo in self.utxos:
             total_amount += utxo.amount
+
+        print("Wallet with id:\n" + str(self.public_key) + "\nhas balance: " + str(total_amount))
 
         # Return the total amount
         return total_amount
@@ -66,18 +68,24 @@ class Wallet:
             utxos_amount += utxo.amount
             sub_list_of_utxos.append(utxo)
 
+        print("UTXOs has gathered from sender.")
+
         # Create a new transaction with receivers public key.
         # Sign this transaction with the private key of the sender's wallet.
         transaction = Transaction.with_utxos(self.address, recipient_address, amount, time.time(), sub_list_of_utxos)
 
         # Sign the transaction
-        transaction.sign_transaction(self.private_key)
+        transaction.sign_transaction(self.keys)
+
+        print("Transaction is signed.")
 
         # We need to add into wallet's utxos list the new transaction output for the change  #
         # The second instance into the list is the sender's output transaction               #
         #                                                                                    #
         # This line maybe shouldn't be here                                                  #
-        self.utxos.append(transaction.transaction_outputs[1])                                #
+        # self.utxos.append(transaction.transaction_outputs[1])                              #
+
+        print("Transaction is added to the utxos' list")
 
         # FIXME: Broadcast the transaction to the whole network
 
@@ -89,4 +97,4 @@ class Wallet:
         key = RSA.generate(2048)
         public_key = key.publickey().exportKey("PEM")
         private_key = key.exportKey("PEM")
-        return private_key, public_key
+        return private_key, public_key , key

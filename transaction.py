@@ -17,7 +17,7 @@ from flask import Flask, jsonify, request, render_template
 class Transaction:
 
     def __init__(self, sender_address, recipient_address, amount, timestamp,
-                 transaction_inputs=None, transaction_outputs=None, signature=None):
+                 transaction_inputs=[], transaction_outputs=[], signature=None):
 
         # Timestamp of the creation
         self.timestamp = timestamp
@@ -76,14 +76,22 @@ class Transaction:
     @classmethod
     def with_utxos(cls, sender_address, recipient_address, amount, timestamp, utxos):
 
+        print("Create transaction with utxos' list")
+
         # create transaction
         transaction = Transaction(sender_address, recipient_address, amount, timestamp)
+
+        print("Transaction's object has created")
 
         # self.transaction_inputs: λίστα από Transaction Input (ids)
         transaction.create_list_of_input_transactions(utxos)
 
+        print("Inputs Transaction list is created")
+
         # self.transaction_outputs: λίστα από Transaction Output
         transaction.create_list_of_output_transactions(utxos)
+
+        print("Outputs Transaction list is created")
 
         return transaction
 
@@ -95,26 +103,31 @@ class Transaction:
         # create transaction
         transaction = Transaction("", recipient_address, amount, timestamp)
 
+        # Create the transaction_outputs list with only one Output Transaction
+        transaction.transaction_outputs = [TransactionOutput(transaction.transaction_id, recipient_address, amount)]
+
         print("Generic transaction is created")
 
         return transaction
 
-    def sign_transaction(self, key):
+    def sign_transaction(self, keys):
         """
         Sign transaction with private key
         """
 
+        to_be_hashed = (str(self.timestamp) +
+                        str(self.sender_address) +
+                        str(self.recipient_address) +
+                        str(self.amount) +
+                        str(self.transaction_inputs) +
+                        str(self.transaction_outputs) +
+                        str(self.transaction_id))
+
         # Create a hash value of the whole message
-        sha_hash = SHA.new(str(self.timestamp) +
-                           str(self.sender_address) +
-                           str(self.recipient_address) +
-                           str(self.amount) +
-                           str(self.transaction_inputs) +
-                           str(self.transaction_outputs) +
-                           str(self.transaction_id))
+        sha_hash = SHA.new(to_be_hashed.encode())
 
         # Construct an instance of the crypto object
-        cipher = PKCS1_v1_5.new(key)
+        cipher = PKCS1_v1_5.new(keys)
 
         # Create and return the signature
         return cipher.sign(sha_hash)
@@ -128,7 +141,7 @@ class Transaction:
         # str(self.transaction_inputs) +
         # str(self.transaction_outputs))
 
-        sha = SHA.new(to_be_hashed.encode()) # 'utf-8'
+        sha = SHA.new(to_be_hashed.encode())  # 'utf-8'
 
         return sha.hexdigest()
 
@@ -145,8 +158,6 @@ class Transaction:
         # Then compute sender's change
         change = utxos_amount - self.amount
 
-        # FIXME: Check if the wallet has the required amount of money -- change >= 0
-
         # Create sender's output transaction
         sender_output_transaction = TransactionOutput(self.transaction_id, self.sender_address, change)
 
@@ -157,11 +168,11 @@ class Transaction:
     def create_list_of_input_transactions(utxos):
 
         # Init a set - list
-        input_transactions = set()
+        input_transactions = []
 
         # Create the input transactions and append them into a list - set
         for utxo in utxos:
-            input_transactions.add(TransactionInput(utxo.outputTransactionId))
+            input_transactions.append(TransactionInput(utxo.outputTransactionId))
 
         # Return the list of input_transactions
         return input_transactions
@@ -175,13 +186,17 @@ class TransactionOutput:
         self.outputTransactionId = self.output_transaction_hash()
 
     def output_transaction_hash(self):
+        # Value/String to be hashed
+        to_be_hashed = (str(self.transaction_id) +
+                        str(self.recipient_address) +
+                        str(self.amount))
+
         # Create id of output transaction by hashing
-        sha = SHA.new(str(self.transaction_id) +
-                      str(self.recipient_address) +
-                      str(self.amount))
+        sha = SHA.new(to_be_hashed.encode())
+
         return sha.hexdigest()
 
 
 class TransactionInput:
     def __init__(self, _previous_output_id):
-        previous_output_id = _previous_output_id
+        self.previous_output_id = _previous_output_id

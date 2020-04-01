@@ -48,9 +48,14 @@ class Blockchain:
         genesis_block = Block(len(self.chain), [first_transaction], 0, "1", 0)
         genesis_block.hash = genesis_block.compute_hash()
 
-        self.chain.append(genesis_block)
-
         print("Genesis block is created")
+
+
+        if self.add_block(genesis_block):
+            print("Genesis block is appended successfully into blockchain")
+        else:
+            print("Genesis block is NOT appended into blockchain")
+
 
 
     def create_chain_from_dump(self, chain_dump):
@@ -78,7 +83,11 @@ class Blockchain:
         * The previous_hash referred in the block and the hash of latest block
           in the chain match.
         """
-        previous_hash = self.last_block.hash
+
+        if block.index == 0:
+            previous_hash = "1"
+        else:
+            previous_hash = self.last_block().hash
 
         if previous_hash != block.previous_hash:
             return False
@@ -87,6 +96,9 @@ class Blockchain:
             return False
 
         self.chain.append(block)
+
+        # Every Time a block is added in the blockchain, node should update his list with the utxos
+        # node.update_utxos
 
         return True
 
@@ -116,8 +128,11 @@ class Blockchain:
         Check if block_hash is valid hash of block and satisfies
         the difficulty criteria.
         """
-        return (block.hash.startswith('0' * cls.difficulty) and
-                block.hash == block.compute_hash())
+        if block.index == 0:
+            return block.hash == block.compute_hash()
+        else:
+            return (block.hash.startswith('0' * cls.difficulty) and
+                    block.hash == block.compute_hash())
 
     @classmethod
     def check_chain_validity(cls, chain):
