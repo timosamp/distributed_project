@@ -29,6 +29,8 @@ class Wallet:
         # list of unspent transactions - previous output transactions
         self.utxos = []
 
+        print("Wallet is created")
+
     def wallet_address(self):
         # Return the address of the wallet's owner
         return self.address
@@ -71,9 +73,11 @@ class Wallet:
         # Sign the transaction
         transaction.sign_transaction(self.private_key)
 
-        # We need to add into wallet's utxos list the new transaction output for the change
-        # The second instance into the list is the sender's output transaction
-        self.utxos.append(transaction.transaction_outputs[1])
+        # We need to add into wallet's utxos list the new transaction output for the change  #
+        # The second instance into the list is the sender's output transaction               #
+        #                                                                                    #
+        # This line maybe shouldn't be here                                                  #
+        self.utxos.append(transaction.transaction_outputs[1])                                #
 
         # FIXME: Broadcast the transaction to the whole network
 

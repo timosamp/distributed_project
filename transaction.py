@@ -46,8 +46,6 @@ class Transaction:
         else:
             self.transaction_signature = "Not signed"
 
-
-
     def to_dict(self):
 
         # Create a list of dictionaries of transaction inputs
@@ -75,7 +73,6 @@ class Transaction:
         # Fixme: not completed
         return
 
-
     @classmethod
     def with_utxos(cls, sender_address, recipient_address, amount, timestamp, utxos):
 
@@ -93,8 +90,12 @@ class Transaction:
     @classmethod
     def generic(cls, recipient_address, amount, timestamp):
 
+        print("Start creating generic transaction")
+
         # create transaction
         transaction = Transaction("", recipient_address, amount, timestamp)
+
+        print("Generic transaction is created")
 
         return transaction
 
@@ -119,13 +120,16 @@ class Transaction:
         return cipher.sign(sha_hash)
 
     def transaction_hash(self):
-        sha = SHA.new()
-        sha.update(str(self.timestamp) +
-                   str(self.sender_address) +
-                   str(self.recipient_address) +
-                   str(self.amount))
+
+        to_be_hashed = (str(self.timestamp) +
+                        str(self.sender_address) +
+                        str(self.recipient_address) +
+                        str(self.amount))
         # str(self.transaction_inputs) +
         # str(self.transaction_outputs))
+
+        sha = SHA.new(to_be_hashed.encode()) # 'utf-8'
+
         return sha.hexdigest()
 
     def create_list_of_output_transactions(self, utxos):
@@ -176,7 +180,6 @@ class TransactionOutput:
                       str(self.recipient_address) +
                       str(self.amount))
         return sha.hexdigest()
-
 
 
 class TransactionInput:

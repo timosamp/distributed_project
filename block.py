@@ -25,16 +25,19 @@ class Block:
         self.hash = ""  # self.compute_hash()
 
     def compute_hash(self):
+
+        to_be_hashed = (str(self.index) +
+                        str(self.transactions) +
+                        str(self.timestamp) +
+                        str(self.nonce) +
+                        str(self.previous_hash))
+
         # calculate block hash value
-        sha = SHA.new(str(self.index) +
-                      str(self.transactions) +
-                      str(self.timestamp) +
-                      str(self.nonce) +
-                      str(self.previous_hash))
+        sha = SHA.new(to_be_hashed.encode())
+
         return sha.hexdigest()
 
     def to_dict(self):
-
         # Init the list of dictionaries
         list_of_transaction_dict = []
 

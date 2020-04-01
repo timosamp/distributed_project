@@ -3,15 +3,19 @@ from wallet import Wallet
 
 
 class Node:
-    def __init__(self, node_id):
+    def __init__(self, node_id: int):
+
+        print("Start creating node with id: " + str(node_id))
 
         self.current_id_count = node_id
 
         self.wallet = Wallet()
 
+        self.node_address = self.wallet.public_key
+
         self.blockchain = Blockchain()
         if node_id == 0:
-            self.blockchain.create_genesis_block()
+            self.blockchain.create_genesis_block(self.node_address)
 
         self.peers = set()
 

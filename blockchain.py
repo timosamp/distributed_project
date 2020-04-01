@@ -40,14 +40,18 @@ class Blockchain:
         the chain. The block has index 0, previous_hash as 1, nonce 0
         and a valid hash.
         """
+        print("Start creating genesis block")
 
         # Transaction with sender's wallet address 0
-        first_transaction = Transaction("0", recipient_addr, 100 * 5)
+        first_transaction = Transaction.generic(recipient_addr, 100 * 5, time.time())
 
         genesis_block = Block(len(self.chain), [first_transaction], 0, "1", 0)
         genesis_block.hash = genesis_block.compute_hash()
 
         self.chain.append(genesis_block)
+
+        print("Genesis block is created")
+
 
     def create_chain_from_dump(self, chain_dump):
         for idx, block_data in enumerate(chain_dump):
