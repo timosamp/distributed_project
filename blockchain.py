@@ -15,10 +15,80 @@ class Blockchain:
         # the address to other participating members of the network
         self.peers = []
 
-    def add_new_transaction(self, transaction):
-        # Add a new transaction which is broadcasted
-        # Fixme: Any verification?
+    # Add a new transaction which is broadcasted
+    def add_new_transaction(self, transaction, dict_nodes_utxos):
+
+        # Node's utxos list
+        nodes_utxos = dict_nodes_utxos[transaction.sender_address]
+
+        # Check if transaction is valid
+        if not self.is_transaction_valid(transaction, nodes_utxos):
+            return False
+
+        # As accepted transaction Delete the utxos from nodes' list
+        self.delete_node_utxos(transaction, nodes_utxos)
+
+        # Add transaction into blockchain's unconfirmed transactions' list
         self.unconfirmed_transactions.append(transaction)
+
+        return True
+
+    def is_transaction_valid(self, transaction, nodes_utxos):
+
+        # First check if the signature is valid
+        if not transaction.verify_transaction():
+            return False
+
+        # Check if the sender has the required utxos
+        if not self.check_node_utxos_for_transaction(transaction, nodes_utxos):
+            return False
+
+        return True
+
+
+    @staticmethod
+    def check_node_utxos_for_transaction(transaction, nodes_utxos):
+
+        # Sum of transaction inputs
+        total_input_amount = 0
+
+        # Search every transaction input into node's utxos
+        for transaction_input in transaction.transaction_inputs:
+            transaction_output_id = transaction_input.previous_output_id
+
+            utxo_taking_place = False
+
+            # Find the transaction with this id into utxos
+            for idx, o in enumerate(nodes_utxos):
+                if o.outputTransactionId == transaction_output_id:
+                    # Mark it as existed
+                    utxo_taking_place = True
+                    # Sum the total amount of coins from input transactions
+                    total_input_amount = total_input_amount + o.amount
+                    break
+
+            # Check if all input transactions are taking place
+            if not utxo_taking_place:
+                return False
+
+
+        # Check if the sum of input transactions' coins are enough
+        if total_input_amount < transaction.amount:
+            return False
+
+        return True
+
+    @staticmethod
+    def delete_node_utxos(transaction, nodes_utxos):
+        # Remove the input transaction from node's utxos list
+        for transaction_input in transaction.transaction_inputs:
+            transaction_output_id = transaction_input.previous_output_id
+
+            # Find the transaction with this id into utxos and delete it
+            for idx, o in enumerate(nodes_utxos):
+                if o.outputTransactionId == transaction_output_id:
+                    del nodes_utxos[idx]
+                    break
 
     def get_transactions(self):
         # Init the list

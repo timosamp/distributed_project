@@ -115,22 +115,28 @@ class Transaction:
         Sign transaction with private key
         """
 
-        to_be_hashed = (str(self.timestamp) +
-                        str(self.sender_address) +
-                        str(self.recipient_address) +
-                        str(self.amount) +
-                        str(self.transaction_inputs) +
-                        str(self.transaction_outputs) +
-                        str(self.transaction_id))
+        # to_be_hashed = (str(self.timestamp) +
+        #                 str(self.sender_address) +
+        #                 str(self.recipient_address) +
+        #                 str(self.amount) +
+        #                 str(self.transaction_inputs) +
+        #                 str(self.transaction_outputs) +
+        #                 str(self.transaction_id))
 
         # Create a hash value of the whole message
-        sha_hash = SHA.new(to_be_hashed.encode())
+        # sha_hash = SHA.new(to_be_hashed.encode())
+        sha_hash = self.transaction_id
 
         # Construct an instance of the crypto object
         cipher = PKCS1_v1_5.new(keys)
 
         # Create and return the signature
         self.transaction_signature = cipher.sign(sha_hash)
+
+    def verify_transaction(self):
+        # Fixme: it will appear an error for the key
+        verifier = PKCS1_v1_5.new(self.sender_address)
+        return verifier.verify(self.transaction_id, self.transaction_signature)
 
     def transaction_hash(self):
 

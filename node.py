@@ -20,7 +20,7 @@ class Node:
 
         self.peers = []
 
-        self.utxos = []
+        dict_nodes_utxos = {}
 
 
 

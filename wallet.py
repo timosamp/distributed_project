@@ -93,7 +93,7 @@ class Wallet:
         return True
 
 
-
+    # Fixme: Maybe this could be covered by the according function
     def update_utxos(self, block: Block):
 
         print("Try to update node")
