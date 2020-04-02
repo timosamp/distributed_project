@@ -21,10 +21,7 @@ CORS(app)
 
 # create a node
 node = Node(0)
-
-# Take its blockchain
 blockchain = node.blockchain
-
 # the address to other participating members of the network
 peers = node.peers
 
@@ -63,6 +60,9 @@ def new_transaction():
 # endpoint to request the node to mine the unconfirmed
 # transactions (if any). We'll be using it to initiate
 # a command to mine from our application itself.
+
+# Fixme: this function it should be maybe internal and not an API
+
 @app.route('/mine', methods=['GET'])
 def mine_unconfirmed_transactions():
     result = blockchain.mine()
@@ -165,6 +165,7 @@ def get_chain():
                        "peers": list(peers)})
 
 
+# Fixme: Where this algo should be called?
 def consensus():
     """
     Our naive consensus algorithm. If a longer valid chain is

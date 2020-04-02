@@ -37,6 +37,20 @@ class Block:
 
         return sha.hexdigest()
 
+    def proof_of_work(self, difficulty):
+        """
+        Function that tries different values of nonce to get a hash
+        that satisfies our difficulty criteria.
+        """
+        self.nonce = 0
+
+        computed_hash = self.compute_hash()
+        while not computed_hash.startswith('0' * difficulty):
+            self.nonce += 1
+            computed_hash = self.compute_hash()
+
+        self.hash = computed_hash
+
     def to_dict(self):
         # Init the list of dictionaries
         list_of_transaction_dict = []

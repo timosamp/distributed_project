@@ -4,7 +4,6 @@ import time
 
 
 class Blockchain:
-
     # difficulty of our PoW algorithm
     difficulty = 2
 
@@ -15,7 +14,6 @@ class Blockchain:
 
         # the address to other participating members of the network
         self.peers = []
-
 
     def add_new_transaction(self, transaction):
         # Add a new transaction which is broadcasted
@@ -50,13 +48,10 @@ class Blockchain:
 
         print("Genesis block is created")
 
-
         if self.add_block(genesis_block):
             print("Genesis block is appended successfully into blockchain")
         else:
             print("Genesis block is NOT appended into blockchain")
-
-
 
     def create_chain_from_dump(self, chain_dump):
         for idx, block_data in enumerate(chain_dump):
@@ -73,7 +68,6 @@ class Blockchain:
             added = self.add_block(block)
             if not added:
                 raise Exception("The chain dump is tampered!!")
-
 
     def add_block(self, block):
         """
@@ -106,21 +100,6 @@ class Blockchain:
     def last_block(self):
         # Return last block of the blockchain
         return self.chain[-1]
-
-    @staticmethod
-    def proof_of_work(block):
-        """
-        Function that tries different values of nonce to get a hash
-        that satisfies our difficulty criteria.
-        """
-        block.nonce = 0
-
-        computed_hash = block.compute_hash()
-        while not computed_hash.startswith('0' * Blockchain.difficulty):
-            block.nonce += 1
-            computed_hash = block.compute_hash()
-
-        block.hash = computed_hash
 
     @classmethod
     def is_valid_proof(cls, block):
@@ -171,7 +150,7 @@ class Blockchain:
                           nonce=0)
 
         # Find the correct nonce
-        self.proof_of_work(new_block)
+        new_block.proof_of_work(Blockchain.difficulty)
 
         # Add new block in the chain
         self.add_block(new_block)
@@ -180,3 +159,81 @@ class Blockchain:
         self.unconfirmed_transactions = []
 
         return True
+
+    def create_utxos_of_nodes(self, list_of_addresses):
+
+        # Create a dictionary of the utxos with key the address of its node in the given list.
+        # And initiate it!
+        dict_of_utxos = {}
+
+        for address in list_of_addresses:
+            # Init with an empty list
+            dict_of_utxos[address] = []
+
+        for block in self.chain:
+            self.update_utxos_of_nodes(dict_of_utxos, block)
+
+
+    @staticmethod
+    def update_utxos_of_nodes(dict_of_utxos, block):
+
+        print("Block with id: " + block.hash)
+
+        # For every transaction in the block
+        for transaction in block.transactions:
+
+            print("Transaction with id: " + transaction.transaction_id)
+
+            # Check if node is sender in this transaction
+            if transaction.sender_address in dict_of_utxos:
+
+                # Current node's address
+                node_address = transaction.sender_address
+
+                # Current node's utxos list
+                nodes_utxos = dict_of_utxos[node_address]
+
+                print("Transaction id: " + transaction.transaction_id +
+                      "\n Node with address: " + transaction.sender_address + " is sender!")
+
+                # Remove the input transaction from node's utxos list
+                for transaction_input in transaction.transaction_inputs:
+                    transaction_output_id = transaction_input.previous_output_id
+
+                    # Find the transaction with this id into utxos and delete it
+                    for idx, o in enumerate(nodes_utxos):
+                        if o.outputTransactionId == transaction_output_id:
+                            del nodes_utxos[idx]
+                            break
+
+                    # Add the output transaction to node's utxos list
+                    for transaction_output in transaction.transaction_outputs:
+
+                        # Find the correct transaction output
+                        if transaction_output.recipient_address == node_address:
+                            nodes_utxos.append(transaction_output)
+
+                dict_of_utxos[node_address] = nodes_utxos # update value
+
+            # Check if node is receiver in this transaction
+            if transaction.recipient_address in dict_of_utxos:
+
+                # Current node's address
+                node_address = transaction.sender_address
+
+                # Current node's utxos list
+                nodes_utxos = dict_of_utxos[node_address]
+
+                print("Transaction id: " + transaction.transaction_id +
+                      "\n Node with address: " + transaction.sender_address + " is receiver!")
+
+                # Then add the correct output transaction to node's utxos list
+                for transaction_output in transaction.transaction_outputs:
+
+                    # Find the correct transaction output
+                    if transaction_output.recipient_address == node_address:
+                        nodes_utxos.append(transaction_output)
+
+                dict_of_utxos[node_address] = nodes_utxos  # update value
+
+        return dict_of_utxos
