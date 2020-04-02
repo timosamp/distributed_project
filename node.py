@@ -25,53 +25,6 @@ class Node:
 
 
 
-    def update_utxos(self, block: Block):
-
-        print("Try to update node")
-
-        node_address = self.wallet.public_key
-
-        # For every transaction in the block
-        for transaction in block.transactions:
-
-            print("Transaction with id: " + transaction.transaction_id)
-
-            # Check if node is sender in this transaction
-            if node_address == transaction.sender_address:
-
-                print("Node is sender in this transaction")
-
-                # Remove the input transaction from node's utxos list
-                for transaction_input in transaction.transaction_inputs:
-                    transaction_output_id = transaction_input.previous_output_id
-
-                    # Find the transaction with this id into utxos and delete it
-                    for idx, o in enumerate(self.wallet.utxos):
-                        if o.outputTransactionId == transaction_output_id:
-                            del self.wallet.utxos[idx]
-                            break
-
-                    # Add the output transaction to node's utxos list
-                    for transaction_output in transaction.transaction_outputs:
-
-                        # Find the correct transaction output
-                        if transaction_output.recipient_address == node_address:
-                            self.wallet.utxos.append(transaction_output)
-
-            # Check if node is receiver in this transaction
-            if node_address == transaction.recipient_address:
-
-                print("Node is receiver in this transaction")
-
-                # Then add the correct output transaction to node's utxos list
-                for transaction_output in transaction.transaction_outputs:
-
-                    print("Transaction in the transaction_outputs list")
-
-                    # Find the correct transaction output
-                    if transaction_output.recipient_address == node_address:
-                        self.wallet.utxos.append(transaction_output)
-                        print("We found the correct transaction output and we add it")
 
 
     # def create_new_block(self):

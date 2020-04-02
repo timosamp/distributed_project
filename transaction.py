@@ -173,6 +173,8 @@ class Transaction:
         # Create the input transactions and append them into a list - set
         for utxo in utxos:
             input_transactions.append(TransactionInput(utxo.outputTransactionId))
+            # Fixme: here we could mark these input transactions so they can not be used for other transactions
+            # Or maybe delete them .
 
         # Return the list of input_transactions
         return input_transactions
