@@ -47,7 +47,7 @@ class Wallet:
         return total_amount
 
 
-    def sendCoinsTo(self, recipient_address, amount):
+    def sendCoinsTo(self, recipient_address, amount, node_utxos):
         # check if the sender have the amount which is trying to send (check balance)
         if self.balance() < amount:
             return False
@@ -58,13 +58,14 @@ class Wallet:
         sub_list_of_utxos = []
         utxos_amount = 0
 
-        # Iterate utxos' list, pop utxos and add their amount to the utxos_amount,
+        # Iterate utxos' list and add their amount to the utxos_amount,
         # until the required amount is reached and append them into a sub list
         # which will be given to the new transaction.
-        while utxos_amount < amount:    # Fixme: end condition
-            utxo = self.utxos.pop()
-            utxos_amount += utxo.amount
-            sub_list_of_utxos.append(utxo)
+
+        for utxo in node_utxos:
+            if utxos_amount < amount:
+                utxos_amount += utxo.amount
+                sub_list_of_utxos.append(utxo)
 
         print("UTXOs has gathered from sender.")
 
