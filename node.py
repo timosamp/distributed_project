@@ -20,6 +20,7 @@ class Node:
 
         self.peers = []
 
+        # dictionary with list of unspent transactions for each node --  key : public key of node
         dict_nodes_utxos = {}
 
 

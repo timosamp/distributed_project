@@ -27,9 +27,6 @@ class Wallet:
         # Set the public key as the wallet's adders
         self.address = self.public_key
 
-        # list of unspent transactions - previous output transactions
-        self.utxos = []
-
         print("Wallet is created")
 
     def wallet_address(self):
@@ -64,7 +61,7 @@ class Wallet:
         # Iterate utxos' list, pop utxos and add their amount to the utxos_amount,
         # until the required amount is reached and append them into a sub list
         # which will be given to the new transaction.
-        while utxos_amount < amount:
+        while utxos_amount < amount:    # Fixme: end condition
             utxo = self.utxos.pop()
             utxos_amount += utxo.amount
             sub_list_of_utxos.append(utxo)
@@ -92,55 +89,6 @@ class Wallet:
         # Return true if transaction creation and broadcast is finished successfully
         return True
 
-
-    # Fixme: Maybe this could be covered by the according function
-    def update_utxos(self, block: Block):
-
-        print("Try to update node")
-
-        node_address = self.public_key
-
-        # For every transaction in the block
-        for transaction in block.transactions:
-
-            print("Transaction with id: " + transaction.transaction_id)
-
-            # Check if node is sender in this transaction
-            if node_address == transaction.sender_address:
-
-                print("Node is sender in this transaction")
-
-                # Remove the input transaction from node's utxos list
-                for transaction_input in transaction.transaction_inputs:
-                    transaction_output_id = transaction_input.previous_output_id
-
-                    # Find the transaction with this id into utxos and delete it
-                    for idx, o in enumerate(self.utxos):
-                        if o.outputTransactionId == transaction_output_id:
-                            del self.utxos[idx]
-                            break
-
-                    # Add the output transaction to node's utxos list
-                    for transaction_output in transaction.transaction_outputs:
-
-                        # Find the correct transaction output
-                        if transaction_output.recipient_address == node_address:
-                            self.utxos.append(transaction_output)
-
-            # Check if node is receiver in this transaction
-            if node_address == transaction.recipient_address:
-
-                print("Node is receiver in this transaction")
-
-                # Then add the correct output transaction to node's utxos list
-                for transaction_output in transaction.transaction_outputs:
-
-                    print("Transaction in the transaction_outputs list")
-
-                    # Find the correct transaction output
-                    if transaction_output.recipient_address == node_address:
-                        self.utxos.append(transaction_output)
-                        print("We found the correct transaction output and we add it")
 
     @staticmethod
     def create_RSA_pairKeys():

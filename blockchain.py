@@ -26,10 +26,12 @@ class Blockchain:
             return False
 
         # As accepted transaction Delete the utxos from nodes' list
-        self.delete_node_utxos(transaction, nodes_utxos)
+        # self.delete_node_utxos(transaction, nodes_utxos) # -- not yet
 
         # Add transaction into blockchain's unconfirmed transactions' list
         self.unconfirmed_transactions.append(transaction)
+
+        # Fixme: capacity test
 
         return True
 
@@ -43,6 +45,11 @@ class Blockchain:
         if not self.check_node_utxos_for_transaction(transaction, nodes_utxos):
             return False
 
+        # Check if transaction's utxos has been used before
+        if not self.check_if_utxos_are_doublespent(transaction):
+            return False
+
+        # The transaction can be added to the new block
         return True
 
 
@@ -77,6 +84,25 @@ class Blockchain:
             return False
 
         return True
+
+
+    def check_if_utxos_are_doublespent(self, new_transaction):
+        # Iterate on unspent transaction's list
+        for old_transaction in self.unconfirmed_transactions:
+
+            # Check if the new transaction uses an utxo which has been used already by
+            # the any unconfirmed transaction that has been broadcasted before.
+            for old_transaction_input in old_transaction.transaction_inputs:
+                old_transaction_output_id = old_transaction_input.previous_output_id
+
+                for new_transaction_input in new_transaction.transaction_inputs:
+                    new_transaction_output_id = new_transaction_input.previous_output_id
+
+                    if old_transaction_output_id == new_transaction_output_id:
+                        return False
+        return True
+
+
 
     @staticmethod
     def delete_node_utxos(transaction, nodes_utxos):
@@ -139,7 +165,7 @@ class Blockchain:
             if not added:
                 raise Exception("The chain dump is tampered!!")
 
-    def add_block(self, block):
+    def add_block(self, block, dict_nodes_utxos):
         """
         A function that adds the block to the chain after verification.
         Verification includes:
@@ -147,18 +173,25 @@ class Blockchain:
         * The previous_hash referred in the block and the hash of latest block
           in the chain match.
         """
-
+        # If this is the genesis block consider previous has as "1"
         if block.index == 0:
             previous_hash = "1"
         else:
             previous_hash = self.last_block().hash
 
+        # Check if the previous has is the same with previous block's hash
         if previous_hash != block.previous_hash:
             return False
 
+        # Check the proof of work
         if not Blockchain.is_valid_proof(block):
             return False
 
+        # Then update nodes' utxos list
+        self.update_utxos_of_nodes(dict_nodes_utxos, block)
+
+
+        # Append it into blockchain
         self.chain.append(block)
 
         # Every Time a block is added in the blockchain, node should update his list with the utxos
