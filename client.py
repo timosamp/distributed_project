@@ -4,6 +4,7 @@ import click
 from node import Node
 from rest import app
 
+
 def main():
     '''Welcome to noobcash!! Type \"help\" to view usage stuff'''
     initialize()
@@ -22,6 +23,7 @@ def main():
         else:
             invalid_command()
 
+
 @click.command()
 @click.option('-p', '--port', default=22147, help='port to run the client on')
 @click.option('-b', '--bootstrap', is_flag=True, help='for bootstrap node only', )
@@ -33,13 +35,16 @@ def initialize(port, bootstrap):
         print("This is user node")
         initialize_user(port)
 
+
 def initialize_bootstrap(port):
     node = Node(0)
     blockchain = node.blockchain
     app.run(host='127.0.0.1', port=port)
 
+
 def initialize_user(port):
     return
+
 
 def transaction(str):
     args = str.split(" ")
@@ -50,17 +55,22 @@ def transaction(str):
         print("Invalid ammount of coins for transaction")
         return
 
+
 def valid_pkey(str):
     return True
+
 
 def valid_ammount(str):
     return True
 
+
 def print_balance():
     print()
 
+
 def print_view():
     print()
+
 
 def print_help():
     print(
@@ -75,11 +85,9 @@ def print_help():
         '''
     )
 
+
 def invalid_command():
     print("Invalid command. Use \"help\" to view available options.")
 
+
 main()
-
-
-
-

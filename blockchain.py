@@ -187,7 +187,9 @@ class Blockchain:
         if not Blockchain.is_valid_proof(block):
             return False
 
-        # Then update nodes' utxos list
+        # Fixme: double spent transactions?
+
+        # Then update nodes' utxos list Fixme: maybe this shouldn't be here
         self.update_utxos_of_nodes(dict_nodes_utxos, block)
 
 
