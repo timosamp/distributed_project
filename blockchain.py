@@ -10,9 +10,8 @@ class Blockchain:
     def __init__(self):
 
         self.unconfirmed_transactions = []
-        self.unconfirmed_transactions_inputs = set()
 
-        self.dict_nodes_utxos_by_block_id = dict()
+        self.dict_nodes_utxos = dict()
 
         self.chain = []
 
@@ -35,12 +34,8 @@ class Blockchain:
     # Add a new transaction which is broadcasted
     def add_new_transaction(self, transaction):
 
-        # Take the utxos of all nodes after the addition of the last block
-        previous_block_hash = self.last_block().hash
-        dict_nodes_utxos = self.dict_nodes_utxos_by_block_id[previous_block_hash]
-
         # Node's utxos list
-        node_utxos = dict_nodes_utxos[transaction.sender_address]
+        node_utxos = self.dict_nodes_utxos[transaction.sender_address]
 
         # Check if transaction is valid
         if not self.is_transaction_valid(transaction, node_utxos):
@@ -163,16 +158,17 @@ class Blockchain:
         previous_block_hash = self.last_block().hash
         dict_nodes_utxos = dict_nodes_utxos_by_block_id[previous_block_hash]
 
-        # # Then update nodes' utxos list and save the current state : Fixme: not sure if this supposed to be here
-        # self.dict_nodes_utxos = self.update_utxos_of_nodes(dict_nodes_utxos, block)
+        # Then update nodes' utxos list and save the current state. Fixme: not sure if this supposed to be here
+        self.dict_nodes_utxos = self.update_utxos_of_nodes(dict_nodes_utxos, block)
+
+        # Update unconfirmed transactions and save the undone ones
+        undone_transactions = self.update_unconfirmed_transactions()
 
         # Append it into blockchain
         self.chain.append(block)
 
-        # Fixme: update unspent transaction list
-
-        # Return the new current list of all nodes' utxos
-        return self.update_utxos_of_nodes(dict_nodes_utxos, block)
+        # Return the new current list of all nodes' utxos and the undone transactions
+        return self.dict_nodes_utxos, undone_transactions
 
     @staticmethod
     def check_validity_of_block_transactions(block, nodes_utxos):
@@ -184,6 +180,23 @@ class Blockchain:
             if not Blockchain.is_transaction_valid(transaction, copy_of_all_nodes_utxos):
                 return False
             return True
+
+    def update_unconfirmed_transactions(self):
+
+        # Save temporary the list
+        unconfirmed_transactions_to_be_updated = self.unconfirmed_transactions
+
+        # Init the list
+        self.unconfirmed_transactions = []
+
+        # Add its transaction again so to gather if its possible to be accepted
+        for unconfirmed_transaction in unconfirmed_transactions_to_be_updated:
+            if self.add_new_transaction(unconfirmed_transaction):
+                # If it is accepted, delete it.
+                unconfirmed_transactions_to_be_updated.remove(unconfirmed_transaction)
+
+        # Return a list of transactions which couldn't be accepted
+        return unconfirmed_transactions_to_be_updated
 
     @property
     def last_block(self):
