@@ -212,13 +212,13 @@ class Blockchain:
         self.dict_nodes_utxos = self.update_utxos_of_nodes(dict_nodes_utxos, block)
 
         # Update unconfirmed transactions and save the undone ones
-        undone_transactions = self.update_unconfirmed_transactions()
+        self.update_unconfirmed_transactions()
 
         # Append it into blockchain
         self.chain.append(block)
 
         # Return the new current list of all nodes' utxos and the undone transactions
-        return self.dict_nodes_utxos, undone_transactions
+        return self.dict_nodes_utxos
 
     @property
     def last_block(self):
@@ -259,8 +259,6 @@ class Blockchain:
                 # If it is accepted, delete it.
                 unconfirmed_transactions_to_be_updated.remove(unconfirmed_transaction)
 
-        # Return a list of transactions which couldn't be accepted
-        return unconfirmed_transactions_to_be_updated
 
     def mine(self):
         """
