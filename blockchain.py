@@ -119,7 +119,67 @@ class Blockchain:
         else:
             print("Genesis block is NOT appended into blockchain")
 
-    def is_block_valid(self, block, dict_nodes_utxos_by_block_id):
+    @staticmethod
+    def is_fork_valid(list_of_new_blocks, last_hash, dict_nodes_utxos_by_block_id):
+
+        # Take last hash
+        last_hash = list_of_new_blocks[0].previous_hash
+
+        # Take the utxos after the last addition
+        dict_nodes_utxos = dict_nodes_utxos_by_block_id[last_hash]
+
+        for block in list_of_new_blocks:
+
+            # If this block id valid then update nodes' utxos and previous hash value
+            if Blockchain.is_block_valid(block, last_hash, dict_nodes_utxos):
+
+                # Then update nodes' utxos list
+                dict_nodes_utxos = Blockchain.update_utxos_of_nodes(dict_nodes_utxos, block)
+
+                # And the hash value
+                last_hash = block.hash
+
+            else:
+                return False
+
+        # Return True if all the new list of blocks can be added
+        return True
+
+    def include_the_fork(self, list_of_new_blocks, dict_nodes_utxos_by_block_id):
+
+        # Take last hash
+        last_hash = list_of_new_blocks[0].previous_hash
+
+        # Take the last valid dict_nodes_utxos
+        dict_nodes_utxos = dict_nodes_utxos_by_block_id[last_hash]
+
+        # New chain initialization
+        new_chain = []
+
+        # Create new chain
+        for block in self.chain:
+            if block.previous_hash == last_hash:
+                break
+            else:
+                new_chain.append(block)
+
+        # Assign the new chain
+        self.chain = new_chain
+
+        # Add the new blocks into it
+        for block in list_of_new_blocks:
+            dict_nodes_utxos = self.add_block(block, dict_nodes_utxos)
+
+            # Save the new dict_nodes_utxos
+            dict_nodes_utxos_by_block_id[block.hash] = dict_nodes_utxos
+
+        # Return the updated dict_nodes_utxos_by_block_id to node
+        return dict_nodes_utxos_by_block_id
+
+
+
+    @staticmethod
+    def is_block_valid(block, previous_block_hash, dict_nodes_utxos):
         """
         A function that adds the block to the chain after verification.
         Verification includes:
@@ -128,35 +188,25 @@ class Blockchain:
           in the chain match.
         """
 
-        # If this is the genesis block consider previous has as "1"
-        if block.index == 0:
-            previous_hash = "1"
-        else:
-            previous_hash = self.last_block().hash
-
         # Check if the previous has is the same with previous block's hash
-        if previous_hash != block.previous_hash:
+        if previous_block_hash != block.previous_hash:
             return False
 
         # Check the proof of work
         if not Blockchain.is_valid_proof(block):
             return False
 
-        # Take the utxos of all nodes after the addition of the last block
-        previous_block_hash = self.last_block().hash
-        dict_nodes_utxos = dict_nodes_utxos_by_block_id[previous_block_hash]
-
         # Check if all transactions in the new block are valid accordingly with the validity transaction's rules.
-        if not self.check_validity_of_block_transactions(block, dict_nodes_utxos):
+        if not Blockchain.check_validity_of_block_transactions(block, dict_nodes_utxos):
             return False
 
         return True
 
-    def add_block(self, block, dict_nodes_utxos_by_block_id):
+    def add_block(self, block, dict_nodes_utxos):
 
         # Take the utxos of all nodes after the addition of the last block
-        previous_block_hash = self.last_block().hash
-        dict_nodes_utxos = dict_nodes_utxos_by_block_id[previous_block_hash]
+        # previous_block_hash = self.last_block().hash
+        # dict_nodes_utxos = dict_nodes_utxos_by_block_id[previous_block_hash]
 
         # Then update nodes' utxos list and save the current state. Fixme: not sure if this supposed to be here
         self.dict_nodes_utxos = self.update_utxos_of_nodes(dict_nodes_utxos, block)
@@ -169,6 +219,20 @@ class Blockchain:
 
         # Return the new current list of all nodes' utxos and the undone transactions
         return self.dict_nodes_utxos, undone_transactions
+
+    @property
+    def last_block(self):
+        # Return last block of the blockchain
+        return self.chain[-1]
+
+    @classmethod
+    def is_valid_proof(cls, block):
+        """
+        Check if block_hash is valid hash of block and satisfies
+        the difficulty criteria.
+        """
+        return (block.hash.startswith('0' * cls.difficulty) and
+                block.hash == block.compute_hash())
 
     @staticmethod
     def check_validity_of_block_transactions(block, nodes_utxos):
@@ -197,23 +261,6 @@ class Blockchain:
 
         # Return a list of transactions which couldn't be accepted
         return unconfirmed_transactions_to_be_updated
-
-    @property
-    def last_block(self):
-        # Return last block of the blockchain
-        return self.chain[-1]
-
-    @classmethod
-    def is_valid_proof(cls, block):
-        """
-        Check if block_hash is valid hash of block and satisfies
-        the difficulty criteria.
-        """
-        if block.index == 0:
-            return block.hash == block.compute_hash()
-        else:
-            return (block.hash.startswith('0' * cls.difficulty) and
-                    block.hash == block.compute_hash())
 
     def mine(self):
         """
@@ -308,18 +355,6 @@ class Blockchain:
         return dict_of_utxos
 
     # ----------------------------------------- Not used yet ------------------------------------------------- #
-
-    @staticmethod
-    def delete_node_utxos(transaction, nodes_utxos):
-        # Remove the input transaction from node's utxos list
-        for transaction_input in transaction.transaction_inputs:
-            transaction_output_id = transaction_input.previous_output_id
-
-            # Find the transaction with this id into utxos and delete it
-            for idx, o in enumerate(nodes_utxos):
-                if o.outputTransactionId == transaction_output_id:
-                    del nodes_utxos[idx]
-                    break
 
     def create_chain_from_dump(self, chain_dump):
         for idx, block_data in enumerate(chain_dump):
