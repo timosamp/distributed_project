@@ -3,6 +3,7 @@ from wallet import Wallet
 from block import Block
 
 
+
 class Node:
     def __init__(self, node_id: int):
 
@@ -15,6 +16,7 @@ class Node:
         self.node_address = self.wallet.public_key
 
         self.blockchain = Blockchain()
+
         if node_id == 0:
             self.blockchain.create_genesis_block(self.node_address)
 

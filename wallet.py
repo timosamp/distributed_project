@@ -38,13 +38,18 @@ class Wallet:
         total_amount = 0
 
         # Get node's utxos list from blockchain
-        utxos = blockchain.dict_nodes_utxos[self.public_key]
+        last_validated_dict_of_node = blockchain.get_valid_dict_nodes_utxos()
+        utxos = last_validated_dict_of_node[self.public_key]
+        # utxos = blockchain.dict_nodes_utxos[self.public_key]
+
+        print("Balance:")
+        print(utxos)
 
         # Iterate the utxos list and sum the whole available amount of the wallet
         for utxo in utxos:
             total_amount += utxo.amount
 
-        print("Wallet with id:\n" + str(self.public_key) + "\nhas balance: " + str(total_amount))
+        print("Wallet has balance: " + str(total_amount))
 
         # Return the total amount
         return total_amount
@@ -73,19 +78,32 @@ class Wallet:
                 utxos_amount += utxo.amount
                 sub_list_of_utxos.append(utxo)
 
+        print("Sublist of utxos")
+        print(sub_list_of_utxos)
+
+
         print("UTXOs has gathered from sender.")
 
         # Create a new transaction with receivers public key.
         # Sign this transaction with the private key of the sender's wallet.
         transaction = Transaction.with_utxos(self.address, recipient_address, amount, time.time(), sub_list_of_utxos)
 
+        print("inputs: ")
+        print(transaction.transaction_inputs)
+
         # Sign the transaction
-        transaction.sign_transaction(self.keys)
+        transaction.sign_transaction(self.private_key)
 
         print("Transaction is signed.")
 
+        print("history")
+        print(blockchain.get_valid_dict_nodes_utxos()[self.public_key])
+
         # Add transaction into blockchain
         blockchain.add_new_transaction(transaction)
+
+        print("history")
+        print(blockchain.get_valid_dict_nodes_utxos()[self.public_key])
 
         # FIXME: Broadcast the transaction to the whole network
 

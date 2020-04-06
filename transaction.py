@@ -5,7 +5,7 @@ import binascii
 import Crypto
 import Crypto.Random
 
-from Crypto.Hash import SHA
+from Crypto.Hash import SHA256
 from Crypto.Hash.SHA import SHA1Hash
 from Crypto.PublicKey import RSA
 from Crypto.Signature import PKCS1_v1_5
@@ -87,11 +87,14 @@ class Transaction:
         transaction.create_list_of_input_transactions(utxos)
 
         print("Inputs Transaction list is created")
+        print(transaction.transaction_inputs)
 
         # self.transaction_outputs: λίστα από Transaction Output
         transaction.create_list_of_output_transactions(utxos)
 
         print("Outputs Transaction list is created")
+
+        print(transaction.transaction_outputs)
 
         return transaction
 
@@ -110,33 +113,51 @@ class Transaction:
 
         return transaction
 
-    def sign_transaction(self, keys):
+    def sign_transaction(self, private_key):
         """
         Sign transaction with private key
         """
 
-        # to_be_hashed = (str(self.timestamp) +
-        #                 str(self.sender_address) +
-        #                 str(self.recipient_address) +
-        #                 str(self.amount) +
-        #                 str(self.transaction_inputs) +
-        #                 str(self.transaction_outputs) +
-        #                 str(self.transaction_id))
+        to_be_hashed = (str(self.timestamp) +
+                        str(self.sender_address) +
+                        str(self.recipient_address) +
+                        str(self.amount) +
+                        str(self.transaction_inputs) +
+                        str(self.transaction_outputs) +
+                        str(self.transaction_id))
 
         # Create a hash value of the whole message
-        # sha_hash = SHA.new(to_be_hashed.encode())
-        sha_hash = self.transaction_id
+        sha_hash = SHA256.new(to_be_hashed.encode())
+
+        # Import private key
+        key = RSA.importKey(private_key)
+
+        print(sha_hash)
 
         # Construct an instance of the crypto object
-        cipher = PKCS1_v1_5.new(keys)
+        cipher = PKCS1_v1_5.new(key)
 
         # Create and return the signature
         self.transaction_signature = cipher.sign(sha_hash)
 
     def verify_transaction(self):
         # Fixme: it will appear an error for the key
-        verifier = PKCS1_v1_5.new(self.sender_address)
-        return verifier.verify(self.transaction_id, self.transaction_signature)
+
+        to_be_hashed = (str(self.timestamp) +
+                        str(self.sender_address) +
+                        str(self.recipient_address) +
+                        str(self.amount) +
+                        str(self.transaction_inputs) +
+                        str(self.transaction_outputs) +
+                        str(self.transaction_id))
+
+        # Create a hash value of the whole message
+        sha_hash = SHA256.new(to_be_hashed.encode())
+
+        key = RSA.importKey(self.sender_address)
+
+        verifier = PKCS1_v1_5.new(key)
+        return verifier.verify(sha_hash, self.transaction_signature)
 
     def transaction_hash(self):
 
@@ -147,7 +168,7 @@ class Transaction:
         # str(self.transaction_inputs) +
         # str(self.transaction_outputs))
 
-        sha = SHA.new(to_be_hashed.encode())  # 'utf-8'
+        sha = SHA256.new(to_be_hashed.encode())  # 'utf-8'
 
         return sha.hexdigest()
 
@@ -168,10 +189,10 @@ class Transaction:
         sender_output_transaction = TransactionOutput(self.transaction_id, self.sender_address, change)
 
         # return the set of the output transactions
-        return {receiver_output_transaction, sender_output_transaction}
+        self.transaction_outputs = {receiver_output_transaction, sender_output_transaction}
 
-    @staticmethod
-    def create_list_of_input_transactions(utxos):
+
+    def create_list_of_input_transactions(self, utxos):
 
         # Init a set - list
         input_transactions = []
@@ -183,7 +204,7 @@ class Transaction:
             # Or maybe delete them .
 
         # Return the list of input_transactions
-        return input_transactions
+        self.transaction_inputs = input_transactions
 
 
 class TransactionOutput:
@@ -200,7 +221,7 @@ class TransactionOutput:
                         str(self.amount))
 
         # Create id of output transaction by hashing
-        sha = SHA.new(to_be_hashed.encode())
+        sha = SHA256.new(to_be_hashed.encode())
 
         return sha.hexdigest()
 
