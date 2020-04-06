@@ -113,7 +113,7 @@ class Blockchain:
 
         return True
 
-    def create_genesis_block(self, recipient_addr, dict_nodes_utxos):
+    def create_genesis_block(self, recipient_addr):
         """
         A function to generate genesis block and appends it to
         the chain. The block has index 0, previous_hash as 1, nonce 0
@@ -129,7 +129,7 @@ class Blockchain:
 
         print("Genesis block is created")
 
-        if self.add_block(genesis_block, dict_nodes_utxos):
+        if self.add_block(genesis_block):
             print("Genesis block is appended successfully into blockchain")
         else:
             print("Genesis block is NOT appended into blockchain")
