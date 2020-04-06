@@ -129,6 +129,7 @@ class Transaction:
         # Create a hash value of the whole message
         sha_hash = SHA256.new(to_be_hashed.encode())
 
+
         # Import private key
         key = RSA.importKey(private_key)
 

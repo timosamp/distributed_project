@@ -5,17 +5,10 @@ from block import Block
 from node import Node
 
 import json
-from collections import namedtuple
+import jsonpickle
 from json import JSONEncoder
 
 
-class StudentEncoder(JSONEncoder):
-    def default(self, o):
-        return o.__dict__
-
-
-def customStudentDecoder(obj_dict):
-    return namedtuple('X', obj_dict.keys())(*obj_dict.values())
 
 
 # create a node
@@ -32,3 +25,27 @@ if node.wallet.sendCoinsTo("Timos", 50, blockchain) is False:
     print("You doesn't have enough coins!")
 
 node.wallet.balance(blockchain)
+
+print("--------------------------- block's test ---------------------------")
+
+
+# Test for encode and decode object
+randomblock = blockchain.chain[0]
+
+blockJsonData = jsonpickle.encode(randomblock)
+print(blockJsonData)
+
+decRandomBlock = jsonpickle.decode(blockJsonData)
+print(decRandomBlock)
+
+print("--------------------------- List's test ---------------------------")
+
+# Test encoding and decoding list of objects
+listoftransacion = blockchain.unconfirmed_transactions
+
+encodeList = jsonpickle.encode(listoftransacion)
+print(encodeList)
+
+decodedList = jsonpickle.decode(encodeList)
+print(decodedList)
+
