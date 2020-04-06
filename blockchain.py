@@ -13,6 +13,8 @@ class Blockchain:
 
         self.dict_nodes_utxos = dict()
 
+        self.dict_nodes_utxos_by_block_id = dict()
+
         self.chain = []
 
         # the address to other participating members of the network
@@ -132,19 +134,19 @@ class Blockchain:
         else:
             print("Genesis block is NOT appended into blockchain")
 
-    @staticmethod
-    def is_fork_valid(list_of_new_blocks, dict_nodes_utxos_by_block_id):
+
+    def is_fork_valid(self, list_of_new_blocks):
 
         # Take last hash
         last_hash = list_of_new_blocks[0].previous_hash
 
         # Take the utxos after the last addition
-        dict_nodes_utxos = dict_nodes_utxos_by_block_id[last_hash]
+        dict_nodes_utxos = self.dict_nodes_utxos_by_block_id[last_hash]
 
         for block in list_of_new_blocks:
 
             # If this block id valid then update nodes' utxos and previous hash value
-            if Blockchain.is_block_valid(block, last_hash, dict_nodes_utxos):
+            if self.is_block_valid(block, last_hash, dict_nodes_utxos):
 
                 # Then update nodes' utxos list
                 dict_nodes_utxos = Blockchain.update_utxos_of_nodes(dict_nodes_utxos, block)
@@ -158,18 +160,15 @@ class Blockchain:
         # Return True if all the new list of blocks can be added
         return True
 
-    def include_the_fork(self, list_of_new_blocks, dict_nodes_utxos_by_block_id):
+    def include_the_fork(self, list_of_new_blocks):
 
         # Take last hash
         last_hash = list_of_new_blocks[0].previous_hash
 
-        # Take the last valid dict_nodes_utxos
-        dict_nodes_utxos = dict_nodes_utxos_by_block_id[last_hash]
-
         # New chain initialization
         new_chain = []
 
-        # Create new chain
+        # Create new chain -- copy the common part of the two blockchains into a new one
         for block in self.chain:
             if block.previous_hash == last_hash:
                 break
@@ -179,20 +178,21 @@ class Blockchain:
         # Assign the new chain
         self.chain = new_chain
 
+        # Take the last valid dict_nodes_utxos and replace the current one
+        self.dict_nodes_utxos = self.dict_nodes_utxos_by_block_id[last_hash]
+
         # Add the new blocks into it
         for block in list_of_new_blocks:
-            dict_nodes_utxos = self.add_block(block, dict_nodes_utxos)
+            self.add_block(block)
 
-            # Save the new dict_nodes_utxos
-            dict_nodes_utxos_by_block_id[block.hash] = dict_nodes_utxos
 
         # Return the updated dict_nodes_utxos_by_block_id to node
-        return dict_nodes_utxos_by_block_id
+        # return self.dict_nodes_utxos_by_block_id
 
 
 
-    @staticmethod
-    def is_block_valid(block, previous_block_hash, dict_nodes_utxos):
+
+    def is_block_valid(self, block, previous_block_hash, dict_nodes_utxos=None):
         """
         A function that adds the block to the chain after verification.
         Verification includes:
@@ -200,6 +200,10 @@ class Blockchain:
         * The previous_hash referred in the block and the hash of latest block
           in the chain match.
         """
+
+        # If dict_nodes_utxos is None, take the current one
+        if dict_nodes_utxos is None:
+            dict_nodes_utxos = self.dict_nodes_utxos
 
         # Check if the previous has is the same with previous block's hash
         if previous_block_hash != block.previous_hash:
@@ -215,23 +219,22 @@ class Blockchain:
 
         return True
 
-    def add_block(self, block, dict_nodes_utxos):
+    def add_block(self, block):
 
-        # Take the utxos of all nodes after the addition of the last block
-        # previous_block_hash = self.last_block().hash
-        # dict_nodes_utxos = dict_nodes_utxos_by_block_id[previous_block_hash]
+        # Then update nodes' utxos list and save the current state.
+        self.dict_nodes_utxos = self.update_utxos_of_nodes(self.dict_nodes_utxos, block)
 
-        # Then update nodes' utxos list and save the current state. Fixme: not sure if this supposed to be here
-        self.dict_nodes_utxos = self.update_utxos_of_nodes(dict_nodes_utxos, block)
+        # Save the new dict_nodes_utxos into history with key the new block's id
+        self.dict_nodes_utxos_by_block_id[block.hash] = self.dict_nodes_utxos
 
-        # Update unconfirmed transactions and save the undone ones
+        # Update unconfirmed transactions
         self.update_unconfirmed_transactions()
 
         # Append it into blockchain
         self.chain.append(block)
 
-        # Return the new current list of all nodes' utxos and the undone transactions
-        return self.dict_nodes_utxos
+        # Return the new current list of all nodes' utxos
+        # return self.dict_nodes_utxos
 
     @property
     def last_block(self):
