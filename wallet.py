@@ -33,12 +33,15 @@ class Wallet:
         # Return the address of the wallet's owner
         return self.address
 
-    def balance(self):
+    def balance(self, blockchain):
         # Init the amount variable
         total_amount = 0
 
+        # Get node's utxos list from blockchain
+        utxos = blockchain.dict_nodes_utxos[self.public_key]
+
         # Iterate the utxos list and sum the whole available amount of the wallet
-        for utxo in self.utxos:
+        for utxo in utxos:
             total_amount += utxo.amount
 
         print("Wallet with id:\n" + str(self.public_key) + "\nhas balance: " + str(total_amount))
@@ -47,9 +50,9 @@ class Wallet:
         return total_amount
 
 
-    def sendCoinsTo(self, recipient_address, amount, node_utxos):
+    def sendCoinsTo(self, recipient_address, amount, blockchain):
         # check if the sender have the amount which is trying to send (check balance)
-        if self.balance() < amount:
+        if self.balance(blockchain) < amount:
             return False
 
         # Collect a bunch of utxos with sum amount bigger than amount want to be sent
@@ -57,6 +60,9 @@ class Wallet:
         # Init the sub list and utxos_amount
         sub_list_of_utxos = []
         utxos_amount = 0
+
+        # Get node's utxos list from blockchain
+        node_utxos = blockchain.dict_nodes_utxos[self.public_key]
 
         # Iterate utxos' list and add their amount to the utxos_amount,
         # until the required amount is reached and append them into a sub list
@@ -78,12 +84,8 @@ class Wallet:
 
         print("Transaction is signed.")
 
-        # We need to add into wallet's utxos list the new transaction output for the change  #
-        # The second instance into the list is the sender's output transaction               #
-        #                                                                                    #
-        # This line maybe shouldn't be here                                                  #
-        # self.utxos.append(transaction.transaction_outputs[1])                              #
-        # print("Transaction is added to the utxos' list")                                   #
+        # Add transaction into blockchain
+        blockchain.add_new_transaction(transaction)
 
         # FIXME: Broadcast the transaction to the whole network
 

@@ -35,10 +35,10 @@ class Blockchain:
     def add_new_transaction(self, transaction):
 
         # Node's utxos list
-        node_utxos = self.dict_nodes_utxos[transaction.sender_address]
+        sender_utxos = self.dict_nodes_utxos[transaction.sender_address]
 
-        # Check if transaction is valid
-        if not self.is_transaction_valid(transaction, node_utxos):
+        # Check if transaction is valid, and if so update the utxo list of sender
+        if not self.is_transaction_valid(transaction, sender_utxos):
             return False
 
         # Add transaction into blockchain's unconfirmed transactions' list
@@ -64,10 +64,13 @@ class Blockchain:
 
     # Check if the node has the required utxos and amount for this transaction
     @staticmethod
-    def check_node_utxos_for_transaction(transaction, node_utxos):
+    def check_node_utxos_for_transaction(transaction, sender_utxos: list):
 
         # Sum of transaction inputs
         total_input_amount = 0
+
+        # Temporary list of used utxos
+        temp_utxos_list = []
 
         # Search every transaction input into node's utxos
         for transaction_input in transaction.transaction_inputs:
@@ -76,29 +79,39 @@ class Blockchain:
             utxo_taking_place = False
 
             # Find the transaction with this id into utxos
-            for idx, o in enumerate(node_utxos):
+            for idx, o in enumerate(sender_utxos):
                 if o.outputTransactionId == transaction_output_id:
                     # Mark it as existed
                     utxo_taking_place = True
                     # Sum the total amount of coins from input transactions
                     total_input_amount = total_input_amount + o.amount
 
+                    # Save the input value in a temporary list, so it can be recoverable if the transaction
+                    # not be accepted.
+                    temp_utxos_list.append(sender_utxos[idx])
+
                     # Delete it so if someone is going to ude it again , it's going to return wrong
-                    del node_utxos[idx]
+                    del sender_utxos[idx]
 
                     break
 
             # Check if all input transactions are taking place
             if not utxo_taking_place:
+                # if not, recover the utxo list of node
+                sender_utxos.append(temp_utxos_list)
+                # Then return that the transaction wasn't successful
                 return False
 
         # Check if the sum of input transactions' coins are enough
         if total_input_amount < transaction.amount:
+            # Then recover the utxo list of node
+            sender_utxos.append(temp_utxos_list)
+            # And return that the transaction wasn't successful
             return False
 
         return True
 
-    def create_genesis_block(self, recipient_addr):
+    def create_genesis_block(self, recipient_addr, dict_nodes_utxos):
         """
         A function to generate genesis block and appends it to
         the chain. The block has index 0, previous_hash as 1, nonce 0
@@ -114,13 +127,13 @@ class Blockchain:
 
         print("Genesis block is created")
 
-        if self.add_block(genesis_block):
+        if self.add_block(genesis_block, dict_nodes_utxos):
             print("Genesis block is appended successfully into blockchain")
         else:
             print("Genesis block is NOT appended into blockchain")
 
     @staticmethod
-    def is_fork_valid(list_of_new_blocks, last_hash, dict_nodes_utxos_by_block_id):
+    def is_fork_valid(list_of_new_blocks, dict_nodes_utxos_by_block_id):
 
         # Take last hash
         last_hash = list_of_new_blocks[0].previous_hash
