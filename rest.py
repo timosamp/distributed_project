@@ -137,6 +137,8 @@ def register_new_peers():
     if not node_address:
         return "Invalid data", 400
 
+    # Fixme: check if node has already been registered
+
     # Add the node to the peer list
     peers.add(node_address)
 

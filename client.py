@@ -11,6 +11,7 @@ import jsonpickle
 numOfClients = 5
 bootstrapIp = "http://192.168.0.1"
 
+
 def main():
     '''Welcome to noobcash!! Type \"help\" to view usage stuff'''
     initialize()
@@ -35,7 +36,7 @@ def main():
 @click.option('-b', '--bootstrap', is_flag=True, help='for bootstrap node only')
 def initialize(port, bootstrap):
     app.run(host='127.0.0.1', port=port)
-    if (bootstrap):
+    if bootstrap:
         print("This is bootstrap node")
         initialize_bootstrap(port)
     else:
@@ -46,6 +47,7 @@ def initialize(port, bootstrap):
 def initialize_bootstrap(port):
     node = Node(0)
 
+
 def initialize_user(port):
     wallet = Wallet()
     public_key_json = jsonpickle.encode(wallet.public_key)
@@ -53,8 +55,8 @@ def initialize_user(port):
     headers = {'Content-Type': "application/json"}
     print("Registering to bootstrap...")
     r = requests.post(url,
-                  data=public_key_json,
-                  headers=headers)
+                      data=public_key_json,
+                      headers=headers)
     data = r.json()
     peers = jsonpickle.decode(data['results'][0]['peers'])
     blockchain = jsonpickle.decode(data['results'][0]['blockchain'])
@@ -66,8 +68,8 @@ def initialize_user(port):
     return
 
 
-def transaction(str):
-    args = str.split(" ")
+def transaction(str_temp):
+    args = str_temp.split(" ")
     if not valid_pkey(args[1]):
         print("Invalid public key for transaction")
         return
@@ -76,11 +78,11 @@ def transaction(str):
         return
 
 
-def valid_pkey(str):
+def valid_pkey(str_temp):
     return True
 
 
-def valid_ammount(str):
+def valid_ammount(str_temp):
     return True
 
 
