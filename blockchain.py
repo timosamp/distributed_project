@@ -210,7 +210,7 @@ class Blockchain:
         # Return the updated dict_nodes_utxos_by_block_id to node
         # return self.dict_nodes_utxos_by_block_id
 
-    def is_block_valid(self, block, previous_block_hash, dict_nodes_utxos=None):
+    def is_block_valid(self, block, previous_block_hash=None, dict_nodes_utxos=None):
         """
         A function that adds the block to the chain after verification.
         Verification includes:
@@ -223,6 +223,10 @@ class Blockchain:
         if dict_nodes_utxos is None:
             last_block = self.last_block()
             dict_nodes_utxos = self.dict_nodes_utxos_by_block_id[last_block.hash]
+
+        # If last_hash is None, take the hash of the last block
+        if previous_block_hash is None:
+            previous_block_hash = (self.last_block()).hash
 
         # Check if the previous has is the same with previous block's hash
         if previous_block_hash != block.previous_hash:

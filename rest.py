@@ -14,6 +14,8 @@ from node import Node
 from wallet import Wallet
 from transaction import Transaction
 
+import jsonpickle
+
 app = Flask(__name__)
 CORS(app)
 
@@ -31,7 +33,8 @@ peers = node.peers
 def get_transactions():
     list_of_transactions = blockchain.get_transactions()
     response = {'transactions': list_of_transactions}
-    return jsonify(response), 200
+    return jsonpickle.encode(response), 200
+    # return jsonify(response), 200
 
 
 # endpoint to submit a new transaction. This will be used by
@@ -47,14 +50,78 @@ def new_transaction():
         if not tx_data.get(field):
             return "Invalid transaction data", 404
 
-    # Fixme: recover from json ?
-    temp_utxos = []
-    for utxos_str in tx_data["utxos"]:
-        temp_utxos.append()
+    incoming_transaction = jsonpickle.decode(tx_data)
 
-    blockchain.add_new_transaction(tx_data)
+    blockchain.add_new_transaction(incoming_transaction)
+
+    print("/new_transaction: ")
+    print(incoming_transaction)
 
     return "Success", 201
+
+
+def announce_new_block(block):
+    """
+    A function to announce to the network once a block has been mined.
+    Other blocks can simply verify the proof of work and add it to their
+    respective chains.
+    """
+    for peer in peers:
+        url = "{}add_block".format(peer)
+        headers = {'Content-Type': "application/json"}
+        data_json = jsonpickle.encode(block)
+
+        requests.post(url,
+                      data=data_json,
+                      headers=headers)
+
+
+# endpoint to add a block mined by someone else to
+# the node's chain. The block is first verified by the node
+# and then added to the chain.
+@app.route('/add_block', methods=['POST'])
+def verify_and_add_block():
+
+    tx_data = request.get_json()
+
+
+
+
+    block_data = request.get_json()
+    required_fields = ["index", "transactions", "timestamp", "previous_hash", "nonce"]
+
+    # Check if every field has data
+    for field in required_fields:
+        if not block_data.get(field):
+            return "Invalid transaction data", 404
+
+    # Decode object from json
+    block = jsonpickle.decode(block_data)
+
+    # Verify it
+    verified = False
+
+    # If block has the proof of work the continue with more checks.
+    # If block doesn't have valid pow, discard it.
+    if blockchain.is_valid_proof(block):
+
+        if blockchain.is_block_valid(block):
+            # If the rest test succeed then add block into blockchain
+            blockchain.add_block(block)
+
+            # Change the flag for the corresponding response
+            verified = True
+
+        else:
+            # If not, call the consesus algorithm to check
+            # if there is longer valid chain available.
+            consensus()
+
+
+    if not verified:
+        return "The block was discarded by the node", 400
+
+    return "Block added to the chain", 201
 
 
 # endpoint to request the node to mine the unconfirmed
@@ -124,26 +191,6 @@ def register_new_peers():
 #         return response.content, response.status_code
 
 
-# endpoint to add a block mined by someone else to
-# the node's chain. The block is first verified by the node
-# and then added to the chain.
-@app.route('/add_block', methods=['POST'])
-def verify_and_add_block():
-    block_data = request.get_json()
-    block = Block(block_data["index"],
-                  block_data["transactions"],
-                  block_data["timestamp"],
-                  block_data["previous_hash"],
-                  block_data["nonce"])
-
-    added = blockchain.add_block(block)
-
-    if not added:
-        return "The block was discarded by the node", 400
-
-    return "Block added to the chain", 201
-
-
 # endpoint to query unconfirmed transactions
 @app.route('/pending_tx')
 def get_pending_tx():
@@ -196,20 +243,6 @@ def consensus():
 
     # In case we still have the longest blockchain return False
     return False
-
-
-def announce_new_block(block):
-    """
-    A function to announce to the network once a block has been mined.
-    Other blocks can simply verify the proof of work and add it to their
-    respective chains.
-    """
-    for peer in peers:
-        url = "{}add_block".format(peer)
-        headers = {'Content-Type': "application/json"}
-        requests.post(url,
-                      data=json.dumps(block.__dict__, sort_keys=True),
-                      headers=headers)
 
 
 # run it once fore every node
