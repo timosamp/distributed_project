@@ -1,9 +1,15 @@
 import string
 
 import click
+import requests
+
 from node import Node
 from rest import app
+from wallet import Wallet
+import jsonpickle
 
+numOfClients = 5
+bootstrapIp = "http://192.168.0.1"
 
 def main():
     '''Welcome to noobcash!! Type \"help\" to view usage stuff'''
@@ -26,8 +32,9 @@ def main():
 
 @click.command()
 @click.option('-p', '--port', default=22147, help='port to run the client on')
-@click.option('-b', '--bootstrap', is_flag=True, help='for bootstrap node only', )
+@click.option('-b', '--bootstrap', is_flag=True, help='for bootstrap node only')
 def initialize(port, bootstrap):
+    app.run(host='127.0.0.1', port=port)
     if (bootstrap):
         print("This is bootstrap node")
         initialize_bootstrap(port)
@@ -38,11 +45,24 @@ def initialize(port, bootstrap):
 
 def initialize_bootstrap(port):
     node = Node(0)
-    blockchain = node.blockchain
-    app.run(host='127.0.0.1', port=port)
-
 
 def initialize_user(port):
+    wallet = Wallet()
+    public_key_json = jsonpickle.encode(wallet.public_key)
+    url = bootstrapIp
+    headers = {'Content-Type': "application/json"}
+    print("Registering to bootstrap...")
+    r = requests.post(url,
+                  data=public_key_json,
+                  headers=headers)
+    data = r.json()
+    peers = jsonpickle.decode(data['results'][0]['peers'])
+    blockchain = jsonpickle.decode(data['results'][0]['blockchain'])
+    node_id = data['results'][0]['node_id']
+
+    node = Node(node_id)
+    node.blockchain = blockchain
+    node.peers = peers
     return
 
 

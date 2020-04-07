@@ -226,7 +226,6 @@ class TransactionOutput:
 
         return sha.hexdigest()
 
-
 class TransactionInput:
     def __init__(self, _previous_output_id):
         self.previous_output_id = _previous_output_id
