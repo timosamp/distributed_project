@@ -159,10 +159,27 @@ class Blockchain:
 
 
     # Return the first hash before the fork
-    def first_fork_hash(self, chain_hashes_set: set):
+    def first_fork_hash(self, chain_hashes_list):
+
+        chain_hashes_set = set(chain_hashes_list)
+
+        first_common_hash = ""
+        first_dif_hash = ""
+
+        # Find the last common hash
         for block in reversed(self.chain):
             if block.hash in chain_hashes_set:
-                return block.hash
+                first_common_hash = block.hash
+
+        # Find first different hash
+        for block_hash in reversed(chain_hashes_list):
+            if block_hash != first_common_hash:
+                first_dif_hash = block_hash
+
+        # Return beginning of fork
+        return first_dif_hash
+
+
 
     def is_fork_valid(self, list_of_new_blocks):
 
