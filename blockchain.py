@@ -158,8 +158,11 @@ class Blockchain:
         print("Genesis block is appended successfully into blockchain")
 
 
-    # def first_fork_hash(self, chain_hashes_list):
-
+    # Return the first hash before the fork
+    def first_fork_hash(self, chain_hashes_set: set):
+        for block in reversed(self.chain):
+            if block.hash in chain_hashes_set:
+                return block.hash
 
     def is_fork_valid(self, list_of_new_blocks):
 
@@ -272,7 +275,6 @@ class Blockchain:
 
         # Return the new current list of all nodes' utxos
         # return self.dict_nodes_utxos
-
 
     def last_block(self):
         # Return last block of the blockchain
