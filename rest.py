@@ -81,12 +81,6 @@ def announce_new_block(block):
 # and then added to the chain.
 @app.route('/add_block', methods=['POST'])
 def verify_and_add_block():
-
-    tx_data = request.get_json()
-
-
-
-
     block_data = request.get_json()
     required_fields = ["index", "transactions", "timestamp", "previous_hash", "nonce"]
 
@@ -117,12 +111,78 @@ def verify_and_add_block():
             # if there is longer valid chain available.
             consensus()
 
-
     if not verified:
         return "The block was discarded by the node", 400
 
     return "Block added to the chain", 201
 
+
+# Endpoint to return the node's copy of the chain.
+# Our application will be using this endpoint to register a node
+@app.route('/chain', methods=['GET'])
+def get_chain():
+    chain_len = len(blockchain.chain)
+    chain_json = jsonpickle.encode(blockchain.chain)
+    list_of_peers = list(peers)
+
+    return json.dumps({"length": chain_len,
+                       "chain": chain_json,
+                       "peers": list_of_peers})
+
+
+# Get the chain only by hashes.
+# This endpoint will be used by our app
+# for find the longest chain in consesus algorithm
+
+@app.route('/chain_by_hashes', methods=['GET'])
+def get_chain_by_hashes():
+    chain_len = len(blockchain.chain)
+
+    chain_hashes = []
+
+    for block in blockchain.chain:
+        chain_hashes.append(block.hash)
+
+    chain_hashes_json = jsonpickle.encode(chain_hashes)
+
+    return json.dumps({"length": chain_len,
+                       "chain": chain_hashes_json})
+
+
+# Fixme: Where this algorithm should be called?
+def consensus():
+    """
+    Our naive consensus algorithm. If a longer valid chain is
+    found, our chain is replaced with it.
+    """
+    global blockchain
+
+    longest_chain = None
+    current_len = len(blockchain.chain)
+
+    for peer in peers:
+        # Ask others for their blockchain
+        response = requests.get('{}chain'.format(peer))
+
+        # Reformat from json
+        length = response.json()['length']
+        chain = response.json()['chain']
+
+        # If we do not have the longest chain, replace it
+        if length > current_len and blockchain.check_chain_validity(chain):
+            current_len = length
+            longest_chain = chain
+
+    if longest_chain:
+        # Fixme: we copy all the block chain object or only the chain
+        blockchain.chain = longest_chain
+        return True
+
+    # In case we still have the longest blockchain return False
+    return False
+
+
+# -------------------------------------------- the above are fixed --------------------------------------------- #
 
 # endpoint to request the node to mine the unconfirmed
 # transactions (if any). We'll be using it to initiate
@@ -195,54 +255,6 @@ def register_new_peers():
 @app.route('/pending_tx')
 def get_pending_tx():
     return json.dumps(blockchain.unconfirmed_transactions)
-
-
-# endpoint to return the node's copy of the chain.
-# Our application will be using this endpoint to query
-# all the posts to display.
-@app.route('/chain', methods=['GET'])
-def get_chain():
-    chain_data = []
-
-    for block in blockchain.chain:
-        chain_data.append(block.__dict__)
-
-    return json.dumps({"length": len(chain_data),
-                       "chain": chain_data,
-                       "peers": list(peers)})
-
-
-# Fixme: Where this algo should be called?
-def consensus():
-    """
-    Our naive consensus algorithm. If a longer valid chain is
-    found, our chain is replaced with it.
-    """
-    global blockchain
-
-    longest_chain = None
-    current_len = len(blockchain.chain)
-
-    for peer in peers:
-        # Ask others for their blockchain
-        response = requests.get('{}chain'.format(peer))
-
-        # Reformat from json
-        length = response.json()['length']
-        chain = response.json()['chain']
-
-        # If we do not have the longest chain, replace it
-        if length > current_len and blockchain.check_chain_validity(chain):
-            current_len = length
-            longest_chain = chain
-
-    if longest_chain:
-        # Fixme: we copy all the block chain object or only the chain
-        blockchain.chain = longest_chain
-        return True
-
-    # In case we still have the longest blockchain return False
-    return False
 
 
 # run it once fore every node

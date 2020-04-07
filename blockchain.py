@@ -157,6 +157,10 @@ class Blockchain:
         self.add_block(genesis_block)
         print("Genesis block is appended successfully into blockchain")
 
+
+    # def first_fork_hash(self, chain_hashes_list):
+
+
     def is_fork_valid(self, list_of_new_blocks):
 
         # Take last hash
@@ -226,7 +230,12 @@ class Blockchain:
 
         # If last_hash is None, take the hash of the last block
         if previous_block_hash is None:
-            previous_block_hash = (self.last_block()).hash
+
+            # If this block is the genesis
+            if block.previous_hash == "1":
+                previous_block_hash = "1"
+            else:
+                previous_block_hash = (self.last_block()).hash
 
         # Check if the previous has is the same with previous block's hash
         if previous_block_hash != block.previous_hash:
@@ -275,8 +284,12 @@ class Blockchain:
         Check if block_hash is valid hash of block and satisfies
         the difficulty criteria.
         """
-        return (block.hash.startswith('0' * cls.difficulty) and
-                block.hash == block.compute_hash())
+        # If this block is the genesis
+        if block.previous_hash == "1":
+            return block.hash == block.compute_hash()
+        else:
+            return (block.hash.startswith('0' * cls.difficulty) and
+                    block.hash == block.compute_hash())
 
     @staticmethod
     def check_validity_of_block_transactions(block, nodes_utxos):
