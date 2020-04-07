@@ -149,6 +149,28 @@ def get_chain_by_hashes():
                        "chain": chain_hashes_json})
 
 
+@app.route('/get_block_from', methods=['POST'])
+def get_blocks_from():
+    hash_data = request.get_json()
+
+    # Save first hash of node's fork
+    first_fork_hash = jsonpickle.decode(hash_data.get("first_fork_hash"))
+
+    # Init list
+    fork_blocks = []
+
+    # Collect fork's block
+    for block in reversed(blockchain.chain):
+        if block.hash != first_fork_hash:
+            fork_blocks.append(block)
+        else:
+            break
+
+    fork_blocks_json = jsonpickle.encode(fork_blocks)
+
+    return json.dumps({"fork_blocks": fork_blocks_json})
+
+
 # Fixme: Where this algorithm should be called?
 def consensus():
     """
@@ -160,26 +182,52 @@ def consensus():
     longest_chain = None
     current_len = len(blockchain.chain)
 
+    # Init flag
+    flag = False
+
     for peer in peers:
         # Ask others for their blockchain
-        response = requests.get('{}chain'.format(peer))
+        response = requests.get('{}chain_by_hash'.format(peer))
 
         # Reformat from json
         length = response.json()['length']
-        chain = response.json()['chain']
+        chain_hashes = jsonpickle.decode(response.json()['chain'])
 
         # If we do not have the longest chain, replace it
-        if length > current_len and blockchain.check_chain_validity(chain):
-            current_len = length
-            longest_chain = chain
+        if length > current_len:
+            # Find the first block of the other's fork
+            fork_hash = blockchain.first_fork_hash(chain_hashes)
 
-    if longest_chain:
-        # Fixme: we copy all the block chain object or only the chain
-        blockchain.chain = longest_chain
-        return True
+            # Ask him for the blocks
+
+            url = "{}get_block_from".format(peer)
+            headers = {'Content-Type': "application/json"}
+            data_json = {"first_fork_hash": jsonpickle.encode(fork_hash)}
+
+            response = requests.post(url,
+                                     data=data_json,
+                                     headers=headers)
+
+            # Take the a list of fork's block in json form
+            fork_blocks_list_json = response.json()["fork_blocks"]
+
+            # Decode them
+            fork_blocks_list = jsonpickle.decode(fork_blocks_list_json)
+
+            # Check if it is valid fork, if not continue asking the rest peers
+            if blockchain.is_fork_valid(fork_blocks_list):
+                # if so, include it in our chain
+                blockchain.include_the_fork(fork_blocks_list)
+
+                # Take the new length
+                current_len = len(blockchain.chain)
+
+                # And assign True in the flag
+                flag = True
+
 
     # In case we still have the longest blockchain return False
-    return False
+    return flag
 
 
 # -------------------------------------------- the above are fixed --------------------------------------------- #
