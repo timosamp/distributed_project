@@ -157,7 +157,6 @@ class Blockchain:
         self.add_block(genesis_block)
         print("Genesis block is appended successfully into blockchain")
 
-
     # Return the first hash before the fork
     def first_fork_hash(self, chain_hashes_list):
 
@@ -178,8 +177,6 @@ class Blockchain:
 
         # Return beginning of fork
         return first_dif_hash
-
-
 
     def is_fork_valid(self, list_of_new_blocks):
 
@@ -441,21 +438,21 @@ class Blockchain:
 
     # ----------------------------------------- Not used yet ------------------------------------------------- #
 
-    def create_chain_from_dump(self, chain_dump):
-        for idx, block_data in enumerate(chain_dump):
-            if idx == 0:
-                continue  # skip genesis block
-            block = Block(block_data["index"],
-                          block_data["transactions"],
-                          block_data["timestamp"],
-                          block_data["previous_hash"],
-                          block_data["nonce"])
+    @classmethod
+    def create_chain_from_list(cls, chain):
 
-            block.hash = block_data['hash']
+        # Init a blockchain list
+        blockchain = Blockchain()
 
-            added = self.add_block(block)
-            if not added:
+        for block in chain:
+
+            if blockchain.is_fork_valid(block) is True:
+                blockchain.add_block(block)
+            else:
                 raise Exception("The chain dump is tampered!!")
+
+        return blockchain
+
 
     @classmethod
     def check_chain_validity(cls, chain):

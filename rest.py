@@ -1,5 +1,5 @@
 # https://github.com/satwikkansal/python_blockchain_app/blob/master/node_server.py
-
+import flask
 import requests
 from flask import Flask, jsonify, request, render_template
 from flask_cors import CORS
@@ -130,10 +130,69 @@ def get_chain():
                        "peers": list_of_peers})
 
 
+# endpoint to add new peers to the network.
+@app.route('/register_node', methods=['POST'])
+def register_new_peers():
+    node_address = request.get_json()["node_address"]
+    if not node_address:
+        return "Invalid data", 400
+
+    # Add the node to the peer list
+    peers.add(node_address)
+
+    # Return the consensus blockchain to the newly registered node
+    # so that he can sync
+    return get_chain()
+
+
+# This function is called so node to be registered and synced with bootstrap node
+def register_with_bootstrap():
+    """
+    Internally calls the `register_node` endpoint to
+    register current node with the node specified in the
+    request, and sync the blockchain as well as peer data.
+    """
+    # Use the global variables
+    global blockchain
+    global peers
+
+    node_address = request.get_json()["node_address"]
+    if not node_address:
+        return "Invalid data", 400
+
+    data = {"node_address": flask.request.host_url}
+    headers = {'Content-Type': "application/json"}
+
+    # Make a request to register with remote node and obtain information
+    response = requests.post(node_address + "/register_node",
+                             data=json.dumps(data), headers=headers)
+
+    if response.status_code == 200:
+
+        # Try to update chain
+        chain_list = jsonpickle.decode(response.json()['chain'])
+
+        try:
+            blockchain = Blockchain.create_chain_from_list(chain_list)
+        except Exception as e:
+
+            # if chain is tempered, then return False
+            print(str(e))
+            return False
+
+        # Update peers list
+        peers.update(response.json()['peers'])
+
+        # Return True if blockchain is created
+        return True
+    else:
+        # if something goes wrong, return wrong
+        return False
+
+
 # Get the chain only by hashes.
 # This endpoint will be used by our app
 # for find the longest chain in consesus algorithm
-
 @app.route('/chain_by_hashes', methods=['GET'])
 def get_chain_by_hashes():
     chain_len = len(blockchain.chain)
@@ -179,7 +238,6 @@ def consensus():
     """
     global blockchain
 
-    longest_chain = None
     current_len = len(blockchain.chain)
 
     # Init flag
@@ -225,7 +283,6 @@ def consensus():
                 # And assign True in the flag
                 flag = True
 
-
     # In case we still have the longest blockchain return False
     return flag
 
@@ -251,52 +308,6 @@ def mine_unconfirmed_transactions():
             # announce the recently mined block to the network
             announce_new_block(blockchain.last_block)
         return "Block #{} is mined.".format(blockchain.last_block.index)
-
-
-# endpoint to add new peers to the network.
-@app.route('/register_node', methods=['POST'])
-def register_new_peers():
-    node_address = request.get_json()["node_address"]
-    if not node_address:
-        return "Invalid data", 400
-
-    # Add the node to the peer list
-    peers.add(node_address)
-
-    # Return the consensus blockchain to the newly registered node
-    # so that he can sync
-    return get_chain()
-
-
-# @app.route('/register_with', methods=['POST'])
-# def register_with_existing_node():
-#     """
-#     Internally calls the `register_node` endpoint to
-#     register current node with the node specified in the
-#     request, and sync the blockchain as well as peer data.
-#     """
-#     node_address = request.get_json()["node_address"]
-#     if not node_address:
-#         return "Invalid data", 400
-#
-#     data = {"node_address": request.host_url}
-#     headers = {'Content-Type': "application/json"}
-#
-#     # Make a request to register with remote node and obtain information
-#     response = requests.post(node_address + "/register_node",
-#                              data=json.dumps(data), headers=headers)
-#
-#     if response.status_code == 200:
-#         global blockchain
-#         global peers
-#         # update chain and the peers
-#         chain_dump = response.json()['chain']
-#         blockchain = create_chain_from_dump(chain_dump)
-#         peers.update(response.json()['peers'])
-#         return "Registration successful", 200
-#     else:
-#         # if something goes wrong, pass it on to the API response
-#         return response.content, response.status_code
 
 
 # endpoint to query unconfirmed transactions
