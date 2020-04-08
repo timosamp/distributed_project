@@ -61,24 +61,18 @@ def main(port, bootstrap):
     # tis antistoixes sinartiseis tou node gia na parei
     # to balance, teleutaia transactions
 
-    thr1 = Thread(target=client_input_loop(), args=[])
-
-    # thr2 = Thread(target=start_app(port), args=[port])
-    # thr2.start()
-    # sleep(0.5)
-    # thr1.start()
-    # thr1.join()
-    # thr2.join()
-
-    thr1.start()
+    thr = Thread(target=client_input_loop(), args=[])
 
     app.run(host='127.0.0.1', debug=True, port=port)
 
-    exit()
+
+    # thr.start()
 
 
-def start_app(port):
-    app.run(host='127.0.0.1', debug=True, port=port)
+    # thr.join()
+
+    # exit()
+
 
 
 def client_input_loop():  # maybe: ,node
@@ -88,7 +82,7 @@ def client_input_loop():  # maybe: ,node
         node = global_variable.node
 
         # node.print_balance()
-        node.wallet.balance(node.blockchain)
+        # node.wallet.balance(node.blockchain)
 
     sleep(0.5)
     print("Client started...")
@@ -104,7 +98,7 @@ def client_input_loop():  # maybe: ,node
             client_transaction(str)
         elif str in {'q', 'quit', 'e', 'exit'}:
             print("Exiting...")
-            exit()
+            # exit()
             return
         elif str == "\n":
             continue
@@ -130,8 +124,13 @@ def register_with_bootstrap():
     headers = {'Content-Type': "application/json"}
     url = "{}/register_node".format(bootstrapIp)
 
+    print("mexri edw ok")
+
     # Make a request to register with remote node and obtain information
     response = requests.post(url, data=json.dumps(data), headers=headers)
+
+    print("mexri edw ok")
+
 
     if response.status_code == 200:
 
