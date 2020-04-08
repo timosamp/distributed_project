@@ -20,7 +20,7 @@ app = Flask(__name__)
 CORS(app)
 
 numOfClients = 5
-bootstrapIp = "http://127.0.0.1::22147"
+bootstrapIp = "http://127.0.0.1:22147"
 
 
 @click.command()
@@ -59,7 +59,7 @@ def client_input_loop():  # maybe: ,node
         global node
 
         # node.print_balance()
-        node.wallet.balance()
+        node.wallet.balance(node.blockchain)
 
     sleep(0.5)
     print("Client started...")
