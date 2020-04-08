@@ -42,6 +42,10 @@ CORS(app)
 # get all transactions in the blockchain
 @app.route('/transactions/get', methods=['GET'])
 def get_transactions():
+
+    node = global_variable.node
+
+
     list_of_transactions = node.blockchain.get_transactions()
     response = {'transactions': list_of_transactions}
     return jsonpickle.encode(response), 200
@@ -52,6 +56,9 @@ def get_transactions():
 # our application to add new data (posts) to the blockchain
 @app.route('/new_transaction', methods=['POST'])
 def new_transaction():
+
+    node = global_variable.node
+
     tx_data = request.get_json()
     required_fields = ["sender_address", "recipient_address", "amount", "timestamp",
                        "transaction_inputs", "transaction_outputs", "signature"]
@@ -77,6 +84,9 @@ def announce_new_block(block):
     Other blocks can simply verify the proof of work and add it to their
     respective chains.
     """
+
+    node = global_variable.node
+
     for peer in node.peers:
         url = "{}add_block".format(peer)
         headers = {'Content-Type': "application/json"}
@@ -92,6 +102,8 @@ def announce_new_block(block):
 # and then added to the chain.
 @app.route('/add_block', methods=['POST'])
 def verify_and_add_block():
+    node = global_variable.node
+
     block_data = request.get_json()
     required_fields = ["index", "transactions", "timestamp", "previous_hash", "nonce"]
 
@@ -132,17 +144,23 @@ def verify_and_add_block():
 # Our application will be using this endpoint to register a node
 @app.route('/chain', methods=['GET'])
 def get_node_data():
-    chain_len = len(global_variable.node.blockchain.chain)
-    chain_json = jsonpickle.encode(global_variable.node.blockchain.chain)
+
+    node = global_variable.node
+
+
+    chain_len = len(node.blockchain.chain)
+    chain_json = jsonpickle.encode(node.blockchain.chain)
 
     return json.dumps({"length": chain_len,
                        "chain": chain_json,
-                       "peers": global_variable.node.peers})
+                       "peers": node.peers})
 
 
 # endpoint to add new peers to the network.
 @app.route('/register_node', methods=['POST'])
 def register_new_peers():
+
+    node = global_variable.node
 
 
     print("oreaaaaaaaaaaaaaaaaaaa")
@@ -170,7 +188,7 @@ def register_new_peers():
     # Add it into the peer's list
     # global node
     # node.peers.append(node_register_data)
-    global_variable.node.peers.append(node_register_data)
+    node.peers.append(node_register_data)
 
     # Fixme: check if node has already been registered
     # while len(node.peers) < 1:
@@ -184,6 +202,9 @@ def register_new_peers():
 # for find the longest chain in consesus algorithm
 @app.route('/chain_by_hashes', methods=['GET'])
 def get_chain_by_hashes():
+
+    node = global_variable.node
+
     chain_len = len(node.blockchain.chain)
 
     chain_hashes = []
@@ -199,6 +220,9 @@ def get_chain_by_hashes():
 
 @app.route('/get_block_from', methods=['POST'])
 def get_blocks_from():
+
+    node = global_variable.node
+
     hash_data = request.get_json()
 
     # Save first hash of node's fork
@@ -226,6 +250,9 @@ def consensus():
     found, our chain is replaced with it.
     """
     # global blockchain
+
+    node = global_variable.node
+
 
     current_len = len(node.blockchain.chain)
 

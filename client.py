@@ -71,6 +71,8 @@ def client_input_loop():  # maybe: ,node
     with app.app_context():
         # global node
 
+        node = global_variable.node
+
         # node.print_balance()
         node.wallet.balance(node.blockchain)
 
@@ -79,15 +81,16 @@ def client_input_loop():  # maybe: ,node
     while True:
         str = input(">>")
         if str in {'balance', 'b'}:
-            node.print_balance()
+            node.wallet.balance(node.blockchain)
         elif str in {'view', 'v'}:
-            node.print_view()
+            print(node.blockchain.get_transactions())
         elif str in {'help', 'h'}:
             print_help()
         elif str.startswith('t'):
             client_transaction(str)
         elif str in {'q', 'quit', 'e', 'exit'}:
             print("Exiting...")
+            exit()
             return
         elif str == "\n":
             continue
