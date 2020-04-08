@@ -10,27 +10,30 @@ from flask_cors import CORS
 
 import json
 
-
 from node import Node
 from wallet import Wallet
 import jsonpickle
 from blockchain import Blockchain
 
-app = Flask(__name__)
-CORS(app)
+# app = Flask(__name__)
+# CORS(app)
+
+from rest import app
 
 numOfClients = 5
 bootstrapIp = "http://127.0.0.1:22147"
+
+global node
 
 
 @click.command()
 @click.option('-p', '--port', default=22147, help='port to run the client on')
 @click.option('-b', '--bootstrap', is_flag=True, help='for bootstrap node only')
 def main(port, bootstrap):
-    global node
-
-    if (bootstrap):
+    if bootstrap:
         print("This is bootstrap node")
+
+        global node
 
         wallet = Wallet()
 
@@ -40,7 +43,11 @@ def main(port, bootstrap):
         # transactions
     else:
         print("This is user node")
-        register_with_bootstrap()
+
+        if register_with_bootstrap() is False:
+            print("Problem establishing connecion -- exit")
+            exit()
+
         # edw perimenoume anagastika na mas apantisei o bootstrap
         # to register request
 
@@ -49,14 +56,14 @@ def main(port, bootstrap):
     # to balance, teleutaia transactions
     thr = Thread(target=client_input_loop, args=[])
     thr.start()
-    app.run(host='127.0.0.1', port=port)
+    app.run(host='127.0.0.1', debug=True, port=port)
 
     thr.join()
 
 
 def client_input_loop():  # maybe: ,node
     with app.app_context():
-        global node
+        # global node
 
         # node.print_balance()
         node.wallet.balance(node.blockchain)
@@ -82,6 +89,67 @@ def client_input_loop():  # maybe: ,node
             print_invalid_command()
 
 
+# This function is called so node to be registered and synced with bootstrap node
+def register_with_bootstrap():
+    """
+    Internally calls the `register_node` endpoint to
+    register current node with the node specified in the
+    request, and sync the blockchain as well as peer data.
+    """
+    # Use the global variables
+
+    # global node
+    wallet = Wallet()
+    global bootstrapIp
+
+    # Init request's parameters
+    data = {"public_key": str(wallet.public_key)}
+    headers = {'Content-Type': "application/json"}
+    url = "{}/register_node".format(bootstrapIp)
+
+    # Make a request to register with remote node and obtain information
+    response = requests.post(url, data=json.dumps(data), headers=headers)
+
+    if response.status_code == 200:
+
+        # Try to update chain
+        chain_list = jsonpickle.decode(response.json()['chain'])
+        peers = response.json()['peers']
+
+        # Search index of node's ip address
+        node_id = (idx for idx, x in enumerate(peers) if x[0] == wallet.public_key)
+
+        try:
+
+            global node
+
+            # Then create a node
+            node = Node(node_id, wallet)
+
+            print("Node has created")
+
+            # And try to create blockchain
+            node.blockchain = Blockchain.create_chain_from_list(chain_list)
+
+            print("Blockchain is created")
+
+            # Update peers list
+            node.peers.update(response.json()['peers'])
+            print("Peers has updated")
+
+        except Exception as e:
+
+            # if chain is tempered, then return False
+            print(str(e))
+            return False
+
+        # Return True if blockchain is created
+        return True
+    else:
+        # if something goes wrong, return wrong
+        return False
+
+
 def register_user_request(port):
     global node
     # kainourgio public & private key
@@ -104,65 +172,6 @@ def register_user_request(port):
     node.blockchain = blockchain
     node.peers = peers
     return
-
-
-# This function is called so node to be registered and synced with bootstrap node
-def register_with_bootstrap():
-    """
-    Internally calls the `register_node` endpoint to
-    register current node with the node specified in the
-    request, and sync the blockchain as well as peer data.
-    """
-    # Use the global variables
-
-
-    global node
-    wallet = Wallet()
-    global bootstrapIp
-
-
-    data = {"public_key": wallet.public_key}
-    headers = {'Content-Type': "application/json"}
-
-    # Make a request to register with remote node and obtain information
-    response = requests.post(bootstrapIp + "/register_node",
-                             data=data, headers=headers)
-
-    if response.status_code == 200:
-
-        # Try to update chain
-        chain_list = jsonpickle.decode(response.json()['chain'])
-        peers = response.json()['peers']
-
-        # Search index of node's ip address
-        node_id = (idx for idx, x in enumerate(peers) if x[0] == wallet.public_key)
-
-
-        try:
-
-            # Then create a node
-            node = Node(node_id, wallet)
-
-            # And try to create blockchain
-            node.blockchain = Blockchain.create_chain_from_list(chain_list)
-
-            # Update peers list
-            node.peers.update(response.json()['peers'])
-
-        except Exception as e:
-
-            # if chain is tempered, then return False
-            print(str(e))
-            return False
-
-
-        # Return True if blockchain is created
-        return True
-    else:
-        # if something goes wrong, return wrong
-        return False
-
-
 
 
 # Sunarthsh gia na kanei o client transaction
@@ -220,8 +229,6 @@ def print_invalid_command():
 
 def print_transaction_help():
     print("t <recipient_address> <amount>      Transfer coins to public key specified")
-
-
 
 
 main()

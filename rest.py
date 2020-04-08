@@ -14,28 +14,29 @@ from node import Node
 from wallet import Wallet
 from transaction import Transaction
 
-from test_threads_flask import node, app
+# from test_threads_flask import node, app
 
 import jsonpickle
 
-# app = Flask(__name__)
-# CORS(app)
+app = Flask(__name__)
+CORS(app)
 
+global node
 # .......................................................................................
 
 # # create a node
 # node = Node(0)
 
 # Take the blockchain of node (import from client)
-blockchain = node.blockchain
+# blockchain = node.blockchain
 # the address to other participating members of the network
-peers = node.peers
+# peers = node.peers
 
 
 # get all transactions in the blockchain
 @app.route('/transactions/get', methods=['GET'])
 def get_transactions():
-    list_of_transactions = blockchain.get_transactions()
+    list_of_transactions = node.blockchain.get_transactions()
     response = {'transactions': list_of_transactions}
     return jsonpickle.encode(response), 200
     # return jsonify(response), 200
@@ -56,7 +57,7 @@ def new_transaction():
 
     incoming_transaction = jsonpickle.decode(tx_data)
 
-    blockchain.add_new_transaction(incoming_transaction)
+    node.blockchain.add_new_transaction(incoming_transaction)
 
     print("/new_transaction: ")
     print(incoming_transaction)
@@ -70,7 +71,7 @@ def announce_new_block(block):
     Other blocks can simply verify the proof of work and add it to their
     respective chains.
     """
-    for peer in peers:
+    for peer in node.peers:
         url = "{}add_block".format(peer)
         headers = {'Content-Type': "application/json"}
         data_json = jsonpickle.encode(block)
@@ -101,11 +102,11 @@ def verify_and_add_block():
 
     # If block has the proof of work the continue with more checks.
     # If block doesn't have valid pow, discard it.
-    if blockchain.is_valid_proof(block):
+    if node.blockchain.is_valid_proof(block):
 
-        if blockchain.is_block_valid(block):
+        if node.blockchain.is_block_valid(block):
             # If the rest test succeed then add block into blockchain
-            blockchain.add_block(block)
+            node.blockchain.add_block(block)
 
             # Change the flag for the corresponding response
             verified = True
@@ -139,8 +140,17 @@ def register_new_peers():
 
     # global node
 
+
+    print("oreaaaaaaaaaaaaaaaaaaa")
+
+
     # Get node's public key
-    public_key = request.get_json()["public_key"]
+
+    req_data = request.get_json()
+    public_key = req_data["public_key"]
+    print(str(public_key))
+
+
     if not public_key:
         return "Invalid data", 400
 
@@ -148,7 +158,7 @@ def register_new_peers():
     ip_address = request.remote_addr
     remote_port = request.environ.get('REMOTE_PORT')
 
-    node_net_address = ip_address + "::" + remote_port
+    node_net_address = str(ip_address) + ":" + str(remote_port)
 
     # Build tuple for peer's list
     node_register_data = (public_key, node_net_address)
@@ -168,11 +178,11 @@ def register_new_peers():
 # for find the longest chain in consesus algorithm
 @app.route('/chain_by_hashes', methods=['GET'])
 def get_chain_by_hashes():
-    chain_len = len(blockchain.chain)
+    chain_len = len(node.blockchain.chain)
 
     chain_hashes = []
 
-    for block in blockchain.chain:
+    for block in node.blockchain.chain:
         chain_hashes.append(block.hash)
 
     chain_hashes_json = jsonpickle.encode(chain_hashes)
@@ -192,7 +202,7 @@ def get_blocks_from():
     fork_blocks = []
 
     # Collect fork's block
-    for block in reversed(blockchain.chain):
+    for block in reversed(node.blockchain.chain):
         if block.hash != first_fork_hash:
             fork_blocks.append(block)
         else:
@@ -209,14 +219,14 @@ def consensus():
     Our naive consensus algorithm. If a longer valid chain is
     found, our chain is replaced with it.
     """
-    global blockchain
+    # global blockchain
 
-    current_len = len(blockchain.chain)
+    current_len = len(node.blockchain.chain)
 
     # Init flag
     flag = False
 
-    for peer in peers:
+    for peer in node.peers:
         # Ask others for their blockchain
         response = requests.get('{}chain_by_hash'.format(peer))
 
@@ -227,7 +237,7 @@ def consensus():
         # If we do not have the longest chain, replace it
         if length > current_len:
             # Find the first block of the other's fork
-            fork_hash = blockchain.first_fork_hash(chain_hashes)
+            fork_hash = node.blockchain.first_fork_hash(chain_hashes)
 
             # Ask him for the blocks
 
@@ -246,12 +256,12 @@ def consensus():
             fork_blocks_list = jsonpickle.decode(fork_blocks_list_json)
 
             # Check if it is valid fork, if not continue asking the rest peers
-            if blockchain.is_fork_valid(fork_blocks_list):
+            if node.blockchain.is_fork_valid(fork_blocks_list):
                 # if so, include it in our chain
-                blockchain.include_the_fork(fork_blocks_list)
+                node.blockchain.include_the_fork(fork_blocks_list)
 
                 # Take the new length
-                current_len = len(blockchain.chain)
+                current_len = len(node.blockchain.chain)
 
                 # And assign True in the flag
                 flag = True
@@ -268,37 +278,37 @@ def consensus():
 
 # Fixme: this function it should be maybe internal and not an API
 
-@app.route('/mine', methods=['GET'])
-def mine_unconfirmed_transactions():
-    result = blockchain.mine()
-    if not result:
-        return "No transactions to mine"
-    else:
-        # Making sure we have the longest chain before announcing to the network
-        chain_length = len(blockchain.chain)
-        consensus()
-        if chain_length == len(blockchain.chain):
-            # announce the recently mined block to the network
-            announce_new_block(blockchain.last_block)
-        return "Block #{} is mined.".format(blockchain.last_block.index)
-
-
-# endpoint to query unconfirmed transactions
-@app.route('/pending_tx')
-def get_pending_tx():
-    return json.dumps(blockchain.unconfirmed_transactions)
+# @app.route('/mine', methods=['GET'])
+# def mine_unconfirmed_transactions():
+#     result = blockchain.mine()
+#     if not result:
+#         return "No transactions to mine"
+#     else:
+#         # Making sure we have the longest chain before announcing to the network
+#         chain_length = len(blockchain.chain)
+#         consensus()
+#         if chain_length == len(blockchain.chain):
+#             # announce the recently mined block to the network
+#             announce_new_block(blockchain.last_block)
+#         return "Block #{} is mined.".format(blockchain.last_block.index)
+#
+#
+# # endpoint to query unconfirmed transactions
+# @app.route('/pending_tx')
+# def get_pending_tx():
+#     return json.dumps(blockchain.unconfirmed_transactions)
 
 
 # run it once fore every node
 
-if __name__ == '__main__':
-    from argparse import ArgumentParser
-
-    # app.run(host='127).0.0.1', port = ""
-
-    parser = ArgumentParser()
-    parser.add_argument('-p', '--port', default=5000, type=int, help='port to listen on')
-    args = parser.parse_args()
-    port = args.port
+# if __name__ == '__main__':
+#     from argparse import ArgumentParser
+#
+#     # app.run(host='127).0.0.1', port = ""
+#
+#     parser = ArgumentParser()
+#     parser.add_argument('-p', '--port', default=5000, type=int, help='port to listen on')
+#     args = parser.parse_args()
+#     port = args.port
 
     # app.run(host='127.0.0.1', port=port)
