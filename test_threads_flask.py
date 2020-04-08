@@ -35,6 +35,7 @@ class apiThread(threading.Thread):
         # Register our self
         app.run(host='127.0.0.1', port=5000)
 
+
         # Free lock to release next thread
         # threadLock.release()
 
@@ -57,7 +58,7 @@ flask_thread = apiThread(1, "Thread-1")
 flask_thread.start()
 
 # Run app request
-response = requests.get("http://127.0.0.1/register_node")
+response = requests.get("http://127.0.0.1/transactions/get")
 
 # Wait for thread to end
 flask_thread.join()

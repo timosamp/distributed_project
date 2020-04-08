@@ -154,50 +154,6 @@ def register_new_peers():
     return get_chain()
 
 
-# This function is called so node to be registered and synced with bootstrap node
-def register_with_bootstrap():
-    """
-    Internally calls the `register_node` endpoint to
-    register current node with the node specified in the
-    request, and sync the blockchain as well as peer data.
-    """
-    # Use the global variables
-    global blockchain
-    global peers
-
-    node_address = request.get_json()["node_address"]
-    if not node_address:
-        return "Invalid data", 400
-
-    data = {"node_address": flask.request.host_url}
-    headers = {'Content-Type': "application/json"}
-
-    # Make a request to register with remote node and obtain information
-    response = requests.post(node_address + "/register_node",
-                             data=json.dumps(data), headers=headers)
-
-    if response.status_code == 200:
-
-        # Try to update chain
-        chain_list = jsonpickle.decode(response.json()['chain'])
-
-        try:
-            node.blockchain = Blockchain.create_chain_from_list(chain_list)
-        except Exception as e:
-
-            # if chain is tempered, then return False
-            print(str(e))
-            return False
-
-        # Update peers list
-        peers.update(response.json()['peers'])
-
-        # Return True if blockchain is created
-        return True
-    else:
-        # if something goes wrong, return wrong
-        return False
-
 
 # Get the chain only by hashes.
 # This endpoint will be used by our app
