@@ -113,13 +113,13 @@ def register_with_bootstrap():
 
     global node
     wallet = Wallet()
-
+    global bootstrapIp
 
     data = {"node_address": flask.request.host_url}
     headers = {'Content-Type': "application/json"}
 
     # Make a request to register with remote node and obtain information
-    response = requests.post(node_address + "/register_node",
+    response = requests.post(bootstrapIp + "/register_node",
                              data=json.dumps(data), headers=headers)
 
     if response.status_code == 200:

@@ -16,10 +16,7 @@ from transaction import Transaction
 
 from test_threads_flask import node, app
 
-
 import jsonpickle
-
-
 
 # app = Flask(__name__)
 # CORS(app)
@@ -140,6 +137,9 @@ def get_chain():
 # endpoint to add new peers to the network.
 @app.route('/register_node', methods=['POST'])
 def register_new_peers():
+
+    # global node
+
     node_address = request.get_json()["node_address"]
     if not node_address:
         return "Invalid data", 400
@@ -147,12 +147,11 @@ def register_new_peers():
     # Fixme: check if node has already been registered
 
     # Add the node to the peer list
-    peers.add(node_address)
+    node.peers[node_address] = tuple()
 
     # Return the consensus blockchain to the newly registered node
     # so that he can sync
     return get_chain()
-
 
 
 # Get the chain only by hashes.
@@ -285,6 +284,7 @@ def get_pending_tx():
 
 if __name__ == '__main__':
     from argparse import ArgumentParser
+
     # app.run(host='127).0.0.1', port = ""
 
     parser = ArgumentParser()

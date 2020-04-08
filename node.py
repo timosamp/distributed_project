@@ -20,7 +20,7 @@ class Node:
         if node_id == 0:
             self.blockchain.create_genesis_block(self.node_address)
 
-        self.peers = dict()
+        self.peers = list()
 
 
 
