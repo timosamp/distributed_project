@@ -36,6 +36,8 @@ CORS(app)
 # the address to other participating members of the network
 # peers = node.peers
 
+# node = global_variable.node
+
 
 # get all transactions in the blockchain
 @app.route('/transactions/get', methods=['GET'])
@@ -130,12 +132,12 @@ def verify_and_add_block():
 # Our application will be using this endpoint to register a node
 @app.route('/chain', methods=['GET'])
 def get_node_data():
-    chain_len = len(node.blockchain.chain)
-    chain_json = jsonpickle.encode(node.blockchain.chain)
+    chain_len = len(global_variable.node.blockchain.chain)
+    chain_json = jsonpickle.encode(global_variable.node.blockchain.chain)
 
     return json.dumps({"length": chain_len,
                        "chain": chain_json,
-                       "peers": node.peers})
+                       "peers": global_variable.node.peers})
 
 
 # endpoint to add new peers to the network.
