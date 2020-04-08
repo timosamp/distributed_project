@@ -1,62 +1,88 @@
 import string
+from threading import Thread
+from time import sleep
 
 import click
 import requests
+from flask import Flask
+from flask_cors import CORS
 
 from node import Node
-from rest import app
 from wallet import Wallet
 import jsonpickle
+
+app = Flask(__name__)
+CORS(app)
 
 numOfClients = 5
 bootstrapIp = "http://192.168.0.1"
 
-
-def main():
-    '''Welcome to noobcash!! Type \"help\" to view usage stuff'''
-    initialize()
-    while True:
-        str = input(">>")
-        if str == 'balance':
-            print_balance()
-        elif str == 'view':
-            print_view()
-        elif str == 'help':
-            print_help()
-        elif str.startswith('t'):
-            transaction(str)
-        elif str.startswith('q'):
-            return
-        else:
-            invalid_command()
-
-
 @click.command()
 @click.option('-p', '--port', default=22147, help='port to run the client on')
 @click.option('-b', '--bootstrap', is_flag=True, help='for bootstrap node only')
-def initialize(port, bootstrap):
-    app.run(host='127.0.0.1', port=port)
-    if bootstrap:
+def main(port, bootstrap):
+    global node
+
+    if (bootstrap):
         print("This is bootstrap node")
-        initialize_bootstrap(port)
+        node = Node(0)
+        # edw an theloume kanoume wait mexri olo oi clients na graftoun
+        # giati to diktuo den exei arxikopoihthei akoma, ara de mporoume na kanoume
+        # transactions
     else:
         print("This is user node")
-        initialize_user(port)
+        register_user_request(port)
+        # edw perimenoume anagastika na mas apantisei o bootstrap
+        # to register request
+
+    #ksekinaei se thread to loop pou diavazei input kai kalei
+    #tis antistoixes sinartiseis tou node gia na parei
+    #to balance, teleutaia transactions
+    thr = Thread(target=client_input_loop, args=[app])
+    thr.start()
+    app.run(host='127.0.0.1', port=port)
 
 
-def initialize_bootstrap(port):
-    node = Node(0)
+def client_input_loop(app): #maybe: ,node
+    global node
+    # with app.app_context():
+    #     node.print_balance()
+    sleep(0.5)
+    print("Client started...")
+    while True:
+        str = input(">>")
+        if str in {'balance', 'b'}:
+            node.print_balance()
+        elif str in {'view', 'v'}:
+            node.print_view()
+        elif str in {'help', 'h'}:
+            print_help()
+        elif str.startswith('t'):
+            client_transaction(str)
+        elif str in {'q', 'quit', 'e', 'exit'}:
+            print("Exiting...")
+            return
+        elif str == "\n":
+            continue
+        else:
+            print_invalid_command()
 
 
-def initialize_user(port):
+
+
+def register_user_request(port):
+    global node
+    #kainourgio public & private key
     wallet = Wallet()
     public_key_json = jsonpickle.encode(wallet.public_key)
     url = bootstrapIp
     headers = {'Content-Type': "application/json"}
     print("Registering to bootstrap...")
+    #edw perimenoume apantisi apo bootstrap gia to id mas, peers, blockchain(me prwto block)
+    #stelnoume to public key mas
     r = requests.post(url,
-                      data=public_key_json,
-                      headers=headers)
+                  data=public_key_json,
+                  headers=headers)
     data = r.json()
     peers = jsonpickle.decode(data['results'][0]['peers'])
     blockchain = jsonpickle.decode(data['results'][0]['blockchain'])
@@ -67,31 +93,39 @@ def initialize_user(port):
     node.peers = peers
     return
 
-
-def transaction(str_temp):
-    args = str_temp.split(" ")
+# Sunarthsh gia na kanei o client transaction
+# mporei na xrisimopoihsei tin sunartisi tou node
+def client_transaction(str):
+    args = str.split(" ")
+    if args.length != 3:
+        print("Invalid transaction form")
+        print_transaction_help();
     if not valid_pkey(args[1]):
         print("Invalid public key for transaction")
+        print_transaction_help();
         return
     elif not valid_ammount(args[2]):
         print("Invalid ammount of coins for transaction")
+        print_transaction_help();
         return
+    print("transaction")
+    #edw gia kathe peer IP kanoume broadcast sto /new_transaction
 
 
-def valid_pkey(str_temp):
+def valid_pkey(str):
     return True
 
 
-def valid_ammount(str_temp):
+def valid_ammount(str):
     return True
 
 
 def print_balance():
-    print()
+    print("balance")
 
 
 def print_view():
-    print()
+    print("view")
 
 
 def print_help():
@@ -108,8 +142,10 @@ def print_help():
     )
 
 
-def invalid_command():
+def print_invalid_command():
     print("Invalid command. Use \"help\" to view available options.")
 
+def print_transaction_help():
+    print("t <recipient_address> <amount>      Transfer coins to public key specified")
 
 main()
