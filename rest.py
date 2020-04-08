@@ -138,8 +138,6 @@ def get_node_data():
 @app.route('/register_node', methods=['POST'])
 def register_new_peers():
 
-    # global node
-
 
     print("oreaaaaaaaaaaaaaaaaaaa")
 
@@ -164,6 +162,7 @@ def register_new_peers():
     node_register_data = (public_key, node_net_address)
 
     # Add it into the peer's list
+    global node
     node.peers.append(node_register_data)
 
     # Fixme: check if node has already been registered

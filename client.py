@@ -30,13 +30,13 @@ global node
 @click.option('-p', '--port', default=22147, help='port to run the client on')
 @click.option('-b', '--bootstrap', is_flag=True, help='for bootstrap node only')
 def main(port, bootstrap):
+
     if bootstrap:
         print("This is bootstrap node")
 
-        global node
-
         wallet = Wallet()
 
+        global node
         node = Node(0, wallet)
         # edw an theloume kanoume wait mexri olo oi clients na graftoun
         # giati to diktuo den exei arxikopoihthei akoma, ara de mporoume na kanoume
@@ -121,9 +121,9 @@ def register_with_bootstrap():
 
         try:
 
-            global node
 
             # Then create a node
+            global node
             node = Node(node_id, wallet)
 
             print("Node has created")
