@@ -116,6 +116,7 @@ def register_with_bootstrap():
     """
     # Use the global variables
 
+
     # global node
     wallet = Wallet()
     global bootstrapIp
@@ -147,6 +148,8 @@ def register_with_bootstrap():
 
             global_variable.node = Node(node_id, wallet)
 
+            node = global_variable.node
+
             print("Node has created")
 
             # Decode object list
@@ -158,7 +161,7 @@ def register_with_bootstrap():
             print("Blockchain is created")
 
             # Update peers list
-            node.peers.update(response.json()['peers'])
+            node.peers = peers
             print("Peers has updated")
 
         except Exception as e:
