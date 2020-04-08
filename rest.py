@@ -18,10 +18,14 @@ from transaction import Transaction
 
 import jsonpickle
 
+import global_variable
+# import client
+
 app = Flask(__name__)
 CORS(app)
+# global_variable.initialize()
 
-global node
+# global node
 # .......................................................................................
 
 # # create a node
@@ -162,12 +166,13 @@ def register_new_peers():
     node_register_data = (public_key, node_net_address)
 
     # Add it into the peer's list
-    global node
-    node.peers.append(node_register_data)
+    # global node
+    # node.peers.append(node_register_data)
+    global_variable.node.peers.append(node_register_data)
 
     # Fixme: check if node has already been registered
-    while len(node.peers) < 1:
-        time.sleep(0.5)         # wait 0.5 sec
+    # while len(node.peers) < 1:
+    #     time.sleep(0.5)         # wait 0.5 sec
 
     return get_node_data(), 200
 

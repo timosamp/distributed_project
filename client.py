@@ -18,12 +18,16 @@ from blockchain import Blockchain
 # app = Flask(__name__)
 # CORS(app)
 
+import rest
 from rest import app
+
+import global_variable
 
 numOfClients = 5
 bootstrapIp = "http://127.0.0.1:22147"
 
-global node
+# global node
+# node = global_variable.node
 
 
 @click.command()
@@ -36,8 +40,10 @@ def main(port, bootstrap):
 
         wallet = Wallet()
 
-        global node
-        node = Node(0, wallet)
+        # global node
+        # node = Node(0, wallet)
+
+        global_variable.node = Node(0, wallet)
         # edw an theloume kanoume wait mexri olo oi clients na graftoun
         # giati to diktuo den exei arxikopoihthei akoma, ara de mporoume na kanoume
         # transactions
@@ -123,8 +129,10 @@ def register_with_bootstrap():
 
 
             # Then create a node
-            global node
-            node = Node(node_id, wallet)
+            # global node
+            # node = Node(node_id, wallet)
+
+            global_variable.node = Node(node_id, wallet)
 
             print("Node has created")
 
