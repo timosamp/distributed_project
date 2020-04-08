@@ -26,7 +26,6 @@ import global_variable
 numOfClients = 5
 bootstrapIp = "http://127.0.0.1:22147"
 
-
 # global node
 # node = global_variable.node
 
@@ -35,6 +34,7 @@ bootstrapIp = "http://127.0.0.1:22147"
 @click.option('-p', '--port', default=22147, help='port to run the client on')
 @click.option('-b', '--bootstrap', is_flag=True, help='for bootstrap node only')
 def main(port, bootstrap):
+
     if bootstrap:
         print("This is bootstrap node")
 
@@ -60,20 +60,11 @@ def main(port, bootstrap):
     # ksekinaei se thread to loop pou diavazei input kai kalei
     # tis antistoixes sinartiseis tou node gia na parei
     # to balance, teleutaia transactions
-
     thr = Thread(target=client_input_loop, args=[])
     thr.start()
-
-
     app.run(host='127.0.0.1', debug=True, port=port)
 
-
-
-
-    # thr.join()
-
-    # exit()
-
+    thr.join()
 
 
 def client_input_loop():  # maybe: ,node
@@ -83,7 +74,7 @@ def client_input_loop():  # maybe: ,node
         node = global_variable.node
 
         # node.print_balance()
-        # node.wallet.balance(node.blockchain)
+        node.wallet.balance(node.blockchain)
 
     sleep(0.5)
     print("Client started...")
@@ -99,7 +90,7 @@ def client_input_loop():  # maybe: ,node
             client_transaction(str)
         elif str in {'q', 'quit', 'e', 'exit'}:
             print("Exiting...")
-            # exit()
+            exit()
             return
         elif str == "\n":
             continue
@@ -116,7 +107,6 @@ def register_with_bootstrap():
     """
     # Use the global variables
 
-
     # global node
     wallet = Wallet()
     global bootstrapIp
@@ -126,14 +116,12 @@ def register_with_bootstrap():
     headers = {'Content-Type': "application/json"}
     url = "{}/register_node".format(bootstrapIp)
 
-
     # Make a request to register with remote node and obtain information
     response = requests.post(url, data=json.dumps(data), headers=headers)
 
-
     if response.status_code == 200:
 
-        # Decode json attributes
+        # Try to update chain
         chain_list = jsonpickle.decode(response.json()['chain'])
         peers = response.json()['peers']
 
@@ -141,19 +129,13 @@ def register_with_bootstrap():
         node_id = (idx for idx, x in enumerate(peers) if x[0] == wallet.public_key)
 
         try:
-
             # Then create a node
             # global node
             # node = Node(node_id, wallet)
 
             global_variable.node = Node(node_id, wallet)
 
-            node = global_variable.node
-
             print("Node has created")
-
-            # Decode object list
-            print(chain_list)
 
             # And try to create blockchain
             node.blockchain = Blockchain.create_chain_from_list(chain_list)
@@ -161,11 +143,10 @@ def register_with_bootstrap():
             print("Blockchain is created")
 
             # Update peers list
-            node.peers = peers
+            node.peers.update(response.json()['peers'])
             print("Peers has updated")
 
         except Exception as e:
-
             # if chain is tempered, then return False
             print(str(e))
             return False
