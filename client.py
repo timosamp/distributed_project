@@ -20,7 +20,7 @@ app = Flask(__name__)
 CORS(app)
 
 numOfClients = 5
-bootstrapIp = "http://192.168.0.1"
+bootstrapIp = "http://127.0.0.1"
 
 
 @click.command()
@@ -40,7 +40,7 @@ def main(port, bootstrap):
         # transactions
     else:
         print("This is user node")
-        register_user_request(port)
+        register_with_bootstrap()
         # edw perimenoume anagastika na mas apantisei o bootstrap
         # to register request
 
@@ -115,12 +115,13 @@ def register_with_bootstrap():
     wallet = Wallet()
     global bootstrapIp
 
+
     data = {"public_key": wallet.public_key}
     headers = {'Content-Type': "application/json"}
 
     # Make a request to register with remote node and obtain information
     response = requests.post(bootstrapIp + "/register_node",
-                             data=json.dumps(data), headers=headers)
+                             data=data, headers=headers)
 
     if response.status_code == 200:
 

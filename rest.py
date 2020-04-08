@@ -154,7 +154,7 @@ def register_new_peers():
     node.peers.append(node_register_data)
 
     # Fixme: check if node has already been registered
-    while len(node.peers) < 5:
+    while len(node.peers) < 1:
         time.sleep(0.5)         # wait 0.5 sec
 
     return get_node_data(), 200
