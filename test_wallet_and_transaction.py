@@ -41,9 +41,9 @@ print(decRandomBlock)
 print("--------------------------- List's test ---------------------------")
 
 # Test encoding and decoding list of objects
-listoftransacion = blockchain.unconfirmed_transactions
+list_of_transactions = blockchain.unconfirmed_transactions
 
-encodeList = jsonpickle.encode(listoftransacion)
+encodeList = jsonpickle.encode(list_of_transactions)
 print(encodeList)
 
 decodedList = jsonpickle.decode(encodeList)

@@ -14,17 +14,23 @@ from node import Node
 from wallet import Wallet
 from transaction import Transaction
 
+from test_threads_flask import node, app
+
+
 import jsonpickle
 
-app = Flask(__name__)
-CORS(app)
+
+
+# app = Flask(__name__)
+# CORS(app)
 
 # .......................................................................................
 
-# create a node
-node = Node(0)
+# # create a node
+# node = Node(0)
+
 blockchain = node.blockchain
-# the address to other participating members of the network
+# # the address to other participating members of the network
 peers = node.peers
 
 
@@ -175,7 +181,7 @@ def register_with_bootstrap():
         chain_list = jsonpickle.decode(response.json()['chain'])
 
         try:
-            blockchain = Blockchain.create_chain_from_list(chain_list)
+            node.blockchain = Blockchain.create_chain_from_list(chain_list)
         except Exception as e:
 
             # if chain is tempered, then return False
@@ -329,4 +335,4 @@ if __name__ == '__main__':
     args = parser.parse_args()
     port = args.port
 
-    app.run(host='127.0.0.1', port=port)
+    # app.run(host='127.0.0.1', port=port)
