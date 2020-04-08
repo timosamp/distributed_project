@@ -125,17 +125,14 @@ def register_with_bootstrap():
     headers = {'Content-Type': "application/json"}
     url = "{}/register_node".format(bootstrapIp)
 
-    print("mexri edw ok")
 
     # Make a request to register with remote node and obtain information
     response = requests.post(url, data=json.dumps(data), headers=headers)
 
-    print("mexri edw ok")
-
 
     if response.status_code == 200:
 
-        # Try to update chain
+        # Decode json attributes
         chain_list = jsonpickle.decode(response.json()['chain'])
         peers = response.json()['peers']
 
@@ -151,6 +148,9 @@ def register_with_bootstrap():
             global_variable.node = Node(node_id, wallet)
 
             print("Node has created")
+
+            # Decode object list
+            print(chain_list)
 
             # And try to create blockchain
             node.blockchain = Blockchain.create_chain_from_list(chain_list)

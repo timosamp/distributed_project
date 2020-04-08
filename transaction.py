@@ -25,6 +25,9 @@ class Transaction:
         # self.sender_address: To public key του wallet από το οποίο προέρχονται τα χρήματα
         self.sender_address = sender_address
 
+        # print("public key: ----------------")
+        # print(str(self.sender_address))
+
         # self.receiver_address: To public key του wallet στο οποίο θα καταλήξουν τα χρήματα
         self.recipient_address = recipient_address
 
@@ -129,7 +132,6 @@ class Transaction:
         # Create a hash value of the whole message
         sha_hash = SHA256.new(to_be_hashed.encode())
 
-
         # Import private key
         key = RSA.importKey(private_key)
 
@@ -144,6 +146,8 @@ class Transaction:
     def verify_transaction(self):
         # Fixme: it will appear an error for the key
 
+        print("Internal verification function")
+
         to_be_hashed = (str(self.timestamp) +
                         str(self.sender_address) +
                         str(self.recipient_address) +
@@ -155,9 +159,17 @@ class Transaction:
         # Create a hash value of the whole message
         sha_hash = SHA256.new(to_be_hashed.encode())
 
+        # print("before_key")
+        print(self.sender_address)
+
         key = RSA.importKey(self.sender_address)
 
+        # print("after_key")
+
         verifier = PKCS1_v1_5.new(key)
+
+        # print("before_return_ver")
+
         return verifier.verify(sha_hash, self.transaction_signature)
 
     def transaction_hash(self):
@@ -192,7 +204,6 @@ class Transaction:
         # return the set of the output transactions
         self.transaction_outputs = {receiver_output_transaction, sender_output_transaction}
 
-
     def create_list_of_input_transactions(self, utxos):
 
         # Init a set - list
@@ -225,6 +236,7 @@ class TransactionOutput:
         sha = SHA256.new(to_be_hashed.encode())
 
         return sha.hexdigest()
+
 
 class TransactionInput:
     def __init__(self, _previous_output_id):

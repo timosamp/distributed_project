@@ -65,8 +65,11 @@ class Blockchain:
     @staticmethod
     def is_transaction_valid(transaction, sender_utxos):
 
+        print("Is_transaction_verified?")
+
         # First check if the signature is valid
         if not transaction.verify_transaction():
+            print("transaction is not verified")
             return False
 
         print("Transaction is verified")
@@ -151,6 +154,8 @@ class Blockchain:
 
         genesis_block = Block(len(self.chain), [first_transaction], 0, "1", 0)
         genesis_block.hash = genesis_block.compute_hash()
+
+        # print(genesis_block.hash)
 
         print("Genesis block is created")
 
@@ -240,26 +245,38 @@ class Blockchain:
           in the chain match.
         """
 
-        # If dict_nodes_utxos is None, take the last valid list of utxos
-        if dict_nodes_utxos is None:
-            last_block = self.last_block()
-            dict_nodes_utxos = self.dict_nodes_utxos_by_block_id[last_block.hash]
+        print("edw")
+
+
+
+        print("after dict")
 
         # If last_hash is None, take the hash of the last block
         if previous_block_hash is None:
-
             # If this block is the genesis
             if block.previous_hash == "1":
-                previous_block_hash = "1"
-            else:
-                previous_block_hash = (self.last_block()).hash
+                # Then return true without validation
+                print("validate genesis block")
+                return True
+
+            # Otherwise, take as previous hash, the latest's hash value
+            previous_block_hash = (self.last_block()).hash
+
+
+        # If dict_nodes_utxos is None, then take the last valid list of utxos
+        if dict_nodes_utxos is None:
+            dict_nodes_utxos = self.dict_nodes_utxos_by_block_id[(self.last_block()).hash]
+
+
 
         # Check if the previous has is the same with previous block's hash
         if previous_block_hash != block.previous_hash:
+            print("false previous hash")
             return False
 
         # Check the proof of work
         if not Blockchain.is_valid_proof(block):
+            print("false pow hash")
             return False
 
         # Check if all transactions in the new block are valid accordingly with the validity transaction's rules.
@@ -302,19 +319,28 @@ class Blockchain:
         """
         # If this block is the genesis
         if block.previous_hash == "1":
+            print("pow genesis block")
+            print(block.hash)
+            print(block.compute_hash())
+            print(block.compute_hash())
+
             return block.hash == block.compute_hash()
         else:
             return (block.hash.startswith('0' * cls.difficulty) and
                     block.hash == block.compute_hash())
 
     @staticmethod
-    def check_validity_of_block_transactions(block, nodes_utxos):
+    def check_validity_of_block_transactions(block, dict_nodes_utxos):
 
         # Make a copy because Blockchain.is_transaction_valid is going to alter the list
-        copy_of_all_nodes_utxos = copy.deepcopy(nodes_utxos)
+        copy_of_all_nodes_utxos = copy.deepcopy(dict_nodes_utxos)
+
+        print(block.transactions)
 
         # Check the validity of each block's transaction
         for transaction in block.transactions:
+            # print("check transaction's validity")
+            # print(transaction)
             if not Blockchain.is_transaction_valid(transaction, copy_of_all_nodes_utxos):
                 return False
             return True
@@ -444,9 +470,16 @@ class Blockchain:
         # Init a blockchain list
         blockchain = Blockchain()
 
+        print("Create temp block chain")
+
         for block in chain:
 
-            if blockchain.is_fork_valid(block) is True:
+            print(" into loop ")
+
+            if blockchain.is_block_valid(block) is True:
+
+                print("Try to add block")
+
                 blockchain.add_block(block)
             else:
                 raise Exception("The chain dump is tampered!!")

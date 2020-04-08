@@ -27,7 +27,7 @@ class Block:
     def compute_hash(self):
 
         to_be_hashed = (str(self.index) +
-                        str(self.transactions) +
+                        # str(self.transactions) + # fixme: wrong
                         str(self.timestamp) +
                         str(self.nonce) +
                         str(self.previous_hash))

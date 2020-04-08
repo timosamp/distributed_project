@@ -22,7 +22,7 @@ class Wallet:
     def __init__(self):
 
         # Create a pair of private and public key
-        self.private_key, self.public_key, self.keys = self.create_RSA_pairKeys()
+        self.private_key, self.public_key = self.create_RSA_pairKeys()
 
         # Set the public key as the wallet's adders
         self.address = self.public_key
@@ -84,9 +84,12 @@ class Wallet:
 
         print("UTXOs has gathered from sender.")
 
+        print("construct transaction -- public key is: ")
+        print(self.public_key)
+
         # Create a new transaction with receivers public key.
         # Sign this transaction with the private key of the sender's wallet.
-        transaction = Transaction.with_utxos(self.address, recipient_address, amount, time.time(), sub_list_of_utxos)
+        transaction = Transaction.with_utxos(self.public_key, recipient_address, amount, time.time(), sub_list_of_utxos)
 
         print("inputs: ")
         print(transaction.transaction_inputs)
@@ -115,5 +118,9 @@ class Wallet:
     def create_RSA_pairKeys():
         key = RSA.generate(2048)
         public_key = key.publickey().exportKey("PEM")
+
+        print("create public key: --------- @@@@@")
+        print(public_key)
+
         private_key = key.exportKey("PEM")
-        return private_key, public_key, key
+        return private_key, public_key
