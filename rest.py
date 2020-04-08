@@ -146,9 +146,12 @@ def register_new_peers():
 
     # Get node's ip address
     ip_address = request.remote_addr
+    remote_port = request.environ.get('REMOTE_PORT')
+
+    node_net_address = ip_address + "::" + remote_port
 
     # Build tuple for peer's list
-    node_register_data = (public_key, ip_address)
+    node_register_data = (public_key, node_net_address)
 
     # Add it into the peer's list
     node.peers.append(node_register_data)

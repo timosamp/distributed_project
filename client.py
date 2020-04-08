@@ -20,7 +20,7 @@ app = Flask(__name__)
 CORS(app)
 
 numOfClients = 5
-bootstrapIp = "http://127.0.0.1"
+bootstrapIp = "http://127.0.0.1::22147"
 
 
 @click.command()
@@ -47,15 +47,20 @@ def main(port, bootstrap):
     # ksekinaei se thread to loop pou diavazei input kai kalei
     # tis antistoixes sinartiseis tou node gia na parei
     # to balance, teleutaia transactions
-    thr = Thread(target=client_input_loop, args=[app])
+    thr = Thread(target=client_input_loop, args=[])
     thr.start()
     app.run(host='127.0.0.1', port=port)
 
+    thr.join()
 
-def client_input_loop(app):  # maybe: ,node
-    global node
+
+def client_input_loop():  # maybe: ,node
     with app.app_context():
-        node.print_balance()
+        global node
+
+        # node.print_balance()
+        node.wallet.balance()
+
     sleep(0.5)
     print("Client started...")
     while True:
