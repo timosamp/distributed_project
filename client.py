@@ -61,12 +61,13 @@ def main(port, bootstrap):
     # tis antistoixes sinartiseis tou node gia na parei
     # to balance, teleutaia transactions
 
-    thr = Thread(target=client_input_loop(), args=[])
+    thr = Thread(target=client_input_loop, args=[])
+    thr.start()
+
 
     app.run(host='127.0.0.1', debug=True, port=port)
 
 
-    # thr.start()
 
 
     # thr.join()
