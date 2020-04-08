@@ -157,7 +157,7 @@ def register_new_peers():
     while len(node.peers) < 5:
         time.sleep(0.5)         # wait 0.5 sec
 
-    return get_node_data()
+    return get_node_data(), 200
 
 
 # Get the chain only by hashes.

@@ -5,7 +5,7 @@ from block import Block
 
 
 class Node:
-    def __init__(self, node_id: int, wallet: Wallet):
+    def __init__(self, node_id, wallet: Wallet):
 
         print("Start creating node with id: " + str(node_id))
 

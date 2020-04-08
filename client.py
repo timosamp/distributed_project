@@ -115,7 +115,7 @@ def register_with_bootstrap():
     wallet = Wallet()
     global bootstrapIp
 
-    data = {"node_address": flask.request.host_url}
+    data = {"public_key": wallet.public_key}
     headers = {'Content-Type': "application/json"}
 
     # Make a request to register with remote node and obtain information
@@ -126,17 +126,29 @@ def register_with_bootstrap():
 
         # Try to update chain
         chain_list = jsonpickle.decode(response.json()['chain'])
+        peers = response.json()['peers']
+
+        # Search index of node's ip address
+        node_id = (idx for idx, x in enumerate(peers) if x[0] == wallet.public_key)
+
 
         try:
+
+            # Then create a node
+            node = Node(node_id, wallet)
+
+            # And try to create blockchain
             node.blockchain = Blockchain.create_chain_from_list(chain_list)
+
+            # Update peers list
+            node.peers.update(response.json()['peers'])
+
         except Exception as e:
 
             # if chain is tempered, then return False
             print(str(e))
             return False
 
-        # Update peers list
-        node.peers.update(response.json()['peers'])
 
         # Return True if blockchain is created
         return True
