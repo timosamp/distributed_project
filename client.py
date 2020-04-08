@@ -26,6 +26,7 @@ import global_variable
 numOfClients = 5
 bootstrapIp = "http://127.0.0.1:22147"
 
+
 # global node
 # node = global_variable.node
 
@@ -34,7 +35,6 @@ bootstrapIp = "http://127.0.0.1:22147"
 @click.option('-p', '--port', default=22147, help='port to run the client on')
 @click.option('-b', '--bootstrap', is_flag=True, help='for bootstrap node only')
 def main(port, bootstrap):
-
     if bootstrap:
         print("This is bootstrap node")
 
@@ -60,11 +60,25 @@ def main(port, bootstrap):
     # ksekinaei se thread to loop pou diavazei input kai kalei
     # tis antistoixes sinartiseis tou node gia na parei
     # to balance, teleutaia transactions
-    thr = Thread(target=client_input_loop, args=[])
-    thr.start()
+
+    thr1 = Thread(target=client_input_loop(), args=[])
+
+    # thr2 = Thread(target=start_app(port), args=[port])
+    # thr2.start()
+    # sleep(0.5)
+    # thr1.start()
+    # thr1.join()
+    # thr2.join()
+
+    thr1.start()
+
     app.run(host='127.0.0.1', debug=True, port=port)
 
-    thr.join()
+    exit()
+
+
+def start_app(port):
+    app.run(host='127.0.0.1', debug=True, port=port)
 
 
 def client_input_loop():  # maybe: ,node
@@ -129,7 +143,6 @@ def register_with_bootstrap():
         node_id = (idx for idx, x in enumerate(peers) if x[0] == wallet.public_key)
 
         try:
-
 
             # Then create a node
             # global node
