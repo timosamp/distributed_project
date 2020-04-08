@@ -124,14 +124,13 @@ def verify_and_add_block():
 # Endpoint to return the node's copy of the chain.
 # Our application will be using this endpoint to register a node
 @app.route('/chain', methods=['GET'])
-def get_chain():
-    chain_len = len(blockchain.chain)
-    chain_json = jsonpickle.encode(blockchain.chain)
-    list_of_peers = list(peers)
+def get_node_data():
+    chain_len = len(node.blockchain.chain)
+    chain_json = jsonpickle.encode(node.blockchain.chain)
 
     return json.dumps({"length": chain_len,
                        "chain": chain_json,
-                       "peers": list_of_peers})
+                       "peers": node.peers})
 
 
 # endpoint to add new peers to the network.
@@ -140,18 +139,25 @@ def register_new_peers():
 
     # global node
 
-    node_address = request.get_json()["node_address"]
-    if not node_address:
+    # Get node's public key
+    public_key = request.get_json()["public_key"]
+    if not public_key:
         return "Invalid data", 400
 
+    # Get node's ip address
+    ip_address = request.remote_addr
+
+    # Build tuple for peer's list
+    node_register_data = (public_key, ip_address)
+
+    # Add it into the peer's list
+    node.peers.append(node_register_data)
+
     # Fixme: check if node has already been registered
+    while len(node.peers) < 5:
+        time.sleep(0.5)         # wait 0.5 sec
 
-    # Add the node to the peer list
-    node.peers[node_address] = tuple()
-
-    # Return the consensus blockchain to the newly registered node
-    # so that he can sync
-    return get_chain()
+    return get_node_data()
 
 
 # Get the chain only by hashes.
