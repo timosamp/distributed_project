@@ -29,8 +29,9 @@ import jsonpickle
 # # create a node
 # node = Node(0)
 
+# Take the blockchain of node (import from client)
 blockchain = node.blockchain
-# # the address to other participating members of the network
+# the address to other participating members of the network
 peers = node.peers
 
 
