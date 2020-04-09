@@ -409,9 +409,6 @@ class Blockchain:
         # Take first capacity unconfirmed transactions or block's mining.
         sub_list_of_unconfirmed = self.unconfirmed_transactions[:self.capacity]
 
-        # Delete this first elements from self.unconfirmed_transactions.
-        del self.unconfirmed_transactions[:self.capacity]
-
 
         last_block = self.last_block()
 
@@ -421,13 +418,17 @@ class Blockchain:
                           previous_hash=last_block.hash,
                           nonce=0)
 
-        # Find the correct nonce
+        # Find the correct nonce -- Fixme: mining parameter
         new_block.proof_of_work(Blockchain.difficulty)
+
+        # Delete this first elements from self.unconfirmed_transactions.
+        del self.unconfirmed_transactions[:self.capacity]
 
         # Add new block in the chain
         self.add_block(new_block)
 
         return True
+
 
     @staticmethod
     def update_utxos_of_nodes(dict_of_utxos, block):
