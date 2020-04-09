@@ -119,13 +119,13 @@ class Wallet:
 
 
     def broadcast_to_peers(self, transaction, peers):
-        for idx,peer in peers:
-            peer_url = peer[1]
+        for (idx, (peer_url,peer)) in enumerate(peers):
             transaction_json = jsonpickle.encode(transaction)
             data = {"transaction": transaction_json}
             headers = {'Content-Type': "application/json"}
-            url = "{}/new_transaction".format(url)
+            url = "{}/new_transaction".format(peer_url)
 
+            print("")
             r = requests.post(url,
                               data=data,
                               headers=headers)

@@ -1,3 +1,4 @@
+import socket
 import string
 from threading import Thread
 from time import sleep
@@ -55,7 +56,7 @@ def main(port, bootstrap):
     else:
         print("This is user node")
 
-        if register_with_bootstrap() is False:
+        if register_with_bootstrap(port) is False:
             print("Problem establishing connecion -- exit")
             exit()
 
@@ -96,7 +97,7 @@ def client_input_loop():  # maybe: ,node
         elif str in {'help', 'h'}:
             print_help()
         elif str.startswith('t'):
-            client_transaction(str)
+            client_transaction(str, node)
         elif str in {'q', 'quit', 'e', 'exit'}:
             print("Exiting...")
             # exit()
@@ -108,7 +109,7 @@ def client_input_loop():  # maybe: ,node
 
 
 # This function is called so node to be registered and synced with bootstrap node
-def register_with_bootstrap():
+def register_with_bootstrap(my_port):
     """
     Internally calls the `register_node` endpoint to
     register current node with the node specified in the
@@ -118,9 +119,14 @@ def register_with_bootstrap():
 
     # global node
     wallet = Wallet()
-
+    host_name = socket.gethostname()
+    ip = socket.gethostbyname(host_name)
+    print(ip)
+    my_url = "http://" + ip + ":" + str(my_port)
+    print(my_url)
     # Init request's parameters
-    data = {"public_key": str(wallet.public_key)}
+    data = {"public_key": str(wallet.public_key),
+            "node_url": my_url}
     headers = {'Content-Type': "application/json"}
     url = "{}/register_node".format(global_variable.bootstrapIp)
 
@@ -174,9 +180,9 @@ def register_with_bootstrap():
 
 # Sunarthsh gia na kanei o client transaction
 # mporei na xrisimopoihsei tin sunartisi tou node
-def client_transaction(str_in):
+def client_transaction(str_in, node):
     args = str_in.split(" ")
-    if args.length != 3:
+    if len(args) != 3:
         print("Invalid transaction form")
         print_transaction_help()
     if not valid_pkey(args[1]):
@@ -187,15 +193,19 @@ def client_transaction(str_in):
         print("Invalid amount of coins for transaction")
         print_transaction_help()
         return
-    recipient_id = [int(i) for i in args[1].split() if i.isdigit()]
-    if recipient_id >= node.peers.length or recipient_id is None:
-        print("Invalid recipient id")
-        return
+
+    recipient_ids = [int(i) for i in args[1] if i.isdigit()]
+
+    if len(recipient_ids) != 1:
+        print("Found more than num in", recipient_ids)
+    recipient_id = recipient_ids[0]
+    print("Number of peers: ", len(node.peers))
+    print("Sending to ", recipient_id)
+
     ammount = args[2]
     recipient_pubkey = node.peers[recipient_id]
-    node.wallet.sendCoinsTo(recipient_pubkey, ammount)
+    node.wallet.sendCoinsTo(recipient_pubkey, int(ammount), node.blockchain, node.peers)
     # edw gia kathe peer IP kanoume broadcast sto /new_transaction
-
 
 def print_help():
     print(
@@ -219,7 +229,7 @@ def print_transaction_help():
     print("t <recipient_address> <amount>      Transfer coins to public key specified")
 
 
-main()
+
 
 
 # -------------------------------- Not used yet -------------------------------- #
@@ -240,6 +250,7 @@ def print_balance():
 def print_view():
     print("view")
 
+main()
 
 def register_user_request(port):
     global node
