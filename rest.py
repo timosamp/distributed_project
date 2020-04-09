@@ -166,21 +166,20 @@ def register_new_peers():
     # Get node's public key
 
     req_data = request.get_json()
+    # Get node's public
     public_key = req_data["public_key"]
+    # Get node's ip address
+    node_url = req_data["url"]
+
+    print("node_url: " + node_url)
 
 
-    if not public_key:
+    if (not public_key) or (not node_url):
         return "Invalid data", 400
 
-    # Get node's ip address
-    ip_address = request.remote_addr
-    remote_port = request.environ.get('REMOTE_PORT')
-
-    node_net_address = str(ip_address) + ":" + str(remote_port)
-    print("node_net_address" + node_net_address)
 
     # Build tuple for peer's list
-    node_register_data = (public_key, node_net_address)
+    node_register_data = (public_key, node_url)
 
     # Add it into the peer's list
     # global node
