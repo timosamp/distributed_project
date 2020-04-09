@@ -96,7 +96,6 @@ class Blockchain:
 
 
 
-
     @staticmethod
     def add_outputs_of_transaction_in_node_utxos(dict_of_utxos, transaction: Transaction):
 
