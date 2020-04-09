@@ -37,10 +37,18 @@ def main(port, bootstrap):
 
         wallet = Wallet()
 
-        # global node
-        # node = Node(0, wallet)
-
         global_variable.node = Node(0, wallet)
+
+        # Add bootstrap node in the peers' list
+        ip_address = "127.0.0.1:22147"
+        public_key_str = str(wallet.public_key)
+
+        # Create tuple of register data
+        node_register_data = (ip_address, public_key_str)
+
+        # Append it in nodes peers' list
+        global_variable.node.peers.append(node_register_data)
+
         # edw an theloume kanoume wait mexri olo oi clients na graftoun
         # giati to diktuo den exei arxikopoihthei akoma, ara de mporoume na kanoume
         # transactions

@@ -169,9 +169,6 @@ def register_new_peers():
     public_key = req_data["public_key"]
 
 
-    # print(str(public_key))
-
-
     if not public_key:
         return "Invalid data", 400
 
@@ -180,6 +177,7 @@ def register_new_peers():
     remote_port = request.environ.get('REMOTE_PORT')
 
     node_net_address = str(ip_address) + ":" + str(remote_port)
+    print("node_net_address" + node_net_address)
 
     # Build tuple for peer's list
     node_register_data = (public_key, node_net_address)
