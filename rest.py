@@ -121,6 +121,10 @@ def verify_and_add_block():
     if node.blockchain.is_valid_proof(block):
 
         if node.blockchain.is_block_valid(block):
+
+            # Stop mining
+            global_variable.node.mine_flag = False
+
             # If the rest test succeed then add block into blockchain
             node.blockchain.add_block(block)
 

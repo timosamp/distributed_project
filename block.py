@@ -1,4 +1,5 @@
 import blockchain
+import global_variable
 
 from Crypto.Hash import SHA
 
@@ -44,12 +45,26 @@ class Block:
         """
         self.nonce = 0
 
+        # Init mine_flag
+        global_variable.node.mine_flag = True
+
         computed_hash = self.compute_hash()
         while not computed_hash.startswith('0' * difficulty):
+
+            # Check if mining is stopped
+            if not global_variable.node.mine_flag:
+                # Then return False -- the mining process is interrupted by new block
+                return False
+
             self.nonce += 1
             computed_hash = self.compute_hash()
 
         self.hash = computed_hash
+
+        # Re-enable the mine_flag
+        global_variable.node.mine_flag = False
+
+        return True
 
     def to_dict(self):
         # Init the list of dictionaries

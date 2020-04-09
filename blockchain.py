@@ -419,18 +419,18 @@ class Blockchain:
                           nonce=0)
 
         # Find the correct nonce -- Fixme: mining parameter
-        new_block.proof_of_work(Blockchain.difficulty)
+        if new_block.proof_of_work(Blockchain.difficulty):
+            # If mining is finished, continue:
 
-        # Delete this first elements from self.unconfirmed_transactions.
-        del self.unconfirmed_transactions[:self.capacity]
+            # Delete this first elements from self.unconfirmed_transactions.
+            del self.unconfirmed_transactions[:self.capacity]
 
-        # Fixme: broadcast block
-        Blockchain.broadcast_block_to_peers(new_block)
+            # Fixme: broadcast block
+            Blockchain.broadcast_block_to_peers(new_block)
 
-        # Add new block in the chain
-        self.add_block(new_block)
+            # Add new block in the chain
+            self.add_block(new_block)
 
-        return True
 
     @staticmethod
     def broadcast_block_to_peers(block):

@@ -17,6 +17,8 @@ class Node:
 
         self.blockchain = Blockchain()
 
+        self.mine_flag = False
+
         if node_id == 0:
             self.blockchain.create_genesis_block(self.node_address)
 
