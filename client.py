@@ -24,7 +24,6 @@ from rest import app
 import global_variable
 
 
-
 # global node
 # node = global_variable.node
 
@@ -62,16 +61,11 @@ def main(port, bootstrap):
     thr = Thread(target=client_input_loop)
     thr.start()
 
-
-    app.run(host='127.0.0.1', debug=True, port=port)
-
-
-
+    app.run(host='127.0.0.1', port=port)
 
     thr.join()
 
     # exit()
-
 
 
 def client_input_loop():  # maybe: ,node
@@ -114,7 +108,6 @@ def register_with_bootstrap():
     """
     # Use the global variables
 
-
     # global node
     wallet = Wallet()
 
@@ -123,10 +116,8 @@ def register_with_bootstrap():
     headers = {'Content-Type': "application/json"}
     url = "{}/register_node".format(global_variable.bootstrapIp)
 
-
     # Make a request to register with remote node and obtain information
     response = requests.post(url, data=json.dumps(data), headers=headers)
-
 
     if response.status_code == 200:
 
@@ -135,7 +126,7 @@ def register_with_bootstrap():
         peers = response.json()['peers']
 
         # Search index of node's ip address
-        node_id = (idx for idx, x in enumerate(peers) if x[0] == wallet.public_key)
+        node_id = [idx for idx, x in enumerate(peers) if x[0] == str(wallet.public_key)][0]
 
         try:
 
@@ -147,7 +138,7 @@ def register_with_bootstrap():
 
             node = global_variable.node
 
-            print("Node has created")
+            print("Node has created!")
 
             # print(chain_list)
 
@@ -173,34 +164,10 @@ def register_with_bootstrap():
         return False
 
 
-# def register_user_request(port):
-#     global node
-#     # kainourgio public & private key
-#     wallet = Wallet()
-#     public_key_json = jsonpickle.encode(wallet.public_key)
-#     url = bootstrapIp
-#     headers = {'Content-Type': "application/json"}
-#     print("Registering to bootstrap...")
-#     # edw perimenoume apantisi apo bootstrap gia to id mas, peers, blockchain(me prwto block)
-#     # stelnoume to public key mas
-#     r = requests.post(url,
-#                       data=public_key_json,
-#                       headers=headers)
-#     data = r.json()
-#     peers = jsonpickle.decode(data['results'][0]['peers'])
-#     blockchain = jsonpickle.decode(data['results'][0]['blockchain'])
-#     node_id = data['results'][0]['node_id']
-#
-#     node = Node(node_id)
-#     node.blockchain = blockchain
-#     node.peers = peers
-#     return
-
-
 # Sunarthsh gia na kanei o client transaction
 # mporei na xrisimopoihsei tin sunartisi tou node
-def client_transaction(str):
-    args = str.split(" ")
+def client_transaction(str_in):
+    args = str_in.split(" ")
     if args.length != 3:
         print("Invalid transaction form")
         print_transaction_help()
@@ -209,27 +176,11 @@ def client_transaction(str):
         print_transaction_help()
         return
     elif not valid_ammount(args[2]):
-        print("Invalid ammount of coins for transaction")
+        print("Invalid amount of coins for transaction")
         print_transaction_help()
         return
     print("transaction")
     # edw gia kathe peer IP kanoume broadcast sto /new_transaction
-
-
-def valid_pkey(str):
-    return True
-
-
-def valid_ammount(str):
-    return True
-
-
-def print_balance():
-    print("balance")
-
-
-def print_view():
-    print("view")
 
 
 def print_help():
@@ -255,3 +206,46 @@ def print_transaction_help():
 
 
 main()
+
+
+# -------------------------------- Not used yet -------------------------------- #
+
+
+def valid_pkey(str):
+    return True
+
+
+def valid_ammount(str):
+    return True
+
+
+def print_balance():
+    print("balance")
+
+
+def print_view():
+    print("view")
+
+
+def register_user_request(port):
+    global node
+    # kainourgio public & private key
+    wallet = Wallet()
+    public_key_json = jsonpickle.encode(wallet.public_key)
+    url = global_variable.bootstrapIp
+    headers = {'Content-Type': "application/json"}
+    print("Registering to bootstrap...")
+    # edw perimenoume apantisi apo bootstrap gia to id mas, peers, blockchain(me prwto block)
+    # stelnoume to public key mas
+    r = requests.post(url,
+                      data=public_key_json,
+                      headers=headers)
+    data = r.json()
+    peers = jsonpickle.decode(data['results'][0]['peers'])
+    blockchain = jsonpickle.decode(data['results'][0]['blockchain'])
+    node_id = data['results'][0]['node_id']
+
+    node = Node(node_id)
+    node.blockchain = blockchain
+    node.peers = peers
+    return
