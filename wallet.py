@@ -105,7 +105,7 @@ class Wallet:
         # Add transaction into blockchain
         # blockchain.add_new_transaction(transaction)
 
-        self.broadcast_to_peers(transaction, peers)
+        Wallet.broadcast_transaction_to_peers(transaction, peers)
         # print("history")
         # print(blockchain.get_valid_dict_nodes_utxos()[self.public_key])
 
@@ -114,7 +114,8 @@ class Wallet:
         # Return true if transaction creation and broadcast is finished successfully
         return True
 
-    def broadcast_to_peers(self, transaction, peers):
+    @staticmethod
+    def broadcast_transaction_to_peers(transaction, peers):
         for (idx, (peer, peer_url)) in enumerate(peers):
 
             transaction_json = jsonpickle.encode(transaction)

@@ -424,6 +424,8 @@ class Blockchain:
         # Delete this first elements from self.unconfirmed_transactions.
         del self.unconfirmed_transactions[:self.capacity]
 
+        # Fixme: broadcast block
+
         # Add new block in the chain
         self.add_block(new_block)
 

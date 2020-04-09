@@ -45,7 +45,6 @@ def get_transactions():
 
     node = global_variable.node
 
-
     list_of_transactions = node.blockchain.get_transactions()
     response = {'transactions': list_of_transactions}
     return jsonpickle.encode(response), 200
@@ -104,15 +103,15 @@ def verify_and_add_block():
     node = global_variable.node
 
     block_data = request.get_json()
-    required_fields = ["index", "transactions", "timestamp", "previous_hash", "nonce"]
 
-    # Check if every field has data
-    for field in required_fields:
-        if not block_data.get(field):
-            return "Invalid transaction data", 404
+    if not block_data.get("block"):
+        return "Invalid json", 400
+
+    # Decode block from json form
+    incoming_block = jsonpickle.decode(block_data.get("transaction"))
 
     # Decode object from json
-    block = jsonpickle.decode(block_data)
+    block = jsonpickle.decode(incoming_block)
 
     # Verify it
     verified = False
@@ -131,7 +130,8 @@ def verify_and_add_block():
         else:
             # If not, call the consesus algorithm to check
             # if there is longer valid chain available.
-            consensus()
+            # consensus()
+            print("Consesus Time has arrived!")
 
     if not verified:
         return "The block was discarded by the node", 400
