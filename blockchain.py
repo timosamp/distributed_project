@@ -293,8 +293,13 @@ class Blockchain:
 
         # print(self.dict_nodes_utxos)
 
-        # Save the new dict_nodes_utxos into history with key the new block's id
-        self.dict_nodes_utxos_by_block_id[block.hash] = copy.deepcopy(self.dict_nodes_utxos)
+        # Save the new dict_nodes_utxos into history with key the new block's id.
+        # This new dict occurred by the utxo's that the node has validated before
+        # the addition of the last block.
+        last_validated_dict_nodes_utxos = self.dict_nodes_utxos_by_block_id[(self.last_block()).hash]
+        current_validated_dict_nodes_utxos = self.update_utxos_of_nodes(last_validated_dict_nodes_utxos, block)
+
+        self.dict_nodes_utxos_by_block_id[block.hash] = copy.deepcopy(current_validated_dict_nodes_utxos)
 
         # print("history")
         # print(self.dict_nodes_utxos_by_block_id[block.hash])
@@ -336,7 +341,7 @@ class Blockchain:
         # Make a copy because Blockchain.is_transaction_valid is going to alter the list
         copy_of_all_nodes_utxos = copy.deepcopy(dict_nodes_utxos)
 
-        print(block.transactions)
+        # print(block.transactions)
 
         # Check the validity of each block's transaction
         for transaction in block.transactions:
