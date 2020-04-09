@@ -520,3 +520,4 @@ class Blockchain:
 
         for block in blockchain:
             dict_of_utxos = self.update_utxos_of_nodes(dict_of_utxos, block)
+

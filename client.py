@@ -187,7 +187,7 @@ def client_transaction(str_in):
         print("Invalid amount of coins for transaction")
         print_transaction_help()
         return
-    print("transaction")
+    node.wallet.sendCoinsTo()
     # edw gia kathe peer IP kanoume broadcast sto /new_transaction
 
 

@@ -2,6 +2,8 @@ import binascii
 
 import Crypto
 import Crypto.Random
+import jsonpickle
+import requests
 
 from Crypto.Hash import SHA
 from Crypto.PublicKey import RSA
@@ -62,7 +64,7 @@ class Wallet:
         return total_amount
 
 
-    def sendCoinsTo(self, recipient_address, amount, blockchain):
+    def sendCoinsTo(self, recipient_address, amount, blockchain, peers):
         # check if the sender have the amount which is trying to send (check balance)
         if self.balance(blockchain) < amount:
             return False
@@ -106,6 +108,7 @@ class Wallet:
         # Add transaction into blockchain
         blockchain.add_new_transaction(transaction)
 
+        self.broadcast_to_peers(transaction, peers)
         # print("history")
         # print(blockchain.get_valid_dict_nodes_utxos()[self.public_key])
 
@@ -114,6 +117,22 @@ class Wallet:
         # Return true if transaction creation and broadcast is finished successfully
         return True
 
+
+    def broadcast_to_peers(self, transaction, peers):
+        for idx,peer in peers:
+            peer_url = peer[1]
+            transaction_json = jsonpickle.encode(transaction)
+            data = {"transaction": transaction_json}
+            headers = {'Content-Type': "application/json"}
+            url = "{}/register_node".format(url)
+
+            r = requests.post(url,
+                              data=data,
+                              headers=headers)
+            if r.status_code == 200:
+                print("Broadcast to peer ", idx, " sucess!")
+            else:
+                print("Error: broadcast to peer ", idx)
 
     @staticmethod
     def create_RSA_pairKeys():

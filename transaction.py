@@ -172,6 +172,22 @@ class Transaction:
 
         return verifier.verify(sha_hash, self.transaction_signature)
 
+    def verify_transaction_fully(self, blockchain, utxos):
+        # Check the SHA-256 hash of transaction
+        if not self.verify_transaction():
+            return False
+
+        # Check every input transaction for corresponding utxo
+        # and remove it from utxos
+        sender_utxos = utxos[self.sender_address]
+        for tx_in in self.transaction_inputs:
+            utxo = (tx_out for tx_out in sender_utxos if tx_in.previous_output_id == x.outputTransactionId)
+            if utxo is None:
+                return False
+            else:
+                sender_utxos.remove(utxo)
+        return True
+
     def transaction_hash(self):
 
         to_be_hashed = (str(self.timestamp) +
