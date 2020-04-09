@@ -115,11 +115,11 @@ class Wallet:
         return True
 
     def broadcast_to_peers(self, transaction, peers):
-        for (idx, (peer_url, peer)) in enumerate(peers):
+        for (idx, (peer, peer_url)) in enumerate(peers):
             transaction_json = jsonpickle.encode(transaction)
             data = {"transaction": transaction_json}
             headers = {'Content-Type': "application/json"}
-            url = "http://{}/new_transaction".format(peer_url)
+            url = "{}/new_transaction".format(peer_url)
 
             print("url is: " + url)
 

@@ -41,11 +41,11 @@ def main(port, bootstrap):
         global_variable.node = Node(0, wallet)
 
         # Add bootstrap node in the peers' list
-        ip_address = "127.0.0.1:22147"
+        ip_address = global_variable.bootstrapIp
         public_key_str = str(wallet.public_key)
 
         # Create tuple of register data
-        node_register_data = (ip_address, public_key_str)
+        node_register_data = (public_key_str, ip_address)
 
         # Append it in nodes peers' list
         global_variable.node.peers.append(node_register_data)
