@@ -7,6 +7,7 @@ import copy
 class Blockchain:
     # difficulty of our PoW algorithm
     difficulty = 2
+    capacity = 4
 
     def __init__(self):
 
@@ -59,7 +60,8 @@ class Blockchain:
         # Add transaction into blockchain's unconfirmed transactions' list
         self.unconfirmed_transactions.append(transaction)
 
-        # Fixme: capacity test
+        if len(self.unconfirmed_transactions) == self.capacity:
+            self.mine()
 
         return True
 
@@ -404,12 +406,17 @@ class Blockchain:
         if not self.unconfirmed_transactions:
             return False
 
-        sub_list_of_unconfirmed = []
+        # Take first capacity unconfirmed transactions or block's mining.
+        sub_list_of_unconfirmed = self.unconfirmed_transactions[:self.capacity]
+
+        # Delete this first elements from self.unconfirmed_transactions.
+        del self.unconfirmed_transactions[:self.capacity]
+
 
         last_block = self.last_block()
 
         new_block = Block(index=last_block.index + 1,
-                          transactions=self.unconfirmed_transactions,
+                          transactions=sub_list_of_unconfirmed,
                           timestamp=time.time(),
                           previous_hash=last_block.hash,
                           nonce=0)
@@ -419,9 +426,6 @@ class Blockchain:
 
         # Add new block in the chain
         self.add_block(new_block)
-
-        # Init unconfirmed transactions' list
-        self.unconfirmed_transactions = []
 
         return True
 
