@@ -106,13 +106,15 @@ class Wallet:
         print("Transaction is signed.")
 
         # Add transaction into blockchain
-        blockchain.add_new_transaction(transaction)
+        # blockchain.add_new_transaction(transaction)
 
         self.broadcast_to_peers(transaction, peers)
         # print("history")
         # print(blockchain.get_valid_dict_nodes_utxos()[self.public_key])
 
         # FIXME: Broadcast the transaction to the whole network
+        for peer in blockchain.peers
+
 
         # Return true if transaction creation and broadcast is finished successfully
         return True
