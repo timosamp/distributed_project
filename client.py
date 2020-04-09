@@ -23,8 +23,6 @@ from rest import app
 
 import global_variable
 
-numOfClients = 5
-bootstrapIp = "http://127.0.0.1:22147"
 
 # global node
 # node = global_variable.node
@@ -34,16 +32,23 @@ bootstrapIp = "http://127.0.0.1:22147"
 @click.option('-p', '--port', default=22147, help='port to run the client on')
 @click.option('-b', '--bootstrap', is_flag=True, help='for bootstrap node only')
 def main(port, bootstrap):
-
     if bootstrap:
         print("This is bootstrap node")
 
         wallet = Wallet()
 
-        # global node
-        # node = Node(0, wallet)
-
         global_variable.node = Node(0, wallet)
+
+        # Add bootstrap node in the peers' list
+        ip_address = "127.0.0.1:22147"
+        public_key_str = str(wallet.public_key)
+
+        # Create tuple of register data
+        node_register_data = (ip_address, public_key_str)
+
+        # Append it in nodes peers' list
+        global_variable.node.peers.append(node_register_data)
+
         # edw an theloume kanoume wait mexri olo oi clients na graftoun
         # giati to diktuo den exei arxikopoihthei akoma, ara de mporoume na kanoume
         # transactions
@@ -60,11 +65,15 @@ def main(port, bootstrap):
     # ksekinaei se thread to loop pou diavazei input kai kalei
     # tis antistoixes sinartiseis tou node gia na parei
     # to balance, teleutaia transactions
-    thr = Thread(target=client_input_loop, args=[])
+
+    thr = Thread(target=client_input_loop)
     thr.start()
-    app.run(host='127.0.0.1', debug=True, port=port)
+
+    app.run(host='127.0.0.1', port=port)
 
     thr.join()
+
+    # exit()
 
 
 def client_input_loop():  # maybe: ,node
@@ -74,7 +83,7 @@ def client_input_loop():  # maybe: ,node
         node = global_variable.node
 
         # node.print_balance()
-        node.wallet.balance(node.blockchain)
+        # node.wallet.balance(node.blockchain)
 
     sleep(0.5)
     print("Client started...")
@@ -90,7 +99,7 @@ def client_input_loop():  # maybe: ,node
             client_transaction(str)
         elif str in {'q', 'quit', 'e', 'exit'}:
             print("Exiting...")
-            exit()
+            # exit()
             return
         elif str == "\n":
             continue
@@ -109,33 +118,37 @@ def register_with_bootstrap():
 
     # global node
     wallet = Wallet()
-    global bootstrapIp
 
     # Init request's parameters
     data = {"public_key": str(wallet.public_key)}
     headers = {'Content-Type': "application/json"}
-    url = "{}/register_node".format(bootstrapIp)
+    url = "{}/register_node".format(global_variable.bootstrapIp)
 
     # Make a request to register with remote node and obtain information
     response = requests.post(url, data=json.dumps(data), headers=headers)
 
     if response.status_code == 200:
 
-        # Try to update chain
+        # Decode json attributes
         chain_list = jsonpickle.decode(response.json()['chain'])
         peers = response.json()['peers']
 
         # Search index of node's ip address
-        node_id = (idx for idx, x in enumerate(peers) if x[0] == wallet.public_key)
+        node_id = [idx for idx, x in enumerate(peers) if x[0] == str(wallet.public_key)][0]
 
         try:
+
             # Then create a node
             # global node
             # node = Node(node_id, wallet)
 
             global_variable.node = Node(node_id, wallet)
 
-            print("Node has created")
+            node = global_variable.node
+
+            print("Node has created!")
+
+            # print(chain_list)
 
             # And try to create blockchain
             node.blockchain = Blockchain.create_chain_from_list(chain_list)
@@ -143,10 +156,11 @@ def register_with_bootstrap():
             print("Blockchain is created")
 
             # Update peers list
-            node.peers.update(response.json()['peers'])
+            node.peers = peers
             print("Peers has updated")
 
         except Exception as e:
+
             # if chain is tempered, then return False
             print(str(e))
             return False
@@ -158,34 +172,10 @@ def register_with_bootstrap():
         return False
 
 
-def register_user_request(port):
-    global node
-    # kainourgio public & private key
-    wallet = Wallet()
-    public_key_json = jsonpickle.encode(wallet.public_key)
-    url = bootstrapIp
-    headers = {'Content-Type': "application/json"}
-    print("Registering to bootstrap...")
-    # edw perimenoume apantisi apo bootstrap gia to id mas, peers, blockchain(me prwto block)
-    # stelnoume to public key mas
-    r = requests.post(url,
-                      data=public_key_json,
-                      headers=headers)
-    data = r.json()
-    peers = jsonpickle.decode(data['results'][0]['peers'])
-    blockchain = jsonpickle.decode(data['results'][0]['blockchain'])
-    node_id = data['results'][0]['node_id']
-
-    node = Node(node_id)
-    node.blockchain = blockchain
-    node.peers = peers
-    return
-
-
 # Sunarthsh gia na kanei o client transaction
 # mporei na xrisimopoihsei tin sunartisi tou node
-def client_transaction(str):
-    args = str.split(" ")
+def client_transaction(str_in):
+    args = str_in.split(" ")
     if args.length != 3:
         print("Invalid transaction form")
         print_transaction_help()
@@ -194,27 +184,11 @@ def client_transaction(str):
         print_transaction_help()
         return
     elif not valid_ammount(args[2]):
-        print("Invalid ammount of coins for transaction")
+        print("Invalid amount of coins for transaction")
         print_transaction_help()
         return
     print("transaction")
     # edw gia kathe peer IP kanoume broadcast sto /new_transaction
-
-
-def valid_pkey(str):
-    return True
-
-
-def valid_ammount(str):
-    return True
-
-
-def print_balance():
-    print("balance")
-
-
-def print_view():
-    print("view")
 
 
 def print_help():
@@ -240,3 +214,46 @@ def print_transaction_help():
 
 
 main()
+
+
+# -------------------------------- Not used yet -------------------------------- #
+
+
+def valid_pkey(str):
+    return True
+
+
+def valid_ammount(str):
+    return True
+
+
+def print_balance():
+    print("balance")
+
+
+def print_view():
+    print("view")
+
+
+def register_user_request(port):
+    global node
+    # kainourgio public & private key
+    wallet = Wallet()
+    public_key_json = jsonpickle.encode(wallet.public_key)
+    url = global_variable.bootstrapIp
+    headers = {'Content-Type': "application/json"}
+    print("Registering to bootstrap...")
+    # edw perimenoume apantisi apo bootstrap gia to id mas, peers, blockchain(me prwto block)
+    # stelnoume to public key mas
+    r = requests.post(url,
+                      data=public_key_json,
+                      headers=headers)
+    data = r.json()
+    peers = jsonpickle.decode(data['results'][0]['peers'])
+    blockchain = jsonpickle.decode(data['results'][0]['blockchain'])
+    node_id = data['results'][0]['node_id']
+
+    node = Node(node_id)
+    node.blockchain = blockchain
+    node.peers = peers
+    return

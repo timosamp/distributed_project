@@ -72,8 +72,8 @@ def new_transaction():
 
     node.blockchain.add_new_transaction(incoming_transaction)
 
-    print("/new_transaction: ")
-    print(incoming_transaction)
+    # print("/new_transaction: ")
+    # print(incoming_transaction)
 
     return "Success", 201
 
@@ -163,14 +163,10 @@ def register_new_peers():
     node = global_variable.node
 
 
-    print("oreaaaaaaaaaaaaaaaaaaa")
-
-
     # Get node's public key
 
     req_data = request.get_json()
     public_key = req_data["public_key"]
-    print(str(public_key))
 
 
     if not public_key:
@@ -181,6 +177,7 @@ def register_new_peers():
     remote_port = request.environ.get('REMOTE_PORT')
 
     node_net_address = str(ip_address) + ":" + str(remote_port)
+    print("node_net_address" + node_net_address)
 
     # Build tuple for peer's list
     node_register_data = (public_key, node_net_address)
@@ -191,8 +188,8 @@ def register_new_peers():
     node.peers.append(node_register_data)
 
     # Fixme: check if node has already been registered
-    # while len(node.peers) < 1:
-    #     time.sleep(0.5)         # wait 0.5 sec
+    while len(node.peers) < global_variable.numOfClients:
+        time.sleep(0.5)         # wait 0.5 sec
 
     return get_node_data(), 200
 

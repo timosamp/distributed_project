@@ -23,8 +23,14 @@ class Blockchain:
 
     # Get last valid utxos dictionary
     def get_valid_dict_nodes_utxos(self):
-        last_block = self.last_block()
-        return self.dict_nodes_utxos_by_block_id[last_block.hash]
+
+        # Check if there is any block in blockchain
+        if len(self.chain) > 0:
+            last_block = self.last_block()
+            return self.dict_nodes_utxos_by_block_id[last_block.hash]
+        else:
+            # If it is empty return an empty dictionary
+            return dict()
 
     # Return a list with blockchain's transactions
     def get_transactions(self):
@@ -245,11 +251,6 @@ class Blockchain:
           in the chain match.
         """
 
-        print("edw")
-
-
-
-        print("after dict")
 
         # If last_hash is None, take the hash of the last block
         if previous_block_hash is None:
@@ -295,8 +296,8 @@ class Blockchain:
         # Save the new dict_nodes_utxos into history with key the new block's id
         self.dict_nodes_utxos_by_block_id[block.hash] = copy.deepcopy(self.dict_nodes_utxos)
 
-        print("history")
-        print(self.dict_nodes_utxos_by_block_id[block.hash])
+        # print("history")
+        # print(self.dict_nodes_utxos_by_block_id[block.hash])
 
         # Update unconfirmed transactions
         self.update_unconfirmed_transactions()
@@ -390,14 +391,14 @@ class Blockchain:
     @staticmethod
     def update_utxos_of_nodes(dict_of_utxos, block):
 
-        print(" Update utxos \n")
+        print("Update utxos \n")
 
-        print("Block with id: " + block.hash)
+        # print("Block with id: " + block.hash)
 
         # For every transaction in the block
         for transaction in block.transactions:
 
-            print("Transaction with id: " + transaction.transaction_id)
+            # print("Transaction with id: " + transaction.transaction_id)
 
             # ----------------------------- update utxos for sender ----------------------------- #
 
@@ -411,9 +412,9 @@ class Blockchain:
             # Current node's utxos list
             nodes_utxos = dict_of_utxos[node_address]
 
-            print("Transaction id: " + transaction.transaction_id +
-                  "\n Node with address: ")
-            print(node_address)
+            # print("Transaction id: " + transaction.transaction_id +
+            #       "\n Node with address: ")
+            # print(node_address)
 
             # Remove the input transaction from node's utxos list
             for transaction_input in transaction.transaction_inputs:
@@ -446,9 +447,9 @@ class Blockchain:
             # Current node's utxos list
             nodes_utxos = dict_of_utxos[node_address]
 
-            print("Transaction id: " + transaction.transaction_id +
-                  "\n Node with address: ")
-            print(node_address)
+            # print("Transaction id: " + transaction.transaction_id +
+            #       "\n Node with address: ")
+            # print(node_address)
 
             # Then add the correct output transaction to node's utxos list
             for transaction_output in transaction.transaction_outputs:
@@ -462,7 +463,6 @@ class Blockchain:
         # Return the updated dict_nodes_utxos
         return dict_of_utxos
 
-    # ----------------------------------------- Not used yet ------------------------------------------------- #
 
     @classmethod
     def create_chain_from_list(cls, chain):
@@ -474,17 +474,19 @@ class Blockchain:
 
         for block in chain:
 
-            print(" into loop ")
+            # print(" into loop ")
 
             if blockchain.is_block_valid(block) is True:
 
-                print("Try to add block")
+                # print("Try to add block")
 
                 blockchain.add_block(block)
             else:
                 raise Exception("The chain dump is tampered!!")
 
         return blockchain
+
+    # ----------------------------------------- Not used yet ------------------------------------------------- #
 
 
     @classmethod
