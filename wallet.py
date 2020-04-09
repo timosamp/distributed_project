@@ -34,16 +34,23 @@ class Wallet:
         return self.address
 
     def balance(self, blockchain):
+
+
+        # Get nodes' utxos list from blockchain
+        last_validated_dict_of_node = blockchain.get_valid_dict_nodes_utxos()
+
+        # Check if sender there is in dict_nodes_utxos, and take it if so.
+        if not (self.public_key in last_validated_dict_of_node):
+            # Otherwise, assign an empty listS
+            utxos = []
+        else:
+            utxos = last_validated_dict_of_node[self.public_key]
+
+        # print("Balance:")
+        # print(utxos)
+
         # Init the amount variable
         total_amount = 0
-
-        # Get node's utxos list from blockchain
-        last_validated_dict_of_node = blockchain.get_valid_dict_nodes_utxos()
-        utxos = last_validated_dict_of_node[self.public_key]
-        # utxos = blockchain.dict_nodes_utxos[self.public_key]
-
-        print("Balance:")
-        print(utxos)
 
         # Iterate the utxos list and sum the whole available amount of the wallet
         for utxo in utxos:
@@ -78,35 +85,29 @@ class Wallet:
                 utxos_amount += utxo.amount
                 sub_list_of_utxos.append(utxo)
 
-        print("Sublist of utxos")
-        print(sub_list_of_utxos)
+        # print("Sublist of utxos")
+        # print(sub_list_of_utxos)
 
 
         print("UTXOs has gathered from sender.")
-
-        print("construct transaction -- public key is: ")
-        print(self.public_key)
 
         # Create a new transaction with receivers public key.
         # Sign this transaction with the private key of the sender's wallet.
         transaction = Transaction.with_utxos(self.public_key, recipient_address, amount, time.time(), sub_list_of_utxos)
 
-        print("inputs: ")
-        print(transaction.transaction_inputs)
+        # print("inputs: ")
+        # print(transaction.transaction_inputs)
 
         # Sign the transaction
         transaction.sign_transaction(self.private_key)
 
         print("Transaction is signed.")
 
-        print("history")
-        print(blockchain.get_valid_dict_nodes_utxos()[self.public_key])
-
         # Add transaction into blockchain
         blockchain.add_new_transaction(transaction)
 
-        print("history")
-        print(blockchain.get_valid_dict_nodes_utxos()[self.public_key])
+        # print("history")
+        # print(blockchain.get_valid_dict_nodes_utxos()[self.public_key])
 
         # FIXME: Broadcast the transaction to the whole network
 
@@ -118,9 +119,5 @@ class Wallet:
     def create_RSA_pairKeys():
         key = RSA.generate(2048)
         public_key = key.publickey().exportKey("PEM")
-
-        print("create public key: --------- @@@@@")
-        print(public_key)
-
         private_key = key.exportKey("PEM")
         return private_key, public_key

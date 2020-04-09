@@ -72,8 +72,8 @@ def new_transaction():
 
     node.blockchain.add_new_transaction(incoming_transaction)
 
-    print("/new_transaction: ")
-    print(incoming_transaction)
+    # print("/new_transaction: ")
+    # print(incoming_transaction)
 
     return "Success", 201
 
@@ -163,14 +163,15 @@ def register_new_peers():
     node = global_variable.node
 
 
-    print("oreaaaaaaaaaaaaaaaaaaa")
 
 
     # Get node's public key
 
     req_data = request.get_json()
     public_key = req_data["public_key"]
-    print(str(public_key))
+
+
+    # print(str(public_key))
 
 
     if not public_key:

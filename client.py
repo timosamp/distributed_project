@@ -61,7 +61,7 @@ def main(port, bootstrap):
     # tis antistoixes sinartiseis tou node gia na parei
     # to balance, teleutaia transactions
 
-    thr = Thread(target=client_input_loop, args=[])
+    thr = Thread(target=client_input_loop)
     thr.start()
 
 
@@ -70,7 +70,7 @@ def main(port, bootstrap):
 
 
 
-    # thr.join()
+    thr.join()
 
     # exit()
 
@@ -152,8 +152,7 @@ def register_with_bootstrap():
 
             print("Node has created")
 
-            # Decode object list
-            print(chain_list)
+            # print(chain_list)
 
             # And try to create blockchain
             node.blockchain = Blockchain.create_chain_from_list(chain_list)
