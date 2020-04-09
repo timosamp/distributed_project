@@ -68,13 +68,8 @@ def new_transaction():
 
     incoming_transaction = jsonpickle.decode(tx_data.get("transaction"))
 
-    print("ola kala mexri edw kai prin")
-
 
     node.blockchain.add_new_transaction(incoming_transaction)
-
-    print("ola kala")
-
 
     # print("/new_transaction: ")
     # print(incoming_transaction)
