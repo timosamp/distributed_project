@@ -41,7 +41,7 @@ class Wallet:
 
         # Check if sender there is in dict_nodes_utxos, and take it if so.
         if not (self.public_key in last_validated_dict_of_node):
-            # Otherwise, assign an empty listS
+            # Otherwise, assign an empty list
             utxos = []
         else:
             utxos = last_validated_dict_of_node[self.public_key]

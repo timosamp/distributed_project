@@ -163,8 +163,6 @@ def register_new_peers():
     node = global_variable.node
 
 
-
-
     # Get node's public key
 
     req_data = request.get_json()
@@ -192,8 +190,8 @@ def register_new_peers():
     node.peers.append(node_register_data)
 
     # Fixme: check if node has already been registered
-    # while len(node.peers) < 1:
-    #     time.sleep(0.5)         # wait 0.5 sec
+    while len(node.peers) < global_variable.numOfClients:
+        time.sleep(0.5)         # wait 0.5 sec
 
     return get_node_data(), 200
 
