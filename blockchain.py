@@ -1,3 +1,8 @@
+import jsonpickle
+import requests
+import json
+
+import global_variable
 from block import Block
 from transaction import Transaction
 import time
@@ -60,7 +65,7 @@ class Blockchain:
         # Add transaction into blockchain's unconfirmed transactions' list
         self.unconfirmed_transactions.append(transaction)
 
-        if len(self.unconfirmed_transactions) == self.capacity:
+        if len(self.unconfirmed_transactions) > self.capacity - 1:
             self.mine()
 
         return True
@@ -96,8 +101,6 @@ class Blockchain:
         # The transaction can be added to the new block
         return True
 
-
-
     @staticmethod
     def add_outputs_of_transaction_in_node_utxos(dict_of_utxos, transaction: Transaction):
 
@@ -109,13 +112,11 @@ class Blockchain:
 
             # If this node there isn't in dict_of_utxos,
             # add him and assign an empty list
-            if not(receiver_address in dict_of_utxos):
+            if not (receiver_address in dict_of_utxos):
                 dict_of_utxos[receiver_address] = []
 
             # append in his utxos the output transaction
             dict_of_utxos[receiver_address].append(transaction_output)
-
-
 
     # Check if the node has the required utxos and amount for this transaction
     @staticmethod
@@ -409,7 +410,6 @@ class Blockchain:
         # Take first capacity unconfirmed transactions or block's mining.
         sub_list_of_unconfirmed = self.unconfirmed_transactions[:self.capacity]
 
-
         last_block = self.last_block()
 
         new_block = Block(index=last_block.index + 1,
@@ -425,11 +425,34 @@ class Blockchain:
         del self.unconfirmed_transactions[:self.capacity]
 
         # Fixme: broadcast block
+        Blockchain.broadcast_block_to_peers(new_block)
 
         # Add new block in the chain
         self.add_block(new_block)
 
         return True
+
+    @staticmethod
+    def broadcast_block_to_peers(block):
+
+        peers = global_variable.node.peers
+
+        for (idx, (peer, peer_url)) in enumerate(peers):
+
+            block_json = jsonpickle.encode(block)
+            data = {"block": block_json}
+            headers = {'Content-Type': "application/json"}
+            url = "{}/new_transaction".format(peer_url)
+
+            print("")
+            r = requests.post(url,
+                              data=json.dumps(data),
+                              headers=headers)
+            if r.status_code == 200:
+                print("Broadcast to peer ", idx, " success!")
+            else:
+                print("Error: broadcast to peer ", idx)
+
 
 
     @staticmethod

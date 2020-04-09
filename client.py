@@ -211,6 +211,7 @@ def client_transaction(str_in, node):
     node.wallet.sendCoinsTo(recipient_pubkey, int(ammount), node.blockchain, node.peers)
     # edw gia kathe peer IP kanoume broadcast sto /new_transaction
 
+
 def print_help():
     print(
         '''
@@ -233,9 +234,6 @@ def print_transaction_help():
     print("t <recipient_address> <amount>      Transfer coins to public key specified")
 
 
-
-
-
 # -------------------------------- Not used yet -------------------------------- #
 
 
@@ -254,7 +252,9 @@ def print_balance():
 def print_view():
     print("view")
 
+
 main()
+
 
 def register_user_request(port):
     global node
