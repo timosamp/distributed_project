@@ -125,8 +125,8 @@ class Transaction:
                         str(self.sender_address) +
                         str(self.recipient_address) +
                         str(self.amount) +
-                        str(self.transaction_inputs) +
-                        str(self.transaction_outputs) +
+                        # str(self.transaction_inputs) +
+                        # str(self.transaction_outputs) +
                         str(self.transaction_id))
 
         # Create a hash value of the whole message
@@ -152,8 +152,8 @@ class Transaction:
                         str(self.sender_address) +
                         str(self.recipient_address) +
                         str(self.amount) +
-                        str(self.transaction_inputs) +
-                        str(self.transaction_outputs) +
+                        # str(self.transaction_inputs) +
+                        # str(self.transaction_outputs) +
                         str(self.transaction_id))
 
         # Create a hash value of the whole message

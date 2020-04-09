@@ -121,7 +121,11 @@ def register_with_bootstrap(my_port):
     wallet = Wallet()
     host_name = socket.gethostname()
     ip = socket.gethostbyname(host_name)
+
     print(ip)
+
+    ip = "127.0.0.1"
+
     my_url = "http://" + ip + ":" + str(my_port)
     print(my_url)
     # Init request's parameters

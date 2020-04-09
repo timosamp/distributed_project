@@ -116,6 +116,7 @@ class Wallet:
 
     def broadcast_to_peers(self, transaction, peers):
         for (idx, (peer, peer_url)) in enumerate(peers):
+
             transaction_json = jsonpickle.encode(transaction)
             data = {"transaction": transaction_json}
             headers = {'Content-Type': "application/json"}
@@ -125,7 +126,7 @@ class Wallet:
 
             print("")
             r = requests.post(url,
-                              data=data,
+                              data=json.dumps(data),
                               headers=headers)
             if r.status_code == 200:
                 print("Broadcast to peer ", idx, " sucess!")

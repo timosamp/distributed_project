@@ -60,22 +60,26 @@ def new_transaction():
     node = global_variable.node
 
     tx_data = request.get_json()
-    required_fields = ["sender_address", "recipient_address", "amount", "timestamp",
-                       "transaction_inputs", "transaction_outputs", "signature"]
 
-    # Check if every field has data
-    for field in required_fields:
-        if not tx_data.get(field):
-            return "Invalid transaction data", 404
+    if not tx_data.get("transaction"):
+        return "Invalid json", 400
 
-    incoming_transaction = jsonpickle.decode(tx_data)
+    # print(tx_data.get("transaction"))
+
+    incoming_transaction = jsonpickle.decode(tx_data.get("transaction"))
+
+    print("ola kala mexri edw kai prin")
+
 
     node.blockchain.add_new_transaction(incoming_transaction)
+
+    print("ola kala")
+
 
     # print("/new_transaction: ")
     # print(incoming_transaction)
 
-    return "Success", 201
+    return "Success", 200
 
 
 def announce_new_block(block):
@@ -161,7 +165,6 @@ def get_node_data():
 def register_new_peers():
 
     node = global_variable.node
-
 
     # Get node's public key
 
