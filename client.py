@@ -187,7 +187,13 @@ def client_transaction(str_in):
         print("Invalid amount of coins for transaction")
         print_transaction_help()
         return
-    node.wallet.sendCoinsTo()
+    recipient_id = [int(i) for i in args[1].split() if i.isdigit()]
+    if recipient_id >= node.peers.length or recipient_id is None:
+        print("Invalid recipient id")
+        return
+    ammount = args[2]
+    recipient_pubkey = node.peers[recipient_id]
+    node.wallet.sendCoinsTo(recipient_pubkey, ammount)
     # edw gia kathe peer IP kanoume broadcast sto /new_transaction
 
 

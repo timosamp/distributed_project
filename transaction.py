@@ -181,7 +181,7 @@ class Transaction:
         # and remove it from utxos
         sender_utxos = utxos[self.sender_address]
         for tx_in in self.transaction_inputs:
-            utxo = (tx_out for tx_out in sender_utxos if tx_in.previous_output_id == x.outputTransactionId)
+            utxo = (tx_out for tx_out in sender_utxos if tx_in.previous_output_id == tx_out.outputTransactionId)
             if utxo is None:
                 return False
             else:

@@ -113,8 +113,6 @@ class Wallet:
         # print(blockchain.get_valid_dict_nodes_utxos()[self.public_key])
 
         # FIXME: Broadcast the transaction to the whole network
-        for peer in blockchain.peers
-
 
         # Return true if transaction creation and broadcast is finished successfully
         return True
@@ -126,7 +124,7 @@ class Wallet:
             transaction_json = jsonpickle.encode(transaction)
             data = {"transaction": transaction_json}
             headers = {'Content-Type': "application/json"}
-            url = "{}/register_node".format(url)
+            url = "{}/new_transaction".format(url)
 
             r = requests.post(url,
                               data=data,
