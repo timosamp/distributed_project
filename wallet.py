@@ -37,7 +37,6 @@ class Wallet:
 
     def balance(self, blockchain):
 
-
         # Get nodes' utxos list from blockchain
         last_validated_dict_of_node = blockchain.get_valid_dict_nodes_utxos()
 
@@ -62,7 +61,6 @@ class Wallet:
 
         # Return the total amount
         return total_amount
-
 
     def sendCoinsTo(self, recipient_address, amount, blockchain, peers):
         # check if the sender have the amount which is trying to send (check balance)
@@ -90,7 +88,6 @@ class Wallet:
         # print("Sublist of utxos")
         # print(sub_list_of_utxos)
 
-
         print("UTXOs has gathered from sender.")
 
         # Create a new transaction with receivers public key.
@@ -117,13 +114,14 @@ class Wallet:
         # Return true if transaction creation and broadcast is finished successfully
         return True
 
-
     def broadcast_to_peers(self, transaction, peers):
-        for (idx, (peer_url,peer)) in enumerate(peers):
+        for (idx, (peer_url, peer)) in enumerate(peers):
             transaction_json = jsonpickle.encode(transaction)
             data = {"transaction": transaction_json}
             headers = {'Content-Type': "application/json"}
-            url = "{}/new_transaction".format(peer_url)
+            url = "http://{}/new_transaction".format(peer_url)
+
+            print("url is: " + url)
 
             print("")
             r = requests.post(url,

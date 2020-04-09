@@ -169,7 +169,7 @@ def register_new_peers():
     # Get node's public
     public_key = req_data["public_key"]
     # Get node's ip address
-    node_url = req_data["url"]
+    node_url = req_data["node_url"]
 
     print("node_url: " + node_url)
 
