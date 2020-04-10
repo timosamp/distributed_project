@@ -98,7 +98,7 @@ def client_input_loop():  # maybe: ,node
     while True:
         str = input(f"[node{node.current_id_count}]>>")
         if str in {'balance', 'b'}:
-            node.wallet.balance(node.blockchain)
+            print("Balance: ", node.wallet.balance(node.blockchain))
         elif str in {'view', 'v'}:
             print(node.blockchain.get_transactions())
         elif str in {'help', 'h'}:

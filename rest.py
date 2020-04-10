@@ -406,7 +406,8 @@ def consensus2():
         # If we do not have the longest chain, replace it
         if length > current_len:  # >= current_len and current_len > 3:
             print("Node %d has bigger chain(%d) that us(%d)" % (idx, length, current_len))
-
+            print("His blockchain:")
+            Blockchain.create_chain_from_list(chain).print_transactions()
             node.blockchain = Blockchain.create_chain_from_list(chain)
 
             # Check if it is valid fork, if not continue asking the rest peers
