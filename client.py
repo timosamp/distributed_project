@@ -1,5 +1,7 @@
+import signal
 import socket
 import string
+import sys
 from threading import Thread
 from time import sleep
 
@@ -33,6 +35,7 @@ import global_variable
 @click.option('-p', '--port', default=22147, help='port to run the client on')
 @click.option('-b', '--bootstrap', is_flag=True, help='for bootstrap node only')
 def main(port, bootstrap):
+    #signal.signal(signal.SIGINT, sigint_handler())
     if bootstrap:
         print("This is bootstrap node")
 
@@ -76,6 +79,10 @@ def main(port, bootstrap):
 
     # exit()
 
+
+def sigint_handler(sig, frame):
+    print('You pressed Ctrl+C!')
+    sys.exit(0)
 
 def client_input_loop():  # maybe: ,node
     with app.app_context():
@@ -263,6 +270,7 @@ def register_user_request(port):
     url = global_variable.bootstrapIp
     headers = {'Content-Type': "application/json"}
     print("Registering to bootstrap...")
+
     # edw perimenoume apantisi apo bootstrap gia to id mas, peers, blockchain(me prwto block)
     # stelnoume to public key mas
     r = requests.post(url,
