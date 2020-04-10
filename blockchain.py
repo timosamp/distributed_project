@@ -11,7 +11,7 @@ import copy
 
 class Blockchain:
     # difficulty of our PoW algorithm
-    difficulty = 6
+    difficulty = 3
     capacity = 2
 
     def __init__(self):
