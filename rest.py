@@ -320,6 +320,7 @@ def consensus():
                 print(hashh)
 
 
+
             # Find the first block of the other's fork
             fork_hash = node.blockchain.first_fork_hash(chain_hashes)
             print("first diff id: " + str(fork_hash))

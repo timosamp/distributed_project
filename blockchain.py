@@ -498,6 +498,7 @@ class Blockchain:
 
             print("--Mine is done--")
 
+
             # Fixme: broadcast block
             Blockchain.broadcast_block_to_peers(new_block)
 

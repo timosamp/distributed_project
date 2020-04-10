@@ -110,6 +110,7 @@ def client_input_loop():  # maybe: ,node
         else:
             print_invalid_command()
 
+
 def transactions_from_file(str_in, node):
     args = str_in.split(' ')
     if (len(args) != 2):
