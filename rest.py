@@ -345,6 +345,7 @@ def consensus():
 
             # Check if it is valid fork, if not continue asking the rest peers
             if node.blockchain.is_fork_valid(fork_blocks_list):
+                print("fork is valid")
                 # if so, include it in our chain
                 node.blockchain.include_the_fork(fork_blocks_list)
 

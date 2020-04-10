@@ -269,6 +269,8 @@ class Blockchain:
 
             # If this block id valid then update nodes' utxos and previous hash value
             if self.is_block_valid(block, last_hash, dict_nodes_utxos):
+                print("Block is valid")
+
 
                 # Then update nodes' utxos list
                 dict_nodes_utxos = Blockchain.update_utxos_of_nodes(dict_nodes_utxos, block)
@@ -277,6 +279,7 @@ class Blockchain:
                 last_hash = block.hash
 
             else:
+                print("Block is not valid")
                 return False
 
         # Return True if all the new list of blocks can be added
@@ -310,6 +313,7 @@ class Blockchain:
         for block in list_of_new_blocks:
             self.add_block(block)
 
+        print(self)
         # Return the updated dict_nodes_utxos_by_block_id to node
         # return self.dict_nodes_utxos_by_block_id
     """
