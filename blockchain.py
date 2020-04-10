@@ -1,3 +1,5 @@
+from threading import Thread
+
 import jsonpickle
 import requests
 import json
@@ -84,7 +86,9 @@ class Blockchain:
         #print("len of un transactions: " + str(len(self.unconfirmed_transactions)))
 
         if len(self.unconfirmed_transactions) > self.capacity - 1:
-            self.mine()
+            thr = Thread(target=self.mine)
+            thr.start()
+            # self.mine()
 
         return True
 

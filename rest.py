@@ -1,4 +1,6 @@
 # https://github.com/satwikkansal/python_blockchain_app/blob/master/node_server.py
+from threading import Thread
+
 import flask
 import requests
 from flask import Flask, jsonify, request, render_template
@@ -145,10 +147,12 @@ def verify_and_add_block():
             # If not, call the consesus algorithm to check
             # if there is longer valid chain available.
             print("Consesus Time has arrived!")
-            consensus()
+            thr = Thread(target=consensus)
+            thr.start()
+            # consensus()
 
     if not verified:
-        return "The block was discarded by the node", 400
+        return "The block was discarded by the node", 201
 
     return "Block added to the chain", 200
 
