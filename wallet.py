@@ -39,11 +39,13 @@ class Wallet:
 
         # Get nodes' utxos list from blockchain
         last_validated_dict_of_node = blockchain.get_valid_dict_nodes_utxos()
+        print(last_validated_dict_of_node.keys())
 
         # Check if sender there is in dict_nodes_utxos, and take it if so.
         if not (self.public_key in last_validated_dict_of_node):
             # Otherwise, assign an empty list
             utxos = []
+            print("I didn't find my self in utxos history :(")
         else:
             utxos = last_validated_dict_of_node[self.public_key]
 

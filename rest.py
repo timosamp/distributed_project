@@ -120,7 +120,11 @@ def verify_and_add_block():
     # If block doesn't have valid pow, discard it.
     if node.blockchain.is_valid_proof(block):
 
+        print("block is valid proof")
+
         if node.blockchain.is_block_valid(block):
+
+            print("block is valid generally")
 
             # Stop mining
             global_variable.node.mine_flag = False

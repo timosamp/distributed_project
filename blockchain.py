@@ -31,6 +31,7 @@ class Blockchain:
 
         # Check if there is any block in blockchain
         if len(self.chain) > 0:
+            print("Chain is not empty")
             last_block = self.last_block()
             return self.dict_nodes_utxos_by_block_id[last_block.hash]
         else:
@@ -306,6 +307,7 @@ class Blockchain:
 
         # Check if all transactions in the new block are valid accordingly with the validity transaction's rules.
         if not Blockchain.check_validity_of_block_transactions(block, dict_nodes_utxos):
+            print("Block has invalid transactions")
             return False
 
         return True
@@ -341,6 +343,8 @@ class Blockchain:
 
         # Append it into blockchain
         self.chain.append(block)
+
+        print("list length: " + str(len(self.chain)))
 
         # Return the new current list of all nodes' utxos
         # return self.dict_nodes_utxos
@@ -386,16 +390,18 @@ class Blockchain:
     def update_unconfirmed_transactions(self):
 
         # Save temporary the list
-        unconfirmed_transactions_to_be_updated = self.unconfirmed_transactions
+        unconfirmed_transactions_to_be_updated = copy.deepcopy(self.unconfirmed_transactions)
 
         # Init the list
         self.unconfirmed_transactions = []
 
         # Add its transaction again so to gather if its possible to be accepted
         for unconfirmed_transaction in unconfirmed_transactions_to_be_updated:
-            if self.add_new_transaction(unconfirmed_transaction):
-                # If it is accepted, delete it.
-                unconfirmed_transactions_to_be_updated.remove(unconfirmed_transaction)
+            self.add_new_transaction(unconfirmed_transaction)
+
+        print("len: " + str(len(self.unconfirmed_transactions)))
+            # If it is accepted, delete it.
+            # unconfirmed_transactions_to_be_updated.remove(unconfirmed_transaction)
 
     def mine(self):
         """
@@ -427,6 +433,8 @@ class Blockchain:
             # Delete this first elements from self.unconfirmed_transactions.
             del self.unconfirmed_transactions[:self.capacity]
 
+            print("--Mine is done--")
+
             # Fixme: broadcast block
             Blockchain.broadcast_block_to_peers(new_block)
 
@@ -446,7 +454,8 @@ class Blockchain:
             headers = {'Content-Type': "application/json"}
             url = "{}/add_block".format(peer_url)
 
-            print("")
+            print("Broadcast to: " + peer_url)
+
             r = requests.post(url,
                               data=json.dumps(data),
                               headers=headers)
