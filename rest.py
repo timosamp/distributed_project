@@ -133,9 +133,10 @@ def verify_and_add_block():
             # print("block is valid generally")
 
             # Stop mining
-            # global_variable.flag_lock.acquire(True)
+            while not global_variable.flag_lock.acquire():
+                continue
             global_variable.node.mine_flag = False
-            # global_variable.flag_lock.release()
+            global_variable.flag_lock.release()
 
 
             # If the rest test succeed then add block into blockchain
@@ -300,7 +301,7 @@ def consensus():
             continue
 
         # Ask others for their blockchain
-        response = requests.get('{}/chain'.format(peer_url))
+        response = requests.get('{}/chain_by_hashes'.format(peer_url))
 
         print(global_variable.node.blockchain)
 
@@ -383,7 +384,7 @@ def consensus2():
             continue
 
         # Ask others for their blockchain
-        response = requests.get('{}/chain_by_hash'.format(peer_url))
+        response = requests.get('{}/chain'.format(peer_url))
 
         print(global_variable.node.blockchain)
 
@@ -397,7 +398,8 @@ def consensus2():
         if length > current_len:  # >= current_len and current_len > 3:
             print("mexri_edw")
 
-            node.blockchain = Blockchain.create_chain_from_list(chain)
+            # node.blockchain = Blockchain.create_chain_from_list(chain)
+            print(chain)
 
             # Check if it is valid fork, if not continue asking the rest peers
             if node.blockchain.is_fork_valid(chain):

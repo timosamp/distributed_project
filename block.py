@@ -46,7 +46,8 @@ class Block:
         self.nonce = 0
 
         # Init mine_flag
-        global_variable.flag_lock.acquire(True)
+        while not global_variable.flag_lock.acquire():
+            continue
         global_variable.node.mine_flag = True
         global_variable.flag_lock.release()
 
@@ -64,7 +65,8 @@ class Block:
         self.hash = computed_hash
 
         # Re-enable the mine_flag
-        global_variable.flag_lock.acquire(True)
+        while not global_variable.flag_lock.acquire():
+            continue
         global_variable.node.mine_flag = False
         global_variable.flag_lock.release()
 
