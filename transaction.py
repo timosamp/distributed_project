@@ -160,7 +160,7 @@ class Transaction:
         sha_hash = SHA256.new(to_be_hashed.encode())
 
         # print("before_key")
-        print(self.sender_address)
+        # print(self.sender_address)
 
         key = RSA.importKey(self.sender_address)
 

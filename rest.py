@@ -56,6 +56,8 @@ def get_transactions():
 @app.route('/new_transaction', methods=['POST'])
 def new_transaction():
 
+    print("--- New transaction API ----")
+
     node = global_variable.node
 
     tx_data = request.get_json()
@@ -67,7 +69,7 @@ def new_transaction():
 
     incoming_transaction = jsonpickle.decode(tx_data.get("transaction"))
 
-    print(incoming_transaction.recipient_address)
+    # print(incoming_transaction.recipient_address)
 
 
     node.blockchain.add_new_transaction(incoming_transaction)

@@ -11,7 +11,7 @@ import copy
 
 class Blockchain:
     # difficulty of our PoW algorithm
-    difficulty = 2
+    difficulty = 3
     capacity = 4
 
     def __init__(self):
@@ -57,6 +57,13 @@ class Blockchain:
 
         print("Add new transaction into blockchain")
 
+        print("print utxos before adding")
+        for node_id in self.dict_nodes_utxos:
+            for utxo in self.dict_nodes_utxos[node_id]:
+                print(utxo.outputTransactionId)
+
+        print("End printing")
+
         # Check if transaction is valid, and if so update the utxo list of sender
         if not self.is_transaction_valid(transaction, self.dict_nodes_utxos):
             return False
@@ -65,6 +72,8 @@ class Blockchain:
 
         # Add transaction into blockchain's unconfirmed transactions' list
         self.unconfirmed_transactions.append(transaction)
+
+        print("len of un transactions: " + str(len(self.unconfirmed_transactions)))
 
         if len(self.unconfirmed_transactions) > self.capacity - 1:
             self.mine()
@@ -85,7 +94,7 @@ class Blockchain:
 
         # Node's utxos list
         sender_utxos = dict_nodes_utxos[transaction.sender_address]
-        # print(sender_utxos)
+
 
         # Check if the sender has the required utxos
         if not Blockchain.check_node_utxos_for_transaction(transaction, sender_utxos):
@@ -139,6 +148,9 @@ class Blockchain:
 
             # Find the transaction with this id into utxos
             for idx, o in enumerate(sender_utxos):
+
+                print("output: " + o.outputTransactionId)
+
                 if o.outputTransactionId == transaction_output_id:
                     # Mark it as existed
                     utxo_taking_place = True
@@ -316,9 +328,19 @@ class Blockchain:
     def add_block(self, block):
 
         # Then update nodes' utxos list and save the current state.
+        # print("print utxos before update")
+        # for node_id in self.dict_nodes_utxos:
+        #     for utxo in self.dict_nodes_utxos[node_id]:
+        #         print(utxo.outputTransactionId)
+        # print("End printing")
+
         self.dict_nodes_utxos = self.update_utxos_of_nodes(self.dict_nodes_utxos, block)
 
-        # print(self.dict_nodes_utxos)
+        print("print utxos after update")
+        for node_id in self.dict_nodes_utxos:
+            for utxo in self.dict_nodes_utxos[node_id]:
+                print(utxo.outputTransactionId)
+        print("End printing")
 
         # Save the new dict_nodes_utxos into history with key the new block's id.
         # This new dict occurred by the utxo's that the node has validated before
@@ -390,6 +412,8 @@ class Blockchain:
 
     def update_unconfirmed_transactions(self):
 
+        print("Update of unconfirmed transactions")
+
         # Save temporary the list
         unconfirmed_transactions_to_be_updated = copy.deepcopy(self.unconfirmed_transactions)
 
@@ -401,6 +425,8 @@ class Blockchain:
             self.add_new_transaction(unconfirmed_transaction)
 
         print("len: " + str(len(self.unconfirmed_transactions)))
+        print("End of unconfirmed transactions")
+
         # If it is accepted, delete it.
         # unconfirmed_transactions_to_be_updated.remove(unconfirmed_transaction)
 
@@ -467,7 +493,18 @@ class Blockchain:
     @staticmethod
     def update_utxos_of_nodes(dict_of_utxos, block):
 
-        print("Update utxos \n")
+        dict_of_utxos_copy = copy.deepcopy(dict_of_utxos)
+
+        print("Update utxos start\n")
+
+        # print("print utxos before update")
+        # i = 0
+        # for node_id in dict_of_utxos_copy:
+        #     print("node " + str(i))
+        #     for utxo in dict_of_utxos_copy[node_id]:
+        #         print(utxo.outputTransactionId)
+        #     i = i + 1
+        # print("End printing")
 
         # print("Block with id: " + block.hash)
 
@@ -482,34 +519,41 @@ class Blockchain:
             node_address = transaction.sender_address
 
             # Check if sender there is already in the list, otherwise add him
-            if not (transaction.sender_address in dict_of_utxos):
-                dict_of_utxos[node_address] = []
+            if not (node_address in dict_of_utxos_copy):
+                dict_of_utxos_copy[node_address] = []
 
             # Current node's utxos list
-            nodes_utxos = dict_of_utxos[node_address]
-
-            # print("Transaction id: " + transaction.transaction_id +
-            #       "\n Node with address: ")
-            # print(node_address)
+            nodes_utxos = dict_of_utxos_copy[node_address]
 
             # Remove the input transaction from node's utxos list
             for transaction_input in transaction.transaction_inputs:
                 transaction_output_id = transaction_input.previous_output_id
 
+                # print("used: " + transaction_output_id)
+
                 # Find the transaction with this id into utxos and delete it
                 for idx, o in enumerate(nodes_utxos):
                     if o.outputTransactionId == transaction_output_id:
+                        # print("delete: " + nodes_utxos[idx].outputTransactionId)
                         del nodes_utxos[idx]
                         break
 
-                # Add the output transaction to node's utxos list
-                for transaction_output in transaction.transaction_outputs:
 
-                    # Find the correct transaction output
-                    if transaction_output.recipient_address == node_address:
+            # Add the output transaction to node's utxos list
+            for transaction_output in transaction.transaction_outputs:
+                # print("generate: " + transaction_output.outputTransactionId)
+
+                # Find the correct transaction output
+                if transaction_output.recipient_address == node_address:
+
+                    # If there is already in the list don't add it.
+                    it_is_in = False
+                    for utxo in nodes_utxos:
+                        if utxo.outputTransactionId == transaction_output.outputTransactionId:
+                            it_is_in = True
+
+                    if not it_is_in:
                         nodes_utxos.append(transaction_output)
-
-            dict_of_utxos[node_address] = nodes_utxos  # update value
 
             # ----------------------------- update utxos for receiver ----------------------------- #
 
@@ -517,27 +561,41 @@ class Blockchain:
             node_address = transaction.recipient_address
 
             # Check if receiver there is already in the list, otherwise add him
-            if not (transaction.recipient_address in dict_of_utxos):
-                dict_of_utxos[node_address] = []
+            if not (node_address in dict_of_utxos_copy):
+                dict_of_utxos_copy[node_address] = []
 
             # Current node's utxos list
-            nodes_utxos = dict_of_utxos[node_address]
-
-            # print("Transaction id: " + transaction.transaction_id +
-            #       "\n Node with address: ")
-            # print(node_address)
+            nodes_utxos = dict_of_utxos_copy[node_address]
 
             # Then add the correct output transaction to node's utxos list
             for transaction_output in transaction.transaction_outputs:
 
                 # Find the correct transaction output
                 if transaction_output.recipient_address == node_address:
-                    nodes_utxos.append(transaction_output)
 
-            dict_of_utxos[node_address] = nodes_utxos  # update value
+                    # If there is already in the list don't add it.
+                    it_is_in = False
+                    for utxo in nodes_utxos:
+                        if utxo.outputTransactionId == transaction_output.outputTransactionId:
+                            it_is_in = True
 
-        # Return the updated dict_nodes_utxos
-        return dict_of_utxos
+                    if not it_is_in:
+                        nodes_utxos.append(transaction_output)
+
+
+            # print("\nprint utxos after update")
+            # i = 0
+            # for node_id in dict_of_utxos_copy:
+            #     print("node " + str(i))
+            #     for utxo in dict_of_utxos_copy[node_id]:
+            #         print(utxo.outputTransactionId)
+            #     i = i + 1
+            # print("End printing\n")
+
+
+        print("Update utxos ended\n")
+        return dict_of_utxos_copy
+
 
     @classmethod
     def create_chain_from_list(cls, chain):
