@@ -108,10 +108,10 @@ def verify_and_add_block():
         return "Invalid json", 400
 
     # Decode block from json form
-    incoming_block = jsonpickle.decode(block_data.get("transaction"))
+    incoming_block_json = block_data.get("block")
 
     # Decode object from json
-    block = jsonpickle.decode(incoming_block)
+    block = jsonpickle.decode(incoming_block_json)
 
     # Verify it
     verified = False

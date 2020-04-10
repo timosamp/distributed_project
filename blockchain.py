@@ -429,7 +429,7 @@ class Blockchain:
             Blockchain.broadcast_block_to_peers(new_block)
 
             # Add new block in the chain
-            self.add_block(new_block)
+            # self.add_block(new_block)
 
 
     @staticmethod
@@ -442,7 +442,7 @@ class Blockchain:
             block_json = jsonpickle.encode(block)
             data = {"block": block_json}
             headers = {'Content-Type': "application/json"}
-            url = "{}/new_transaction".format(peer_url)
+            url = "{}/add_block".format(peer_url)
 
             print("")
             r = requests.post(url,
