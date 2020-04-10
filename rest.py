@@ -126,11 +126,11 @@ def verify_and_add_block():
     # If block doesn't have valid pow, discard it.
     if node.blockchain.is_valid_proof(block):
 
-        print("block is valid proof")
+        # print("block is valid proof")
 
         if node.blockchain.is_block_valid(block):
 
-            print("block is valid generally")
+            # print("block is valid generally")
 
             # Stop mining
             # global_variable.flag_lock.acquire(True)
@@ -149,7 +149,7 @@ def verify_and_add_block():
         else:
             # If not, call the consesus algorithm to check
             # if there is longer valid chain available.
-            print("Consesus Time has arrived!")
+            # print("Consesus Time has arrived!")
             # thr = Thread(target=consensus)
             # thr.start()
             consensus2()
@@ -191,7 +191,7 @@ def register_new_peers():
     # Get node's ip address
     node_url = req_data["node_url"]
 
-    print("node_url: " + node_url)
+    # print("node_url: " + node_url)
 
     if (not public_key) or (not node_url):
         return "Invalid data", 400
@@ -224,7 +224,7 @@ def get_chain_by_hashes():
     node = global_variable.node
 
     chain_len = len(node.blockchain.chain)
-    print("chain len is : " + str(chain_len))
+    # print("chain len is : " + str(chain_len))
 
     chain_hashes = []
 
@@ -233,7 +233,7 @@ def get_chain_by_hashes():
 
     chain_hashes_json = jsonpickle.encode(chain_hashes)
 
-    print(global_variable.node.blockchain)
+    # print(global_variable.node.blockchain)
 
     return json.dumps({"length": chain_len,
                        "chain": chain_hashes_json})
@@ -243,16 +243,16 @@ def get_chain_by_hashes():
 def get_blocks_from():
     node = global_variable.node
 
-    print("ola kala")
+    # print("ola kala")
 
     hash_data = request.get_json()
 
-    print("ola kala")
+    # print("ola kala")
 
     # Save first hash of node's fork
     first_fork_hash = jsonpickle.decode(hash_data["first_fork_hash"])
 
-    print("ola kala 2")
+    # print("ola kala 2")
 
     # Init list
     fork_blocks_reversed = []
@@ -266,7 +266,7 @@ def get_blocks_from():
             fork_blocks_reversed.append(block)
             break
 
-    print("ola kala 3")
+    # print("ola kala 3")
 
     for block in reversed(fork_blocks_reversed):
         fork_blocks.append(block)
@@ -282,11 +282,11 @@ def consensus():
     Our naive consensus algorithm. If a longer valid chain is
     found, our chain is replaced with it.
     """
-
+    print("---- Entereed Consensus ----")
     node = global_variable.node
 
     current_len = len(node.blockchain.chain)
-    print("current len is : " + str(current_len))
+    # print("current len is : " + str(current_len))
 
     # Init flag
     flag = False
@@ -354,6 +354,7 @@ def consensus():
                 flag = True
 
     # In case we still have the longest blockchain return False
+    print("--- Leaving consensus (flag=%d)" % flag)
     return flag
 
 
