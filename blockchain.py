@@ -423,6 +423,7 @@ class Blockchain:
             # If mining is finished, continue:
             print("Success!! block is mined...")
             print(self)
+            print("New block:" , new_block)
             # Delete this first elements from self.unconfirmed_transactions.
             del self.unconfirmed_transactions[:self.capacity]
 
