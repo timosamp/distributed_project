@@ -55,14 +55,12 @@ class Blockchain:
     # Add a new transaction which is broadcasted
     def add_new_transaction(self, transaction):
 
-        print("Add new transaction into blockchain")
-
-        print("print utxos before adding")
-        for node_id in self.dict_nodes_utxos:
-            for utxo in self.dict_nodes_utxos[node_id]:
-                print(utxo.outputTransactionId)
-
-        print("End printing")
+        # print("Add new transaction into blockchain")
+        # print("print utxos before adding")
+        # for node_id in self.dict_nodes_utxos:
+        #     for utxo in self.dict_nodes_utxos[node_id]:
+        #         print(utxo.outputTransactionId)
+        # print("End printing")
 
         # Check if transaction is valid, and if so update the utxo list of sender
         if not self.is_transaction_valid(transaction, self.dict_nodes_utxos):
@@ -142,14 +140,14 @@ class Blockchain:
         for transaction_input in transaction.transaction_inputs:
             transaction_output_id = transaction_input.previous_output_id
 
-            print("Checking input transaction: " + transaction_output_id)
+            # print("Checking input transaction: " + transaction_output_id)
 
             utxo_taking_place = False
 
             # Find the transaction with this id into utxos
             for idx, o in enumerate(sender_utxos):
 
-                print("output: " + o.outputTransactionId)
+                # print("output: " + o.outputTransactionId)
 
                 if o.outputTransactionId == transaction_output_id:
                     # Mark it as existed
