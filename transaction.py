@@ -159,9 +159,9 @@ class Transaction:
         # Create a hash value of the whole message
         sha_hash = SHA256.new(to_be_hashed.encode())
 
-        print("before_key")
-        print(self.sender_address)
-        print(self.amount)
+        #print("before_key")
+        #print(self.sender_address)
+        #print(self.amount)
 
         key = RSA.importKey(self.sender_address)
 

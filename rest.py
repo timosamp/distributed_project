@@ -154,6 +154,7 @@ def verify_and_add_block():
             # thr.start()
             consensus2()
 
+
     if not verified:
         return "The block was discarded by the node", 201
 
@@ -373,13 +374,17 @@ def consensus2():
 
     node = global_variable.node
 
+    print("---- Entereed Consensus ----")
+    print("My blockchain:")
+    node.blockchain.print_transactions()
+
     current_len = len(node.blockchain.chain)
     print("current len is : " + str(current_len))
 
     # Init flag
     flag = False
 
-    for peer in node.peers:
+    for idx,peer in enumerate(node.peers):
 
         # peer = node.peers[-1]
         peer_url = peer[1]
@@ -390,23 +395,23 @@ def consensus2():
         # Ask others for their blockchain
         response = requests.get('{}/chain_by_hash'.format(peer_url))
 
-        print(global_variable.node.blockchain)
+        #print(global_variable.node.blockchain)
 
         # Reformat from json
         length = response.json()['length']
         chain = jsonpickle.decode(response.json()['chain'])
 
-        print("length > current_len: " + str(length) + " " + str(current_len))
+        # print("length > current_len: " + str(length) + " " + str(current_len))
 
         # If we do not have the longest chain, replace it
         if length > current_len:  # >= current_len and current_len > 3:
-            print("mexri_edw")
+            print("Node %d has bigger chain(%d) that us(%d)" % (idx, length, current_len))
 
             node.blockchain = Blockchain.create_chain_from_list(chain)
 
             # Check if it is valid fork, if not continue asking the rest peers
             if node.blockchain.is_fork_valid(chain):
-                print("fork is valid")
+                # print("fork is valid")
                 # if so, include it in our chain
                 node.blockchain = Blockchain.create_chain_from_list(chain)
 
@@ -415,8 +420,10 @@ def consensus2():
 
                 # And assign True in the flag
                 flag = True
-
+        else:
+            print("We had same length: %d", length)
     # In case we still have the longest blockchain return False
+    print("--- Leaving consensus ----")
     return flag
 
 
