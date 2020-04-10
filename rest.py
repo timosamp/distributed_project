@@ -359,6 +359,7 @@ def consensus():
 
 
 
+
 # Fixme: Where this algorithm should be called?
 def consensus2():
     """
