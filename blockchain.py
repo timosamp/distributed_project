@@ -283,7 +283,7 @@ class Blockchain:
 
 
         # Return beginning of fork
-        return last_common_hash
+        return first_common_hash
 
     """
         Check if fork is valid
@@ -346,7 +346,7 @@ class Blockchain:
 
         # Take the last valid dict_nodes_utxos and replace the current one
         self.dict_nodes_utxos = copy.deepcopy(self.dict_nodes_utxos_by_block_id[last_hash])
-        # dict_of_fork_beginning = copy.deepcopy(self.dict_nodes_utxos_by_block_id[last_hash])
+        # dict_of_fork_beginning = copy.deepcopy(self.dict_nodes_utxos)
 
         # Add the new blocks into it
         for block in list_of_new_blocks:

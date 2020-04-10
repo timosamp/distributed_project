@@ -133,9 +133,9 @@ def verify_and_add_block():
             print("block is valid generally")
 
             # Stop mining
-            global_variable.flag_lock.acquire(True)
+            # global_variable.flag_lock.acquire(True)
             global_variable.node.mine_flag = False
-            global_variable.flag_lock.release()
+            # global_variable.flag_lock.release()
 
 
             # If the rest test succeed then add block into blockchain
@@ -263,6 +263,7 @@ def get_blocks_from():
         if block.hash != first_fork_hash:
             fork_blocks_reversed.append(block)
         else:
+            fork_blocks_reversed.append(block)
             break
 
     print("ola kala 3")
