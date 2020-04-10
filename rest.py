@@ -21,10 +21,13 @@ from transaction import Transaction
 import jsonpickle
 
 import global_variable
+
 # import client
 
 app = Flask(__name__)
 CORS(app)
+
+
 # global_variable.initialize()
 
 # global node
@@ -44,7 +47,6 @@ CORS(app)
 # get all transactions in the blockchain
 @app.route('/transactions/get', methods=['GET'])
 def get_transactions():
-
     node = global_variable.node
 
     list_of_transactions = node.blockchain.get_transactions()
@@ -57,7 +59,6 @@ def get_transactions():
 # our application to add new data (posts) to the blockchain
 @app.route('/new_transaction', methods=['POST'])
 def new_transaction():
-
     print("--- Received transaction at API ----")
 
     node = global_variable.node
@@ -72,7 +73,6 @@ def new_transaction():
     incoming_transaction = jsonpickle.decode(tx_data.get("transaction"))
 
     # print(incoming_transaction.recipient_address)
-
 
     node.blockchain.add_new_transaction(incoming_transaction)
 
@@ -133,7 +133,10 @@ def verify_and_add_block():
             print("block is valid generally")
 
             # Stop mining
+            global_variable.flag_lock.acquire(True)
             global_variable.node.mine_flag = False
+            global_variable.flag_lock.release()
+
 
             # If the rest test succeed then add block into blockchain
             node.blockchain.add_block(block)
@@ -161,14 +164,11 @@ def verify_and_add_block():
 # Our application will be using this endpoint to register a node
 @app.route('/chain', methods=['GET'])
 def get_node_data():
-
     node = global_variable.node
-
 
     chain_len = len(node.blockchain.chain)
     chain_json = jsonpickle.encode(node.blockchain.chain)
     node_peers_json = jsonpickle.encode(node.peers)
-
 
     return json.dumps({"length": chain_len,
                        "chain": chain_json,
@@ -178,7 +178,6 @@ def get_node_data():
 # endpoint to add new peers to the network.
 @app.route('/register_node', methods=['POST'])
 def register_new_peers():
-
     node = global_variable.node
 
     # Get node's public key
@@ -212,7 +211,7 @@ def register_new_peers():
 
     # Fixme: check if node has already been registered
     while len(node.peers) < global_variable.numOfClients:
-        time.sleep(0.5)         # wait 0.5 sec
+        time.sleep(0.5)  # wait 0.5 sec
 
     return get_node_data(), 200
 
@@ -222,12 +221,10 @@ def register_new_peers():
 # for find the longest chain in consesus algorithm
 @app.route('/chain_by_hash', methods=['GET'])
 def get_chain_by_hashes():
-
     node = global_variable.node
 
     chain_len = len(node.blockchain.chain)
     print("chain len is : " + str(chain_len))
-
 
     chain_hashes = []
 
@@ -244,7 +241,6 @@ def get_chain_by_hashes():
 
 @app.route('/get_block_from', methods=['POST'])
 def get_blocks_from():
-
     node = global_variable.node
 
     print("ola kala")
@@ -257,7 +253,6 @@ def get_blocks_from():
     first_fork_hash = jsonpickle.decode(hash_data["first_fork_hash"])
 
     print("ola kala 2")
-
 
     # Init list
     fork_blocks_reversed = []
@@ -274,7 +269,6 @@ def get_blocks_from():
 
     for block in reversed(fork_blocks_reversed):
         fork_blocks.append(block)
-
 
     fork_blocks_json = jsonpickle.encode(fork_blocks)
 
@@ -316,14 +310,12 @@ def consensus():
         print("length > current_len: " + str(length) + " " + str(current_len))
 
         # If we do not have the longest chain, replace it
-        if length > current_len: #>= current_len and current_len > 3:
+        if length > current_len:  # >= current_len and current_len > 3:
             print("mexri_edw")
 
             print("Hash")
             for hashh in chain_hashes:
                 print(hashh)
-
-
 
             # Find the first block of the other's fork
             fork_hash = node.blockchain.first_fork_hash(chain_hashes)
@@ -362,7 +354,6 @@ def consensus():
 
     # In case we still have the longest blockchain return False
     return flag
-
 
 # -------------------------------------------- the above are fixed --------------------------------------------- #
 
@@ -405,4 +396,4 @@ def consensus():
 #     args = parser.parse_args()
 #     port = args.port
 
-    # app.run(host='127.0.0.1', port=port)
+# app.run(host='127.0.0.1', port=port)

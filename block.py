@@ -46,7 +46,9 @@ class Block:
         self.nonce = 0
 
         # Init mine_flag
+        global_variable.flag_lock.acquire(True)
         global_variable.node.mine_flag = True
+        global_variable.flag_lock.release()
 
         computed_hash = self.compute_hash()
         while not computed_hash.startswith('0' * difficulty):
@@ -62,7 +64,9 @@ class Block:
         self.hash = computed_hash
 
         # Re-enable the mine_flag
+        global_variable.flag_lock.acquire(True)
         global_variable.node.mine_flag = False
+        global_variable.flag_lock.release()
 
         return True
 
