@@ -138,22 +138,16 @@ def verify_and_add_block():
             global_variable.node.mine_flag = False
             global_variable.flag_lock.release()
 
-
             # If the rest test succeed then add block into blockchain
             node.blockchain.add_block(block)
 
             # Change the flag for the corresponding response
             verified = True
 
-            # consensus()
-
         else:
             # If not, call the consesus algorithm to check
             # if there is longer valid chain available.
-            # print("Consesus Time has arrived!")
-            # thr = Thread(target=consensus)
-            # thr.start()
-            consensus2()
+            consensus()
 
     if not verified:
         return "The block was discarded by the node", 201
@@ -302,7 +296,7 @@ def consensus():
             continue
 
         # Ask others for their blockchain
-        response = requests.get('{}/chain_by_hashes'.format(peer_url))
+        response = requests.get('{}/chain_by_hash'.format(peer_url))
 
         #print(global_variable.node.blockchain)
 

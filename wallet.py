@@ -59,7 +59,7 @@ class Wallet:
         for utxo in utxos:
             total_amount += utxo.amount
 
-        #print("Wallet has balance: " + str(total_amount))
+        print("Wallet has balance: " + str(total_amount))
 
         # Return the total amount
         return total_amount
