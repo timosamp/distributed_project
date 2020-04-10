@@ -67,6 +67,8 @@ def new_transaction():
 
     incoming_transaction = jsonpickle.decode(tx_data.get("transaction"))
 
+    print(incoming_transaction.recipient_address)
+
 
     node.blockchain.add_new_transaction(incoming_transaction)
 
@@ -157,10 +159,12 @@ def get_node_data():
 
     chain_len = len(node.blockchain.chain)
     chain_json = jsonpickle.encode(node.blockchain.chain)
+    node_peers_json = jsonpickle.encode(node.peers)
+
 
     return json.dumps({"length": chain_len,
                        "chain": chain_json,
-                       "peers": node.peers})
+                       "peers": node_peers_json})
 
 
 # endpoint to add new peers to the network.
@@ -172,13 +176,15 @@ def register_new_peers():
     # Get node's public key
 
     req_data = request.get_json()
+
     # Get node's public
-    public_key = req_data["public_key"]
+    public_key_json = req_data["public_key"]
+    public_key = jsonpickle.decode(public_key_json)
+
     # Get node's ip address
     node_url = req_data["node_url"]
 
     print("node_url: " + node_url)
-
 
     if (not public_key) or (not node_url):
         return "Invalid data", 400

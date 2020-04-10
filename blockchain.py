@@ -8,6 +8,7 @@ from transaction import Transaction
 import time
 import copy
 
+
 class Blockchain:
     # difficulty of our PoW algorithm
     difficulty = 2
@@ -400,8 +401,8 @@ class Blockchain:
             self.add_new_transaction(unconfirmed_transaction)
 
         print("len: " + str(len(self.unconfirmed_transactions)))
-            # If it is accepted, delete it.
-            # unconfirmed_transactions_to_be_updated.remove(unconfirmed_transaction)
+        # If it is accepted, delete it.
+        # unconfirmed_transactions_to_be_updated.remove(unconfirmed_transaction)
 
     def mine(self):
         """
@@ -429,7 +430,7 @@ class Blockchain:
             # If mining is finished, continue:
             print("Success!! block is mined...")
             print(self)
-            print("New block:" , new_block)
+            print("New block:", new_block)
             # Delete this first elements from self.unconfirmed_transactions.
             del self.unconfirmed_transactions[:self.capacity]
 
@@ -440,7 +441,6 @@ class Blockchain:
 
             # Add new block in the chain
             # self.add_block(new_block)
-
 
     @staticmethod
     def broadcast_block_to_peers(block):
@@ -463,8 +463,6 @@ class Blockchain:
                 print("Broadcast to peer ", idx, " success!")
             else:
                 print("Error: broadcast to peer ", idx)
-
-
 
     @staticmethod
     def update_utxos_of_nodes(dict_of_utxos, block):
