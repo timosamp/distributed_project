@@ -385,6 +385,11 @@ class Blockchain:
 
             # Otherwise, take as previous hash, the latest's hash value
             previous_block_hash = (self.last_block()).hash
+        else:
+            if previous_block_hash == "1":
+                # Then return true without validation
+                print("validate genesis block")
+                return True
 
         # If dict_nodes_utxos is None, then take the last valid list of utxos
         if dict_nodes_utxos is None:
