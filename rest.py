@@ -59,7 +59,7 @@ def get_transactions():
 # our application to add new data (posts) to the blockchain
 @app.route('/new_transaction', methods=['POST'])
 def new_transaction():
-    print("--- Received transaction at API ----")
+    #print("--- Received transaction at API ----")
 
     node = global_variable.node
 
@@ -284,14 +284,15 @@ def consensus():
     """
     print("---- Entereed Consensus ----")
     node = global_variable.node
-
+    print("My blockchain:")
+    node.blockchain.print_transactions()
     current_len = len(node.blockchain.chain)
     # print("current len is : " + str(current_len))
 
     # Init flag
     flag = False
 
-    for peer in node.peers:
+    for idx, peer in enumerate(node.peers):
 
         # peer = node.peers[-1]
         peer_url = peer[1]
@@ -302,27 +303,27 @@ def consensus():
         # Ask others for their blockchain
         response = requests.get('{}/chain_by_hash'.format(peer_url))
 
-        print(global_variable.node.blockchain)
+        #print(global_variable.node.blockchain)
 
         # Reformat from json
         length = response.json()['length']
         chain_hashes = jsonpickle.decode(response.json()['chain'])
 
-        print("length > current_len: " + str(length) + " " + str(current_len))
+        #print("length > current_len: " + str(length) + " " + str(current_len))
 
         # If we do not have the longest chain, replace it
         if length > current_len:  # >= current_len and current_len > 3:
-            print("mexri_edw")
-
-            print("Hash")
-            for hashh in chain_hashes:
-                print(hashh)
+            #print("mexri_edw")
+            print("Node %d has bigger chain(%d) that us(%d)" % (idx, length, current_len))
+            #print("Hash")
+            #for hashh in chain_hashes:
+                #print(hashh)
 
             # Find the first block of the other's fork
             fork_hash = node.blockchain.first_fork_hash(chain_hashes)
-            print("first diff id: " + str(fork_hash))
+            #print("first diff id: " + str(fork_hash))
 
-            print("edw")
+            #print("edw")
 
             # Ask him for the blocks
             url = "{}/get_block_from".format(peer_url)
@@ -338,8 +339,10 @@ def consensus():
 
             # Decode them
             fork_blocks_list = jsonpickle.decode(fork_blocks_list_json)
-
-            print(fork_blocks_list)
+            print("\nBlocks from received blockchain are:")
+            for b in fork_blocks_list:
+                b.print_transactions()
+            #print(fork_blocks_list)
 
             # Check if it is valid fork, if not continue asking the rest peers
             if node.blockchain.is_fork_valid(fork_blocks_list):
@@ -352,6 +355,8 @@ def consensus():
 
                 # And assign True in the flag
                 flag = True
+        else:
+            print("We had same length: %d", length)
 
     # In case we still have the longest blockchain return False
     print("--- Leaving consensus (flag=%d)" % flag)

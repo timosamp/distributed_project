@@ -92,6 +92,10 @@ class Block:
             ret += ("\t" + str(t) + "\n")
         return ret
 
+    def print_transactions(self):
+        print("Block %d", self.index)
+        for tx in self.transactions:
+            print('\t\tid:%s, \t%d' % (tx.transaction_id[0:10], tx.amount))
     @classmethod
     def build_from_dict(cls):
         # Fixme: not completed
