@@ -142,8 +142,8 @@ def verify_and_add_block():
         else:
             # If not, call the consesus algorithm to check
             # if there is longer valid chain available.
-            # consensus()
             print("Consesus Time has arrived!")
+            consensus()
 
     if not verified:
         return "The block was discarded by the node", 400
@@ -263,10 +263,8 @@ def consensus():
     Our naive consensus algorithm. If a longer valid chain is
     found, our chain is replaced with it.
     """
-    # global blockchain
 
     node = global_variable.node
-
 
     current_len = len(node.blockchain.chain)
 
@@ -287,7 +285,6 @@ def consensus():
             fork_hash = node.blockchain.first_fork_hash(chain_hashes)
 
             # Ask him for the blocks
-
             url = "{}get_block_from".format(peer)
             headers = {'Content-Type': "application/json"}
             data_json = {"first_fork_hash": jsonpickle.encode(fork_hash)}

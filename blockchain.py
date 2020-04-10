@@ -485,6 +485,7 @@ class Blockchain:
                               headers=headers)
             if r.status_code == 200:
                 print("Broadcast to peer ", idx, " success!")
+                break # consesus -- fixme: after testing
             else:
                 print("Error: broadcast to peer ", idx)
 
