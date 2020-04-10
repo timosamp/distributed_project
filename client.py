@@ -42,7 +42,7 @@ def main(port, bootstrap):
 
         # Add bootstrap node in the peers' list
         ip_address = global_variable.bootstrapIp
-        public_key_str = str(wallet.public_key)
+        public_key_str = wallet.public_key
 
         # Create tuple of register data
         node_register_data = (public_key_str, ip_address)
@@ -128,8 +128,10 @@ def register_with_bootstrap(my_port):
 
     my_url = "http://" + ip + ":" + str(my_port)
     print(my_url)
+
     # Init request's parameters
-    data = {"public_key": str(wallet.public_key),
+    public_key_json = jsonpickle.encode(wallet.public_key)
+    data = {"public_key": public_key_json,
             "node_url": my_url}
     headers = {'Content-Type': "application/json"}
     url = "{}/register_node".format(global_variable.bootstrapIp)
@@ -141,10 +143,10 @@ def register_with_bootstrap(my_port):
 
         # Decode json attributes
         chain_list = jsonpickle.decode(response.json()['chain'])
-        peers = response.json()['peers']
+        peers = jsonpickle.decode(response.json()['peers'])
 
         # Search index of node's ip address
-        node_id = [idx for idx, x in enumerate(peers) if x[0] == str(wallet.public_key)][0]
+        node_id = [idx for idx, x in enumerate(peers) if x[0] == wallet.public_key][0]
 
         try:
 
@@ -206,9 +208,9 @@ def client_transaction(str_in, node):
     print("Number of peers: ", len(node.peers))
     print("Sending to ", recipient_id)
 
-    ammount = args[2]
+    amount = args[2]
     recipient_pubkey = node.peers[recipient_id][0]
-    node.wallet.sendCoinsTo(recipient_pubkey, int(ammount), node.blockchain, node.peers)
+    node.wallet.sendCoinsTo(recipient_pubkey, int(amount), node.blockchain, node.peers)
     # edw gia kathe peer IP kanoume broadcast sto /new_transaction
 
 
