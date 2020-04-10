@@ -312,7 +312,7 @@ def consensus():
         print("length > current_len: " + str(length) + " " + str(current_len))
 
         # If we do not have the longest chain, replace it
-        if length >= current_len and current_len > 3:
+        if length > current_len: #>= current_len and current_len > 3:
             print("mexri_edw")
 
             print("Hash")

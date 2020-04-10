@@ -499,13 +499,14 @@ class Blockchain:
             print("--Mine is done--")
 
             # Fixme: broadcast block
+            Blockchain.broadcast_block_to_peers(new_block)
 
-
-            if not(len(self.chain) > 2 and len(self.chain) < 4):
-                print("Now broacast")
-                Blockchain.broadcast_block_to_peers(new_block)
-            else:
-                global_variable.node.blockchain.add_block(new_block)
+            # Causing consensus
+            # if not(len(self.chain) > 2 and len(self.chain) < 4):
+            #     print("Now broacast")
+            #     Blockchain.broadcast_block_to_peers(new_block)
+            # else:
+            #     global_variable.node.blockchain.add_block(new_block)
 
         # Add new block in the chain
             # self.add_block(new_block)
