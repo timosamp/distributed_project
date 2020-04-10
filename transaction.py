@@ -79,32 +79,32 @@ class Transaction:
     @classmethod
     def with_utxos(cls, sender_address, recipient_address, amount, timestamp, utxos):
 
-        print("Create transaction with utxos' list")
+        #print("Create transaction with utxos' list")
 
         # create transaction
         transaction = Transaction(sender_address, recipient_address, amount, timestamp)
 
-        print("Transaction's object has created")
+        #print("Transaction's object has created")
 
         # self.transaction_inputs: λίστα από Transaction Input (ids)
         transaction.create_list_of_input_transactions(utxos)
 
-        print("Inputs Transaction list is created")
-        print(transaction.transaction_inputs)
+        #print("Inputs Transaction list is created")
+        #print(transaction.transaction_inputs)
 
         # self.transaction_outputs: λίστα από Transaction Output
         transaction.create_list_of_output_transactions(utxos)
 
-        print("Outputs Transaction list is created")
+        #print("Outputs Transaction list is created")
 
-        print(transaction.transaction_outputs)
+        #print(transaction.transaction_outputs)
 
         return transaction
 
     @classmethod
     def generic(cls, recipient_address, amount, timestamp):
 
-        print("Start creating generic transaction")
+        #print("Start creating generic transaction")
 
         # create transaction
         transaction = Transaction("", recipient_address, amount, timestamp)
@@ -112,7 +112,7 @@ class Transaction:
         # Create the transaction_outputs list with only one Output Transaction
         transaction.transaction_outputs = [TransactionOutput(transaction.transaction_id, recipient_address, amount)]
 
-        print("Generic transaction is created")
+        #print("Generic transaction is created")
 
         return transaction
 
@@ -135,7 +135,7 @@ class Transaction:
         # Import private key
         key = RSA.importKey(private_key)
 
-        print(sha_hash)
+        #print(sha_hash)
 
         # Construct an instance of the crypto object
         cipher = PKCS1_v1_5.new(key)

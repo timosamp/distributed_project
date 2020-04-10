@@ -107,10 +107,10 @@ class Blockchain:
 
         # First check if the signature is valid
         if not transaction.verify_transaction():
-            print("transaction is not verified")
+            #print("transaction is not verified")
             return False
 
-        print("Transaction is verified")
+        #print("Transaction is verified")
 
         # Node's utxos list
         sender_utxos = dict_nodes_utxos[transaction.sender_address]
@@ -119,13 +119,13 @@ class Blockchain:
         if not Blockchain.check_node_utxos_for_transaction(transaction, sender_utxos):
             return False
 
-        print("Transaction has the required utxos")
+        #print("Transaction has the required utxos")
 
         # So transaction has valid inputs and it's valid itself,
         # then append in according node's utxos its output transaction.
         # This way, the rest transactions in this block can use them as input.
         Blockchain.add_outputs_of_transaction_in_node_utxos(dict_nodes_utxos, transaction)
-        print("Output transactions has added successfully")
+        #print("Output transactions has added successfully")
 
         # The transaction can be added to the new block
         return True
@@ -190,7 +190,7 @@ class Blockchain:
 
             # Check if all input transactions are taking place
             if not utxo_taking_place:
-                print("Need utxos from unconfirmed transactions")
+                #print("Need utxos from unconfirmed transactions")
 
                 # if not, recover the utxo list of node
                 sender_utxos.extend(temp_utxos_list)
@@ -357,7 +357,7 @@ class Blockchain:
 
             self.add_block(block, dict_of_fork_beginning)
 
-        print(self)
+        #print(self)
         # Return the updated dict_nodes_utxos_by_block_id to node
         # return self.dict_nodes_utxos_by_block_id
 
@@ -380,7 +380,7 @@ class Blockchain:
             # If this block is the genesis
             if block.previous_hash == "1":
                 # Then return true without validation
-                print("validate genesis block")
+                #print("validate genesis block")
                 return True
 
             # Otherwise, take as previous hash, the latest's hash value
@@ -428,11 +428,12 @@ class Blockchain:
 
         self.dict_nodes_utxos = self.update_utxos_of_nodes(self.dict_nodes_utxos, block)
 
-        print("print utxos after update")
+        #print("print utxos after update")
         for node_id in self.dict_nodes_utxos:
             for utxo in self.dict_nodes_utxos[node_id]:
-                print(utxo.outputTransactionId)
-        print("End printing")
+                #print(utxo.outputTransactionId)
+                x=1
+        #print("End printing")
 
         # Save the new dict_nodes_utxos into history with key the new block's id.
         # This new dict occurred by the utxo's that the node has validated before
@@ -462,7 +463,7 @@ class Blockchain:
         # Append it into blockchain
         self.chain.append(block)
 
-        print("list length: " + str(len(self.chain)))
+        #print("list length: " + str(len(self.chain)))
 
         # Return the new current list of all nodes' utxos
         # return self.dict_nodes_utxos
@@ -507,7 +508,7 @@ class Blockchain:
 
     def update_unconfirmed_transactions(self):
 
-        print("Update of unconfirmed transactions")
+        #print("Update of unconfirmed transactions")
 
         # Save temporary the list
         unconfirmed_transactions_to_be_updated = copy.deepcopy(self.unconfirmed_transactions)
@@ -519,8 +520,8 @@ class Blockchain:
         for unconfirmed_transaction in unconfirmed_transactions_to_be_updated:
             self.add_new_transaction(unconfirmed_transaction)
 
-        print("len: " + str(len(self.unconfirmed_transactions)))
-        print("End of unconfirmed transactions")
+        #print("len: " + str(len(self.unconfirmed_transactions)))
+        #print("End of unconfirmed transactions")
 
         # If it is accepted, delete it.
         # unconfirmed_transactions_to_be_updated.remove(unconfirmed_transaction)
@@ -551,11 +552,11 @@ class Blockchain:
             # If mining is finished, continue:
             print("Success!! block is mined...")
             # print(self)
-            print("New block:", new_block)
+            #print("New block:", new_block)
             # Delete this first elements from self.unconfirmed_transactions.
             del self.unconfirmed_transactions[:self.capacity]
-            self.print_transactions()
-            print("--Mine is done--")
+            #self.print_transactions()
+            #print("--Mine is done--")
 
             # Fixme: broadcast block
             Blockchain.broadcast_block_to_peers(new_block)
@@ -572,9 +573,9 @@ class Blockchain:
 
     @staticmethod
     def broadcast_block_to_peers(block):
-
+        cntr = 0
         peers = global_variable.node.peers
-        print("Broadcasting block to peers")
+        #print("Broadcasting block to peers")
         for (idx, (peer, peer_url)) in enumerate(list(reversed(peers))):
 
             block_json = jsonpickle.encode(block)
@@ -582,23 +583,30 @@ class Blockchain:
             headers = {'Content-Type': "application/json"}
             url = "{}/add_block".format(peer_url)
 
-            print("Broadcast to: " + peer_url)
+            #print("Broadcast to: " + peer_url)
 
             r = requests.post(url,
                               data=json.dumps(data),
                               headers=headers)
             if r.status_code == 200:
-                print("Broadcast to peer ", idx, " success!")
+                #print("Broadcast to peer ", idx, " success!")
                 # break # consesus -- fixme: after testing
+                cntr +=1
+                x=1
             else:
+                x=1
                 print("Error: broadcast to peer ", idx)
+        if cntr == len(peers):
+            print("Broadcasted block to all peers")
+        else:
+            print("Error broadcasting block.")
 
     @staticmethod
     def update_utxos_of_nodes(dict_of_utxos, block):
 
         dict_of_utxos_copy = copy.deepcopy(dict_of_utxos)
 
-        print("Update utxos start\n")
+        #print("Update utxos start\n")
 
         # print("print utxos before update")
         # i = 0
@@ -693,7 +701,7 @@ class Blockchain:
             #     i = i + 1
             # print("End printing\n")
 
-        print("Update utxos ended\n")
+        #print("Update utxos ended\n")
         return dict_of_utxos_copy
 
     @classmethod
@@ -702,7 +710,7 @@ class Blockchain:
         # Init a blockchain list
         blockchain = Blockchain()
 
-        print("Create temp block chain")
+        #print("Create temp block chain")
 
         for block in chain:
 
@@ -755,7 +763,7 @@ class Blockchain:
     def print_transactions(self):
         print("--- Blockchain ---")
         for idx,block in enumerate(self.chain):
-            print('\t--- Block %d' % idx)
+            print('\t--- Block %d (hash: %s)' % (idx, block.hash))
             for tx in block.transactions:
                 print('\t\tid:%s, \t%d' % (tx.transaction_id[0:10], tx.amount))
 
