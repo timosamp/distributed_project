@@ -690,7 +690,7 @@ class Blockchain:
             dict_of_utxos = self.update_utxos_of_nodes(dict_of_utxos, block)
 
     def __str__(self):
-        ret = "Blockchain(blocks:" + str(len(self.chain)) + ")\n"
+        ret = "\n---Blockchain(blocks:" + str(len(self.chain)) + ")---\n"
         for block in self.chain:
             ret += (str(block) + "\n")
         return ret

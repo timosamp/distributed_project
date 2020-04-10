@@ -85,7 +85,7 @@ class Block:
     def __str__(self):
         ret = "Block(transactions:" + str(len(self.transactions)) + ") with id:" + self.hash + "\n"
         for t in self.transactions:
-            ret += (str(t) + "\n")
+            ret += ("\t" + str(t) + "\n")
         return ret
 
     @classmethod

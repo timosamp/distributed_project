@@ -235,8 +235,8 @@ class Transaction:
         self.transaction_inputs = input_transactions
 
     def __str__(self):
-        return f"Transaction with id: {self.transaction_id}\n\tSender: {self.sender_address}" \
-               f"\n\tAmount: {self.amount}"
+        return f"Transaction\n\t\tid: {self.transaction_id[0:20]}...\n\t\tSender: {self.sender_address[27:50]}..." \
+               f"\n\t\tAmount: {self.amount}"
 
 
 class TransactionOutput:
@@ -259,14 +259,14 @@ class TransactionOutput:
 
     def __str__(self):
         return f"tx_out:\n" \
-            f"\tid:{self.transaction_id}\n" \
-               f"\trecipient:{self.recipient_address[0:10]}\n" \
+            f"\tid:{self.transaction_id[0:20]}...\n" \
+               f"\trecipient:{self.recipient_address[0:10]}...\n" \
                     f"\tammount:{self.amount}"
 
     def __repr__(self):
         return f"tx_out:\n" \
-            f"\tid:{self.transaction_id}\n" \
-               f"\trecipient:{self.recipient_address[0:10]}\n" \
+            f"\tid:{self.transaction_id[0:20]}...\n" \
+               f"\trecipient:{self.recipient_address[0:10]}...\n" \
                     f"\tammount:{self.amount}"
 
 
