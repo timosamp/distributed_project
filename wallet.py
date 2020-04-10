@@ -39,7 +39,7 @@ class Wallet:
 
         # Get nodes' utxos list from blockchain
         last_validated_dict_of_node = blockchain.get_valid_dict_nodes_utxos()
-        print(last_validated_dict_of_node.keys())
+        #print(last_validated_dict_of_node.keys())
 
         # Check if sender there is in dict_nodes_utxos, and take it if so.
         if not (self.public_key in last_validated_dict_of_node):
@@ -118,6 +118,7 @@ class Wallet:
 
     @staticmethod
     def broadcast_transaction_to_peers(transaction, peers):
+        cntr = 0
         for (idx, (peer, peer_url)) in enumerate(peers):
 
             transaction_json = jsonpickle.encode(transaction)
@@ -125,17 +126,18 @@ class Wallet:
             headers = {'Content-Type': "application/json"}
             url = "{}/new_transaction".format(peer_url)
 
-            print("url is: " + url)
+            print(f"Broadcasting to {url} (peer {idx})...", end='')
 
             print("")
             r = requests.post(url,
                               data=json.dumps(data),
                               headers=headers)
             if r.status_code == 200:
-                print("Broadcast to peer ", idx, " sucess!")
+                print("Success!")
+                cntr += 1
             else:
-                print("Error: broadcast to peer ", idx)
-
+                print(f"Error: status code {r.status_code}")
+        print(f"Transaction broadcasted to {cntr} peers!")
     @staticmethod
     def create_RSA_pairKeys():
         key = RSA.generate(2048)

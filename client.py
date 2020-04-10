@@ -89,23 +89,36 @@ def client_input_loop():  # maybe: ,node
     sleep(0.5)
     print("Client started...")
     while True:
-        str = input(">>")
+        str = input(f"[node{node.current_id_count}]>>")
         if str in {'balance', 'b'}:
             node.wallet.balance(node.blockchain)
         elif str in {'view', 'v'}:
             print(node.blockchain.get_transactions())
         elif str in {'help', 'h'}:
             print_help()
+        elif str.startswith('tff'):
+            transactions_from_file(str, node)
         elif str.startswith('t'):
             client_transaction(str, node)
         elif str in {'q', 'quit', 'e', 'exit'}:
             print("Exiting...")
             # exit()
             return
-        elif str == "\n":
+
+        elif str in {'\n', ''}:
             continue
         else:
             print_invalid_command()
+
+def transactions_from_file(str_in, node):
+    args = str_in.split(' ')
+    if (len(args) != 2):
+        print('usage: tff <filename>')
+    else:
+        f = open(args[1], "r")
+        for line in f:
+            client_transaction("tff " + line, node)
+
 
 
 # This function is called so node to be registered and synced with bootstrap node
@@ -121,13 +134,11 @@ def register_with_bootstrap(my_port):
     wallet = Wallet()
     host_name = socket.gethostname()
     ip = socket.gethostbyname(host_name)
-
     print(ip)
-
     ip = "127.0.0.1"
-
     my_url = "http://" + ip + ":" + str(my_port)
-    print(my_url)
+
+    print(f"my url for register is:{my_url}")
 
     # Init request's parameters
     public_key_json = jsonpickle.encode(wallet.public_key)
@@ -140,43 +151,27 @@ def register_with_bootstrap(my_port):
     response = requests.post(url, data=json.dumps(data), headers=headers)
 
     if response.status_code == 200:
-
         # Decode json attributes
         chain_list = jsonpickle.decode(response.json()['chain'])
         peers = jsonpickle.decode(response.json()['peers'])
 
         # Search index of node's ip address
         node_id = [idx for idx, x in enumerate(peers) if x[0] == wallet.public_key][0]
-
         try:
-
-            # Then create a node
-            # global node
-            # node = Node(node_id, wallet)
-
             global_variable.node = Node(node_id, wallet)
 
             node = global_variable.node
 
             print("Node has created!")
-
-            # print(chain_list)
-
-            # And try to create blockchain
             node.blockchain = Blockchain.create_chain_from_list(chain_list)
 
             print("Blockchain is created")
-
-            # Update peers list
             node.peers = peers
             print("Peers has updated")
-
         except Exception as e:
-
             # if chain is tempered, then return False
             print(str(e))
             return False
-
         # Return True if blockchain is created
         return True
     else:
@@ -189,8 +184,9 @@ def register_with_bootstrap(my_port):
 def client_transaction(str_in, node):
     args = str_in.split(" ")
     if len(args) != 3:
-        print("Invalid transaction form")
+        print("Invalid transaction form. Should have exactly 2 arguments")
         print_transaction_help()
+        return
     if not valid_pkey(args[1]):
         print("Invalid public key for transaction")
         print_transaction_help()
@@ -205,9 +201,9 @@ def client_transaction(str_in, node):
     if len(recipient_ids) != 1:
         print("Found more than num in", recipient_ids)
     recipient_id = recipient_ids[0]
-    print("Number of peers: ", len(node.peers))
-    print("Sending to ", recipient_id)
-
+    if recipient_id > len(node.peers) - 1:
+        print("Error: No node with this id")
+        return
     amount = args[2]
     recipient_pubkey = node.peers[recipient_id][0]
     node.wallet.sendCoinsTo(recipient_pubkey, int(amount), node.blockchain, node.peers)

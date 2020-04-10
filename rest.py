@@ -56,7 +56,7 @@ def get_transactions():
 @app.route('/new_transaction', methods=['POST'])
 def new_transaction():
 
-    print("--- New transaction API ----")
+    print("--- Received transaction at API ----")
 
     node = global_variable.node
 

@@ -146,7 +146,7 @@ class Transaction:
     def verify_transaction(self):
         # Fixme: it will appear an error for the key
 
-        print("Internal verification function")
+        #print("Internal verification function")
 
         to_be_hashed = (str(self.timestamp) +
                         str(self.sender_address) +
