@@ -88,9 +88,9 @@ class Blockchain:
         # print("len of un transactions: " + str(len(self.unconfirmed_transactions)))
 
         if len(self.unconfirmed_transactions) > self.capacity - 1:
-            # thr = Thread(target=self.mine)
-            # thr.start()
-            self.mine()
+            thr = Thread(target=self.mine)
+            thr.start()
+            # self.mine()
 
         return True
 
@@ -244,24 +244,46 @@ class Blockchain:
 
         chain_hashes_set = set(chain_hashes_list)
 
+        last_common_hash = ""
         first_common_hash = ""
         first_dif_hash = ""
 
-        print("find last common")
+        # print("find last common")
         # Find the last common hash
-        for block in reversed(self.chain):
+        # for block in reversed(self.chain):
+        #     # print(str(block.hash))
+        #     if block.hash in chain_hashes_set:
+        #         # print("common: " + str(block.hash))
+        #         first_common_hash = block.hash
+        #     else:
+        #         break
+        #
+        # # Find first different hash
+        # for block_hash in reversed(chain_hashes_list):
+        #     if block_hash != first_common_hash:
+        #         first_dif_hash = block_hash
+        #     else:
+        #         break
+
+        # Find the last common hash
+        for block in self.chain:
             print(str(block.hash))
             if block.hash in chain_hashes_set:
                 print("common: " + str(block.hash))
-                first_common_hash = block.hash
+                last_common_hash = block.hash
+            else:
+                break
 
-        # Find first different hash
+        # Find first different hash of other's fork
         for block_hash in reversed(chain_hashes_list):
-            if block_hash != first_common_hash:
+            if block_hash != last_common_hash:
                 first_dif_hash = block_hash
+            else:
+                break
+
 
         # Return beginning of fork
-        return first_dif_hash
+        return last_common_hash
 
     """
         Check if fork is valid
@@ -269,11 +291,17 @@ class Blockchain:
 
     def is_fork_valid(self, list_of_new_blocks):
 
+        if len(list_of_new_blocks) == 0:
+            return True
+
         # Take last hash
         last_hash = list_of_new_blocks[0].previous_hash
 
         # Take the utxos after the last addition
-        dict_nodes_utxos = self.dict_nodes_utxos_by_block_id[last_hash]
+        if last_hash == "1":
+            dict_nodes_utxos = dict()
+        else:
+            dict_nodes_utxos = self.dict_nodes_utxos_by_block_id[last_hash]
 
         for block in list_of_new_blocks:
 
@@ -318,10 +346,15 @@ class Blockchain:
 
         # Take the last valid dict_nodes_utxos and replace the current one
         self.dict_nodes_utxos = copy.deepcopy(self.dict_nodes_utxos_by_block_id[last_hash])
-        dict_of_fork_beginning = copy.deepcopy(self.dict_nodes_utxos_by_block_id[last_hash])
+        # dict_of_fork_beginning = copy.deepcopy(self.dict_nodes_utxos_by_block_id[last_hash])
 
         # Add the new blocks into it
         for block in list_of_new_blocks:
+
+            last_hash = block.previous_hash
+
+            dict_of_fork_beginning = copy.deepcopy(self.dict_nodes_utxos_by_block_id[last_hash])
+
             self.add_block(block, dict_of_fork_beginning)
 
         print(self)
