@@ -98,8 +98,6 @@ def client_input_loop():  # maybe: ,node
             print_help()
         elif str.startswith('tff'):
             transactions_from_file(str, node)
-        elif str.startswith('tself'):
-            transaction_to_self(str, node)
         elif str.startswith('t'):
             client_transaction(str, node)
         elif str in {'q', 'quit', 'e', 'exit'}:
@@ -112,25 +110,6 @@ def client_input_loop():  # maybe: ,node
         else:
             print_invalid_command()
 
-"""
-Send coins only to self, without broadcasting 
-to any peers
-"""
-def transaction_to_self(str, node):
-    args = str.split(" ")
-    if (len(args) != 2):
-        print("usage: tself <ammount> ")
-        return
-    else:
-        ammount = args[1]
-        myself = node.peers[node.current_id_count]
-        node.wallet.sendCoinsTo(myself[0], int(ammount), node.blockchain, [myself])
-
-
-"""
-Reads a file with transactions in form: "<id> <ammount>"
-and executes each one of them
-"""
 def transactions_from_file(str_in, node):
     args = str_in.split(' ')
     if (len(args) != 2):
@@ -142,47 +121,8 @@ def transactions_from_file(str_in, node):
 
 
 
-
-
-"""
-Take a transaction in "xxx <id> <ammount>" form and 
-calls wallet.sendCoinsTo() which will broadcast transaction 
-"""
-def client_transaction(str_in, node):
-    args = str_in.split(" ")
-    if len(args) != 3:
-        print("Invalid transaction form. Should have exactly 2 arguments")
-        print_transaction_help()
-        return
-    if not valid_pkey(args[1]):
-        print("Invalid public key for transaction")
-        print_transaction_help()
-        return
-    elif not valid_ammount(args[2]):
-        print("Invalid amount of coins for transaction")
-        print_transaction_help()
-        return
-
-    recipient_ids = [int(i) for i in args[1] if i.isdigit()]
-
-    if len(recipient_ids) != 1:
-        print("Found more than num in", recipient_ids)
-    recipient_id = recipient_ids[0]
-    if recipient_id > len(node.peers) - 1:
-        print("Error: No node with this id")
-        return
-    amount = args[2]
-    recipient_pubkey = node.peers[recipient_id][0]
-    node.wallet.sendCoinsTo(recipient_pubkey, int(amount), node.blockchain, node.peers)
-    # edw gia kathe peer IP kanoume broadcast sto /new_transaction
-
-
-"""
-Called at client initialization. Client sends his API url and 
-publick key to bootstrap node.
-"""
+# This function is called so node to be registered and synced with bootstrap node
 def register_with_bootstrap(my_port):
-
     """
     Internally calls the `register_node` endpoint to
     register current node with the node specified in the
@@ -237,6 +177,38 @@ def register_with_bootstrap(my_port):
     else:
         # if something goes wrong, return wrong
         return False
+
+
+# Sunarthsh gia na kanei o client transaction
+# mporei na xrisimopoihsei tin sunartisi tou node
+def client_transaction(str_in, node):
+    args = str_in.split(" ")
+    if len(args) != 3:
+        print("Invalid transaction form. Should have exactly 2 arguments")
+        print_transaction_help()
+        return
+    if not valid_pkey(args[1]):
+        print("Invalid public key for transaction")
+        print_transaction_help()
+        return
+    elif not valid_ammount(args[2]):
+        print("Invalid amount of coins for transaction")
+        print_transaction_help()
+        return
+
+    recipient_ids = [int(i) for i in args[1] if i.isdigit()]
+
+    if len(recipient_ids) != 1:
+        print("Found more than num in", recipient_ids)
+    recipient_id = recipient_ids[0]
+    if recipient_id > len(node.peers) - 1:
+        print("Error: No node with this id")
+        return
+    amount = args[2]
+    recipient_pubkey = node.peers[recipient_id][0]
+    node.wallet.sendCoinsTo(recipient_pubkey, int(amount), node.blockchain, node.peers)
+    # edw gia kathe peer IP kanoume broadcast sto /new_transaction
+
 
 def print_help():
     print(

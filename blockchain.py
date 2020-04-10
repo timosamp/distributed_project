@@ -484,7 +484,7 @@ class Blockchain:
         if new_block.proof_of_work(Blockchain.difficulty):
             # If mining is finished, continue:
             print("Success!! block is mined...")
-            print(self)
+            # print(self)
             print("New block:", new_block)
             # Delete this first elements from self.unconfirmed_transactions.
             del self.unconfirmed_transactions[:self.capacity]
@@ -492,7 +492,13 @@ class Blockchain:
             print("--Mine is done--")
 
             # Fixme: broadcast block
-            Blockchain.broadcast_block_to_peers(new_block)
+
+            node_id = [idx for idx, x in enumerate(global_variable.node.peers) \
+                       if x[0] == global_variable.node.wallet.public_key][0]
+            if node_id == 0:
+                global_variable.node.blockchain.add_block(new_block)
+            else:
+                Blockchain.broadcast_block_to_peers(new_block)
 
             # Add new block in the chain
             # self.add_block(new_block)
@@ -516,7 +522,7 @@ class Blockchain:
                               headers=headers)
             if r.status_code == 200:
                 print("Broadcast to peer ", idx, " success!")
-                break # consesus -- fixme: after testing
+                # break # consesus -- fixme: after testing
             else:
                 print("Error: broadcast to peer ", idx)
 

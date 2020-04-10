@@ -139,6 +139,8 @@ def verify_and_add_block():
             # Change the flag for the corresponding response
             verified = True
 
+            # consensus()
+
         else:
             # If not, call the consesus algorithm to check
             # if there is longer valid chain available.
@@ -214,7 +216,7 @@ def register_new_peers():
 # Get the chain only by hashes.
 # This endpoint will be used by our app
 # for find the longest chain in consesus algorithm
-@app.route('/chain_by_hashes', methods=['GET'])
+@app.route('/chain_by_hash', methods=['GET'])
 def get_chain_by_hashes():
 
     node = global_variable.node
@@ -237,20 +239,35 @@ def get_blocks_from():
 
     node = global_variable.node
 
+    print("ola kala")
+
     hash_data = request.get_json()
 
+    print("ola kala")
+
     # Save first hash of node's fork
-    first_fork_hash = jsonpickle.decode(hash_data.get("first_fork_hash"))
+    first_fork_hash = jsonpickle.decode(hash_data["first_fork_hash"])
+
+    print("ola kala 2")
+
 
     # Init list
+    fork_blocks_reversed = []
     fork_blocks = []
 
     # Collect fork's block
     for block in reversed(node.blockchain.chain):
         if block.hash != first_fork_hash:
-            fork_blocks.append(block)
+            fork_blocks_reversed.append(block)
         else:
             break
+
+    print("ola kala 3")
+
+    for block in reversed(fork_blocks_reversed):
+        fork_blocks.append(block)
+
+
 
     fork_blocks_json = jsonpickle.encode(fork_blocks)
 
@@ -272,25 +289,37 @@ def consensus():
     flag = False
 
     for peer in node.peers:
+
+        peer_url = peer[1]
+
         # Ask others for their blockchain
-        response = requests.get('{}chain_by_hash'.format(peer))
+        response = requests.get('{}/chain_by_hash'.format(peer_url))
+
 
         # Reformat from json
         length = response.json()['length']
         chain_hashes = jsonpickle.decode(response.json()['chain'])
 
+        print("length > current_len: " + str(length) + " " + str(current_len))
+
         # If we do not have the longest chain, replace it
-        if length > current_len:
+        if length >= current_len:
+            print("mexri_edw")
+
             # Find the first block of the other's fork
             fork_hash = node.blockchain.first_fork_hash(chain_hashes)
 
+            print(fork_hash)
+
+            print("edw")
+
             # Ask him for the blocks
-            url = "{}get_block_from".format(peer)
+            url = "{}/get_block_from".format(peer_url)
             headers = {'Content-Type': "application/json"}
             data_json = {"first_fork_hash": jsonpickle.encode(fork_hash)}
 
             response = requests.post(url,
-                                     data=data_json,
+                                     data=json.dumps(data_json),
                                      headers=headers)
 
             # Take the a list of fork's block in json form
@@ -298,6 +327,8 @@ def consensus():
 
             # Decode them
             fork_blocks_list = jsonpickle.decode(fork_blocks_list_json)
+
+            print(fork_blocks_list)
 
             # Check if it is valid fork, if not continue asking the rest peers
             if node.blockchain.is_fork_valid(fork_blocks_list):
