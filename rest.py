@@ -150,9 +150,9 @@ def verify_and_add_block():
             # If not, call the consesus algorithm to check
             # if there is longer valid chain available.
             print("Consesus Time has arrived!")
-            thr = Thread(target=consensus)
-            thr.start()
-            # consensus()
+            # thr = Thread(target=consensus)
+            # thr.start()
+            consensus()
 
     if not verified:
         return "The block was discarded by the node", 201
