@@ -549,7 +549,7 @@ class Blockchain:
             print("New block:", new_block)
             # Delete this first elements from self.unconfirmed_transactions.
             del self.unconfirmed_transactions[:self.capacity]
-
+            self.print_transactions()
             print("--Mine is done--")
 
             # Fixme: broadcast block
@@ -746,6 +746,13 @@ class Blockchain:
 
         for block in blockchain:
             dict_of_utxos = self.update_utxos_of_nodes(dict_of_utxos, block)
+
+    def print_transactions(self):
+        print("--- Blockchain ---")
+        for idx,block in enumerate(self.chain):
+            print('\t--- Block %d' % idx)
+            for tx in block.transactions:
+                print('\t\tid:%s, \t%d' % (tx.transaction_id[0:10], tx.amount))
 
     def __str__(self):
         ret = "\n---Blockchain(blocks:" + str(len(self.chain)) + ")---\n"
