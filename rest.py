@@ -222,6 +222,8 @@ def get_chain_by_hashes():
     node = global_variable.node
 
     chain_len = len(node.blockchain.chain)
+    print("chain len is : " + str(chain_len))
+
 
     chain_hashes = []
 
@@ -229,6 +231,8 @@ def get_chain_by_hashes():
         chain_hashes.append(block.hash)
 
     chain_hashes_json = jsonpickle.encode(chain_hashes)
+
+    print(global_variable.node.blockchain)
 
     return json.dumps({"length": chain_len,
                        "chain": chain_hashes_json})
@@ -268,7 +272,6 @@ def get_blocks_from():
         fork_blocks.append(block)
 
 
-
     fork_blocks_json = jsonpickle.encode(fork_blocks)
 
     return json.dumps({"fork_blocks": fork_blocks_json})
@@ -284,17 +287,23 @@ def consensus():
     node = global_variable.node
 
     current_len = len(node.blockchain.chain)
+    print("current len is : " + str(current_len))
 
     # Init flag
     flag = False
 
     for peer in node.peers:
 
+        # peer = node.peers[-1]
         peer_url = peer[1]
+
+        if global_variable.node.wallet.public_key == peer[0]:
+            continue
 
         # Ask others for their blockchain
         response = requests.get('{}/chain_by_hash'.format(peer_url))
 
+        print(global_variable.node.blockchain)
 
         # Reformat from json
         length = response.json()['length']
@@ -303,13 +312,17 @@ def consensus():
         print("length > current_len: " + str(length) + " " + str(current_len))
 
         # If we do not have the longest chain, replace it
-        if length >= current_len:
+        if length >= current_len and current_len > 3:
             print("mexri_edw")
+
+            print("Hash")
+            for hashh in chain_hashes:
+                print(hashh)
+
 
             # Find the first block of the other's fork
             fork_hash = node.blockchain.first_fork_hash(chain_hashes)
-
-            print(fork_hash)
+            print("first diff id: " + str(fork_hash))
 
             print("edw")
 

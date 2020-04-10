@@ -238,9 +238,12 @@ class Blockchain:
         first_common_hash = ""
         first_dif_hash = ""
 
+        print("find last common")
         # Find the last common hash
         for block in reversed(self.chain):
+            print(str(block.hash))
             if block.hash in chain_hashes_set:
+                print("common: " + str(block.hash))
                 first_common_hash = block.hash
 
         # Find first different hash
@@ -493,14 +496,14 @@ class Blockchain:
 
             # Fixme: broadcast block
 
-            node_id = [idx for idx, x in enumerate(global_variable.node.peers) \
-                       if x[0] == global_variable.node.wallet.public_key][0]
-            if node_id == 0:
-                global_variable.node.blockchain.add_block(new_block)
-            else:
-                Blockchain.broadcast_block_to_peers(new_block)
 
-            # Add new block in the chain
+            if not(len(self.chain) > 2 and len(self.chain) < 4):
+                print("Now broacast")
+                Blockchain.broadcast_block_to_peers(new_block)
+            else:
+                global_variable.node.blockchain.add_block(new_block)
+
+        # Add new block in the chain
             # self.add_block(new_block)
 
     @staticmethod
@@ -508,7 +511,7 @@ class Blockchain:
 
         peers = global_variable.node.peers
         print("Broadcasting block to peers")
-        for (idx, (peer, peer_url)) in enumerate(peers):
+        for (idx, (peer, peer_url)) in enumerate(list(reversed(peers))):
 
             block_json = jsonpickle.encode(block)
             data = {"block": block_json}
