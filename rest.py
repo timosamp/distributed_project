@@ -67,7 +67,7 @@ def new_transaction():
 
     incoming_transaction = jsonpickle.decode(tx_data.get("transaction"))
 
-
+    print(incoming_transaction.recipient_address)
     node.blockchain.add_new_transaction(incoming_transaction)
 
     # print("/new_transaction: ")

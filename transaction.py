@@ -257,7 +257,24 @@ class TransactionOutput:
 
         return sha.hexdigest()
 
+    def __str__(self):
+        return f"tx_out:\n" \
+            f"\tid:{self.transaction_id}\n" \
+               f"\trecipient:{self.recipient_address[0:10]}\n" \
+                    f"\tammount:{self.amount}"
+
+    def __repr__(self):
+        return f"tx_out:\n" \
+            f"\tid:{self.transaction_id}\n" \
+               f"\trecipient:{self.recipient_address[0:10]}\n" \
+                    f"\tammount:{self.amount}"
+
+
 
 class TransactionInput:
     def __init__(self, _previous_output_id):
         self.previous_output_id = _previous_output_id
+    def __str__(self):
+        return str(self.previous_output_id)
+    def __repr__(self):
+        return str(self.previous_output_id)

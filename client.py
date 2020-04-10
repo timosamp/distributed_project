@@ -207,7 +207,7 @@ def client_transaction(str_in, node):
     print("Sending to ", recipient_id)
 
     ammount = args[2]
-    recipient_pubkey = node.peers[recipient_id]
+    recipient_pubkey = node.peers[recipient_id][0]
     node.wallet.sendCoinsTo(recipient_pubkey, int(ammount), node.blockchain, node.peers)
     # edw gia kathe peer IP kanoume broadcast sto /new_transaction
 
