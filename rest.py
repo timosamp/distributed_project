@@ -152,7 +152,7 @@ def verify_and_add_block():
             # print("Consesus Time has arrived!")
             # thr = Thread(target=consensus)
             # thr.start()
-            consensus()
+            consensus2()
 
     if not verified:
         return "The block was discarded by the node", 201
@@ -301,7 +301,7 @@ def consensus():
             continue
 
         # Ask others for their blockchain
-        response = requests.get('{}/chain_by_hash'.format(peer_url))
+        response = requests.get('{}/chain'.format(peer_url))
 
         #print(global_variable.node.blockchain)
 
@@ -361,6 +361,64 @@ def consensus():
     # In case we still have the longest blockchain return False
     print("--- Leaving consensus (flag=%d)" % flag)
     return flag
+
+
+
+# Fixme: Where this algorithm should be called?
+def consensus2():
+    """
+    Our naive consensus algorithm. If a longer valid chain is
+    found, our chain is replaced with it.
+    """
+
+    node = global_variable.node
+
+    current_len = len(node.blockchain.chain)
+    print("current len is : " + str(current_len))
+
+    # Init flag
+    flag = False
+
+    for peer in node.peers:
+
+        # peer = node.peers[-1]
+        peer_url = peer[1]
+
+        if global_variable.node.wallet.public_key == peer[0]:
+            continue
+
+        # Ask others for their blockchain
+        response = requests.get('{}/chain_by_hash'.format(peer_url))
+
+        print(global_variable.node.blockchain)
+
+        # Reformat from json
+        length = response.json()['length']
+        chain = jsonpickle.decode(response.json()['chain'])
+
+        print("length > current_len: " + str(length) + " " + str(current_len))
+
+        # If we do not have the longest chain, replace it
+        if length > current_len:  # >= current_len and current_len > 3:
+            print("mexri_edw")
+
+            node.blockchain = Blockchain.create_chain_from_list(chain)
+
+            # Check if it is valid fork, if not continue asking the rest peers
+            if node.blockchain.is_fork_valid(chain):
+                print("fork is valid")
+                # if so, include it in our chain
+                node.blockchain = Blockchain.create_chain_from_list(chain)
+
+                # Take the new length
+                current_len = len(node.blockchain.chain)
+
+                # And assign True in the flag
+                flag = True
+
+    # In case we still have the longest blockchain return False
+    return flag
+
 
 # -------------------------------------------- the above are fixed --------------------------------------------- #
 
