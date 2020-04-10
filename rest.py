@@ -140,7 +140,7 @@ def verify_and_add_block():
     if not verified:
         return "The block was discarded by the node", 400
 
-    return "Block added to the chain", 201
+    return "Block added to the chain", 200
 
 
 # Endpoint to return the node's copy of the chain.

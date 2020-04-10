@@ -8,7 +8,6 @@ from transaction import Transaction
 import time
 import copy
 
-
 class Blockchain:
     # difficulty of our PoW algorithm
     difficulty = 2
@@ -404,6 +403,7 @@ class Blockchain:
         transactions to the blockchain by adding them to the block
         and figuring out Proof Of Work.
         """
+        print("Starting mining process..")
         if not self.unconfirmed_transactions:
             return False
 
@@ -421,7 +421,8 @@ class Blockchain:
         # Find the correct nonce -- Fixme: mining parameter
         if new_block.proof_of_work(Blockchain.difficulty):
             # If mining is finished, continue:
-
+            print("Success!! block is mined...")
+            print(self)
             # Delete this first elements from self.unconfirmed_transactions.
             del self.unconfirmed_transactions[:self.capacity]
 
@@ -436,7 +437,7 @@ class Blockchain:
     def broadcast_block_to_peers(block):
 
         peers = global_variable.node.peers
-
+        print("Broadcasting block to peers")
         for (idx, (peer, peer_url)) in enumerate(peers):
 
             block_json = jsonpickle.encode(block)
@@ -585,3 +586,9 @@ class Blockchain:
 
         for block in blockchain:
             dict_of_utxos = self.update_utxos_of_nodes(dict_of_utxos, block)
+
+    def __str__(self):
+        ret = "Blockchain(blocks:" + str(len(self.chain)) + ")\n"
+        for block in self.chain:
+            ret += (str(block) + "\n")
+        return ret

@@ -82,6 +82,12 @@ class Block:
 
         return dict_of_block
 
+    def __str__(self):
+        ret = "Block(transactions:" + str(len(self.transactions)) + ") with id:" + self.hash + "\n"
+        for t in self.transactions:
+            ret += (str(t) + "\n")
+        return ret
+
     @classmethod
     def build_from_dict(cls):
         # Fixme: not completed

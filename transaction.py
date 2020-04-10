@@ -234,6 +234,10 @@ class Transaction:
         # Return the list of input_transactions
         self.transaction_inputs = input_transactions
 
+    def __str__(self):
+        return f"Transaction with id: {self.transaction_id}\n\tSender: {self.sender_address}" \
+               f"\n\tAmount: {self.amount}"
+
 
 class TransactionOutput:
     def __init__(self, transaction_id, recipient_address, amount):
