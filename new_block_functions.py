@@ -1,5 +1,5 @@
 from block import Block
-
+#abc
 def verify_transaction_main_branch(self, transaction):
     main_branch_utxos = []
     for tx_in in transaction.transaction_inputs:
@@ -36,7 +36,6 @@ def add_block_main_branch(self, block, wallet, blockchain):
 
 def add_block_side_branch(self, block, blockchain):
     blockchain[block.hash] = block
-
 
 def add_block_side_branch_consensus(self, block, blockchain):
     current_mb_block = Block()
