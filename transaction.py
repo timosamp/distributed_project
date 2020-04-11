@@ -158,19 +158,8 @@ class Transaction:
 
         # Create a hash value of the whole message
         sha_hash = SHA256.new(to_be_hashed.encode())
-
-        # print("before_key")
-        # print(self.sender_address)
-        # print(self.amount)
-
         key = RSA.importKey(self.sender_address)
-
-        # print("after_key")
-
         verifier = PKCS1_v1_5.new(key)
-
-        # print("before_return_ver")
-
         return verifier.verify(sha_hash, self.transaction_signature)
 
     def verify_transaction_fully(self, blockchain, utxos):

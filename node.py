@@ -7,7 +7,7 @@ from block import Block
 class Node:
     def __init__(self, node_id, wallet: Wallet):
 
-        print("Start creating node with id: " + str(node_id))
+        print("\n\nStart creating node with id: " + str(node_id))
 
         self.current_id_count = node_id
 
@@ -23,11 +23,6 @@ class Node:
             self.blockchain.create_genesis_block(self.node_address)
 
         self.peers = list()
-
-
-
-
-
 
 
 
