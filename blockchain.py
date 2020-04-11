@@ -73,7 +73,10 @@ class Blockchain:
     """
     def add_new_transaction(self, transaction):
 
-        self.timer.cancel()
+        print("is alive? " + str(self.timer.is_alive()))
+
+        if self.timer.is_alive():
+            self.timer.cancel()
 
         # Check if transaction is valid, and if so update the utxo list of sender
         if not self.is_transaction_valid(transaction, self.dict_nodes_utxos):
@@ -87,8 +90,8 @@ class Blockchain:
             thr.start()
             # self.mine()
         else:
+            self.timer = Timer(5.0, self.mine)
             self.timer.start()
-
         return True
 
 
