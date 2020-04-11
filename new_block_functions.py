@@ -49,4 +49,59 @@ def add_block_side_branch_consensus(self, block, blockchain):
         if current_mb_block is None:
             print("[s_b_consensus]Error: previous hash not in chain (should never happen)...")
 
+def received_block(block, blockchain, wallet, difficulty, main_branch, orhpan_blocks, current_mb_block):
+    # 2) Reject if duplicate of block we have in any of the three categories
+    if blockchain[block.hash] is not None:
+        print("[received_block]Error: duplicate block")
+        return False
+
+    # 3)Transaction list must be non-empty
+    if len(block.transactions) == 0:
+        print("[received_block]Error: Empty transaction list")
+        return False
+
+    # 4)Block hash must satisfy claimed nBits proof of work
+    if not block.hash.startswith('0' * difficulty):
+        print("[received_block]Error: Blcok doesn't match current difficulty of %d" % difficulty)
+        return False
+
+    # 6)For each transaction, apply "tx" checks 2-4
+    for transaction in block.transactions:
+        pass
+
+    # 7)Verify Merkle hash
+    if not verify_merkle_hash(block):
+        return False
+
+    # 8) Check if prev block (matching prev hash) is in main branch
+    # οr side branches.
+    if blockchain[block.previous_hash] is None:
+        # If not, add this to orphan blocks, then query
+        # peer we got this from for 1st missing orphan block in prev chain;
+        # done with block
+        blockchain[block.hash] = block
+        return True
+
+    prev_block = blockchain[block.previous_hash]
+    # 16) For case 1, adding to main branch:
+    if prev_block.main_branch == 0:
+        # 16) For case 1, adding to main branch:
+        for transaction in block.transactions:
+            if not process_mb_transaction(transaction):
+                return False
+            add_to_wallet_if_mine(transaction, wallet)
+            remove_matching_from_pool(transaction)
+        broadcast_block_to_peers(block)
+        block.main_branch = 0
+        blockchain[block.hash] = block
+    elif prev_block.main_branch == 1:
+        if prev_block.chain_length > current_mb_block.chain_length:
+            
+        else:
+            # 17) For case 2, adding to a side branch, we don't do anything.
+            block.main_branch = 1
+            blockchain[block.hash] = block
+
+
+
 
