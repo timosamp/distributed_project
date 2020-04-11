@@ -99,7 +99,6 @@ class Blockchain:
         Check the utxos of the sender if appropriate
         Add transaction outputs to dict_node_utxos
     """
-
     @staticmethod
     def is_transaction_valid(transaction, dict_nodes_utxos):
 
