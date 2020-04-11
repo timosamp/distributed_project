@@ -48,7 +48,6 @@ def add_block_side_branch_consensus(self, block, blockchain):
         current_mb_block = blockchain[current_mb_block.previous_hash]
         if current_mb_block is None:
             print("[s_b_consensus]Error: previous hash not in chain (should never happen)...")
-
 def received_block(block, blockchain, wallet, difficulty, main_branch, orhpan_blocks, current_mb_block):
     # 2) Reject if duplicate of block we have in any of the three categories
     if blockchain[block.hash] is not None:
@@ -95,8 +94,19 @@ def received_block(block, blockchain, wallet, difficulty, main_branch, orhpan_bl
         block.main_branch = 0
         blockchain[block.hash] = block
     elif prev_block.main_branch == 1:
-        if prev_block.chain_length > current_mb_block.chain_length:
 
+        if prev_block.chain_length > current_mb_block.chain_length:
+            # 18) For case 3, a side branch becoming the main branch:
+
+            # 19) Find the fork block on the main branch which this side branch forks off of
+            temp_block = prev_block
+            while temp_block.main_branch == 1:
+                # 20) Redefine the main branch to only go up to this fork block
+                temp_block.main_branch = 0
+                temp_block = blockchain[prev_block.previous_hash]
+            # The fork begins at this block
+            # 21) For each block on the side branch, from the child of the fork block to the leaf, add to the main branch:
+            while temp_block.
         else:
             # 17) For case 2, adding to a side branch, we don't do anything.
             block.main_branch = 1
