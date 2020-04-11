@@ -119,6 +119,8 @@ def verify_and_add_block():
     # Decode object from json
     block = jsonpickle.decode(incoming_block_json)
 
+    print("Incoming block's hash: " + str(block.hash[:20]))
+
     # Verify it
     verified = False
 
@@ -309,7 +311,7 @@ def consensus():
         # If we do not have the longest chain, replace it
         if length > current_len:  # >= current_len and current_len > 3:
             #print("mexri_edw")
-            print("Node %d has bigger chain(%d) that us(%d)" % (idx, length, current_len))
+            print("Node (%d) has bigger chain(%d) that us(%d)" % (idx, length, current_len))
             #print("Hash")
             #for hashh in chain_hashes:
                 #print(hashh)
@@ -351,7 +353,9 @@ def consensus():
                 # And assign True in the flag
                 flag = True
         else:
-            print("We had same length: %d", length)
+            print("We had same length")
+            print("Node (%d) has chain(%d) that us(%d)" % (idx, length, current_len))
+
 
     # In case we still have the longest blockchain return False
     print("--- Leaving consensus (flag=%d)" % flag)

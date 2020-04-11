@@ -80,7 +80,12 @@ class Blockchain:
 
         # Check if transaction is valid, and if so update the utxo list of sender
         if not self.is_transaction_valid(transaction, self.dict_nodes_utxos):
+            self.timer = Timer(5.0, self.mine)
+            self.timer.start()
             return False
+
+        # update current utxos
+        Blockchain.remove_input_transactions_from_node_utxos(transaction, self.dict_nodes_utxos)
 
         # Add transaction into blockchain's unconfirmed transactions' list
         self.unconfirmed_transactions.append(transaction)
@@ -113,8 +118,6 @@ class Blockchain:
         if not Blockchain.check_node_utxos_for_transaction(transaction, dict_nodes_utxos):
             return False
         print("Transaction is valid")
-
-        Blockchain.remove_input_transactions_from_node_utxos(transaction, dict_nodes_utxos)
 
         # The transaction can be added to the new block
         return True
@@ -168,6 +171,7 @@ class Blockchain:
         """
         print("Starting mining process..")
         if not self.unconfirmed_transactions:
+            print("Stop mining process, empty list..")
             return False
 
         # Take first capacity unconfirmed transactions or block's mining.
@@ -193,6 +197,7 @@ class Blockchain:
 
             # Fixme: broadcast block
             Blockchain.broadcast_block_to_peers(new_block)
+
 
             # Causing consensus
             # if not(len(self.chain) > 2 and len(self.chain) < 4):
@@ -358,6 +363,8 @@ class Blockchain:
 
     @staticmethod
     def broadcast_block_to_peers(block):
+
+        print("Broadcast starts")
         cntr = 0
         peers = global_variable.node.peers
         #print("Broadcasting block to peers")
@@ -376,10 +383,8 @@ class Blockchain:
             if r.status_code == 200:
                 #print("Broadcast to peer ", idx, " success!")
                 # break # consesus -- fixme: after testing
-                cntr +=1
-                x=1
+                cntr += 1
             else:
-                x=1
                 print("Error: broadcast to peer ", idx)
         if cntr == len(peers):
             print("Broadcasted block to all peers")

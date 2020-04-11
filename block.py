@@ -56,6 +56,7 @@ class Block:
 
             # Check if mining is stopped
             if not global_variable.node.mine_flag:
+                print("Mining thread force stopped")
                 # Then return False -- the mining process is interrupted by new block
                 return False
 
@@ -69,6 +70,8 @@ class Block:
             continue
         global_variable.node.mine_flag = False
         global_variable.flag_lock.release()
+
+        print("Block's hash: " + str(self.hash[:20]))
 
         return True
 

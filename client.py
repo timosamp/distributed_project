@@ -110,7 +110,8 @@ def client_input_loop():  # maybe: ,node
         elif str.startswith('cu'):
             node.blockchain.print_utxos(1)
         elif str.startswith('tff'):
-            transactions_from_file(str, node)
+            transactions_from_default_file(node)
+            # transactions_from_file(str, node)
         elif str.startswith('t'):
             client_transaction(str, node)
         elif str in {'q', 'quit', 'e', 'exit'}:
@@ -123,6 +124,12 @@ def client_input_loop():  # maybe: ,node
         else:
             print_invalid_command()
 
+
+def transactions_from_default_file(node):
+    file_path = '5nodes/transactions0.txt'
+    f = open(file_path, "r")
+    for line in f:
+        client_transaction("tff " + line, node)
 
 def transactions_from_file(str_in, node):
     args = str_in.split(' ')
