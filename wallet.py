@@ -93,7 +93,6 @@ class Wallet:
         transaction.sign_transaction(self.private_key)
         #print("Transaction is signed.")
 
-
         Wallet.broadcast_transaction_to_peers(transaction, peers)
 
         # Return true if transaction creation and broadcast is finished successfully

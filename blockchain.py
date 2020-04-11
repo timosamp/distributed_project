@@ -32,7 +32,7 @@ class Blockchain:
 
         print("Blockchain is created")
 
-        timer = Timer(10.0, self.mine)
+        self.timer = Timer(5.0, self.mine)
 
     """
         Returns the utxos for the 'last_block' of chain
@@ -73,6 +73,8 @@ class Blockchain:
     """
     def add_new_transaction(self, transaction):
 
+        self.timer.cancel()
+
         # Check if transaction is valid, and if so update the utxo list of sender
         if not self.is_transaction_valid(transaction, self.dict_nodes_utxos):
             return False
@@ -84,6 +86,8 @@ class Blockchain:
             thr = Thread(target=self.mine)
             thr.start()
             # self.mine()
+        else:
+            self.timer.start()
 
         return True
 
