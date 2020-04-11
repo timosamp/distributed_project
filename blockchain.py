@@ -29,7 +29,6 @@ class Blockchain:
         # the address to other participating members of the network
         self.peers = []
 
-    # Get last valid utxos dictionary
     """
         Returns the utxos for the 'last_block' of chain
     """
@@ -48,7 +47,6 @@ class Blockchain:
     """
         Return a list with blockchain's transactions
     """
-
     def get_transactions(self):
         # Init the list
         all_transactions = []
@@ -61,20 +59,12 @@ class Blockchain:
         # Return the list
         return all_transactions
 
-    # Add a new transaction which is broadcasted
+
     """
         Add a new transaction to unconfirmed transactions(check if valid)
         If capacity is reached, start mine process
     """
-
     def add_new_transaction(self, transaction):
-
-        # print("Add new transaction into blockchain")
-        # print("print utxos before adding")
-        # for node_id in self.dict_nodes_utxos:
-        #     for utxo in self.dict_nodes_utxos[node_id]:
-        #         print(utxo.outputTransactionId)
-        # print("End printing")
 
         # Check if transaction is valid, and if so update the utxo list of sender
         if not self.is_transaction_valid(transaction, self.dict_nodes_utxos):
@@ -85,14 +75,55 @@ class Blockchain:
         # Add transaction into blockchain's unconfirmed transactions' list
         self.unconfirmed_transactions.append(transaction)
 
-        # print("len of un transactions: " + str(len(self.unconfirmed_transactions)))
-
         if len(self.unconfirmed_transactions) > self.capacity - 1:
             thr = Thread(target=self.mine)
             thr.start()
             # self.mine()
 
         return True
+
+
+    def mine(self):
+        """
+        This function serves as an interface to add the pending
+        transactions to the blockchain by adding them to the block
+        and figuring out Proof Of Work.
+        """
+        print("Starting mining process..")
+        if not self.unconfirmed_transactions:
+            return False
+
+        # Take first capacity unconfirmed transactions or block's mining.
+        sub_list_of_unconfirmed = self.unconfirmed_transactions[:self.capacity]
+
+        last_block = self.last_block()
+
+        new_block = Block(index=last_block.index + 1,
+                          transactions=sub_list_of_unconfirmed,
+                          timestamp=time.time(),
+                          previous_hash=last_block.hash,
+                          nonce=0)
+
+        # Find the correct nonce -- Fixme: mining parameter
+        if new_block.proof_of_work(Blockchain.difficulty):
+            # If mining is finished, continue:
+            print("Success!! block is mined...")
+
+            # Delete this first elements from self.unconfirmed_transactions.
+            del self.unconfirmed_transactions[:self.capacity]
+            #self.print_transactions()
+            #print("--Mine is done--")
+
+            # Fixme: broadcast block
+            Blockchain.broadcast_block_to_peers(new_block)
+
+            # Causing consensus
+            # if not(len(self.chain) > 2 and len(self.chain) < 4):
+            #     print("Now broacast")
+            #     Blockchain.broadcast_block_to_peers(new_block)
+            # else:
+            #     global_variable.node.blockchain.add_block(new_block)
+
 
     """
         Check the transaction for correct hash(verify_transaction())
@@ -190,14 +221,15 @@ class Blockchain:
     """
         Create the genesis block
     """
-
     def create_genesis_block(self, recipient_addr):
         """
         A function to generate genesis block and appends it to
         the chain. The block has index 0, previous_hash as 1, nonce 0
         and a valid hash.
         """
-        print("Start creating genesis block")
+        print("\nStart creating genesis block")
+
+        print("Create genesis transaction")
 
         # Transaction with sender's wallet address 0
         first_transaction = Transaction.generic(recipient_addr, 100 * 5, time.time())
@@ -210,138 +242,15 @@ class Blockchain:
         print("Genesis block is created")
 
         self.add_block(genesis_block)
-        print("Genesis block is appended successfully into blockchain")
-
-    """
-        Return the first hash before the fork
-    """
-
-    def first_fork_hash(self, chain_hashes_list):
-
-        chain_hashes_set = set(chain_hashes_list)
-
-        last_common_hash = ""
-        first_common_hash = ""
-        first_dif_hash = ""
-
-        # print("find last common")
-        # Find the last common hash
-        # for block in reversed(self.chain):
-        #     # print(str(block.hash))
-        #     if block.hash in chain_hashes_set:
-        #         # print("common: " + str(block.hash))
-        #         first_common_hash = block.hash
-        #     else:
-        #         break
-        #
-        # # Find first different hash
-        # for block_hash in reversed(chain_hashes_list):
-        #     if block_hash != first_common_hash:
-        #         first_dif_hash = block_hash
-        #     else:
-        #         break
-
-        # Find the last common hash
-        for block in self.chain:
-            print(str(block.hash))
-            if block.hash in chain_hashes_set:
-                print("common: " + str(block.hash))
-                last_common_hash = block.hash
-            else:
-                break
-
-        # Find first different hash of other's fork
-        for block_hash in reversed(chain_hashes_list):
-            if block_hash != last_common_hash:
-                first_dif_hash = block_hash
-            else:
-                break
+        print("Genesis block is appended successfully into blockchain\n")
 
 
-        # Return beginning of fork
-        return first_common_hash
 
-    """
-        Check if fork is valid
-    """
-
-    def is_fork_valid(self, list_of_new_blocks):
-
-        if len(list_of_new_blocks) == 0:
-            return True
-
-        # Take last hash
-        last_hash = list_of_new_blocks[0].previous_hash
-
-        # Take the utxos after the last addition
-        if last_hash == "1":
-            dict_nodes_utxos = dict()
-        else:
-            dict_nodes_utxos = self.dict_nodes_utxos_by_block_id[last_hash]
-
-        for block in list_of_new_blocks:
-
-            # If this block id valid then update nodes' utxos and previous hash value
-            if self.is_block_valid(block, last_hash, dict_nodes_utxos):
-                print("Block is valid")
-
-                # Then update nodes' utxos list
-                dict_nodes_utxos = Blockchain.update_utxos_of_nodes(dict_nodes_utxos, block)
-
-                # And the hash value
-                last_hash = block.hash
-
-            else:
-                print("Block is not valid")
-                return False
-
-        # Return True if all the new list of blocks can be added
-        return True
-
-    """
-        Change chain after fork
-    """
-
-    def include_the_fork(self, list_of_new_blocks):
-
-        # Take last hash
-        last_hash = list_of_new_blocks[0].previous_hash
-
-        # New chain initialization
-        new_chain = []
-
-        # Create new chain -- copy the common part of the two blockchains into a new one
-        for block in self.chain:
-            if block.previous_hash == last_hash:
-                break
-            else:
-                new_chain.append(block)
-
-        # Assign the new chain
-        self.chain = new_chain
-
-        # Take the last valid dict_nodes_utxos and replace the current one
-        self.dict_nodes_utxos = copy.deepcopy(self.dict_nodes_utxos_by_block_id[last_hash])
-        # dict_of_fork_beginning = copy.deepcopy(self.dict_nodes_utxos)
-
-        # Add the new blocks into it
-        for block in list_of_new_blocks:
-
-            last_hash = block.previous_hash
-
-            dict_of_fork_beginning = copy.deepcopy(self.dict_nodes_utxos_by_block_id[last_hash])
-
-            self.add_block(block, dict_of_fork_beginning)
-
-        #print(self)
-        # Return the updated dict_nodes_utxos_by_block_id to node
-        # return self.dict_nodes_utxos_by_block_id
 
     """
         Check validity of block. First check previous_block_hash
         then check all Transactions in Block    
     """
-
     def is_block_valid(self, block, previous_block_hash=None, dict_nodes_utxos=None):
         """
         A function that adds the block to the chain after verification.
@@ -411,16 +320,7 @@ class Blockchain:
                     block.hash == block.compute_hash())
 
 
-
     def add_block(self, block, dict_of_fork_beginning=None):
-
-        # Then update nodes' utxos list and save the current state.
-        # print("print utxos before update")
-        # for node_id in self.dict_nodes_utxos:
-        #     for utxo in self.dict_nodes_utxos[node_id]:
-        #         print(utxo.outputTransactionId)
-        # print("End printing")
-
 
         # Save the new dict_nodes_utxos into history with key the new block's id.
         # This new dict occurred by the utxo's that the node has validated before
@@ -450,20 +350,13 @@ class Blockchain:
         self.chain.append(block)
 
 
-
-
     @staticmethod
     def check_validity_of_block_transactions(block, dict_nodes_utxos):
-
         # Make a copy because Blockchain.is_transaction_valid is going to alter the list
         copy_of_all_nodes_utxos = copy.deepcopy(dict_nodes_utxos)
 
-        # print(block.transactions)
-
         # Check the validity of each block's transaction
         for transaction in block.transactions:
-            # print("check transaction's validity")
-            # print(transaction)
             if not Blockchain.is_transaction_valid(transaction, copy_of_all_nodes_utxos):
                 return False
             return True
@@ -483,50 +376,6 @@ class Blockchain:
             self.add_new_transaction(unconfirmed_transaction)
 
 
-    def mine(self):
-        """
-        This function serves as an interface to add the pending
-        transactions to the blockchain by adding them to the block
-        and figuring out Proof Of Work.
-        """
-        print("Starting mining process..")
-        if not self.unconfirmed_transactions:
-            return False
-
-        # Take first capacity unconfirmed transactions or block's mining.
-        sub_list_of_unconfirmed = self.unconfirmed_transactions[:self.capacity]
-
-        last_block = self.last_block()
-
-        new_block = Block(index=last_block.index + 1,
-                          transactions=sub_list_of_unconfirmed,
-                          timestamp=time.time(),
-                          previous_hash=last_block.hash,
-                          nonce=0)
-
-        # Find the correct nonce -- Fixme: mining parameter
-        if new_block.proof_of_work(Blockchain.difficulty):
-            # If mining is finished, continue:
-            print("Success!! block is mined...")
-            # print(self)
-            #print("New block:", new_block)
-            # Delete this first elements from self.unconfirmed_transactions.
-            del self.unconfirmed_transactions[:self.capacity]
-            #self.print_transactions()
-            #print("--Mine is done--")
-
-            # Fixme: broadcast block
-            Blockchain.broadcast_block_to_peers(new_block)
-
-            # Causing consensus
-            # if not(len(self.chain) > 2 and len(self.chain) < 4):
-            #     print("Now broacast")
-            #     Blockchain.broadcast_block_to_peers(new_block)
-            # else:
-            #     global_variable.node.blockchain.add_block(new_block)
-
-        # Add new block in the chain
-        # self.add_block(new_block)
 
     @staticmethod
     def broadcast_block_to_peers(block):
@@ -562,17 +411,6 @@ class Blockchain:
     def update_utxos_of_nodes(dict_of_utxos, block):
 
         dict_of_utxos_copy = copy.deepcopy(dict_of_utxos)
-
-        #print("Update utxos start\n")
-
-        # print("print utxos before update")
-        # i = 0
-        # for node_id in dict_of_utxos_copy:
-        #     print("node " + str(i))
-        #     for utxo in dict_of_utxos_copy[node_id]:
-        #         print(utxo.outputTransactionId)
-        #     i = i + 1
-        # print("End printing")
 
         # print("Block with id: " + block.hash)
 
@@ -649,15 +487,6 @@ class Blockchain:
                     if not it_is_in:
                         nodes_utxos.append(transaction_output)
 
-            # print("\nprint utxos after update")
-            # i = 0
-            # for node_id in dict_of_utxos_copy:
-            #     print("node " + str(i))
-            #     for utxo in dict_of_utxos_copy[node_id]:
-            #         print(utxo.outputTransactionId)
-            #     i = i + 1
-            # print("End printing\n")
-
         #print("Update utxos ended\n")
         return dict_of_utxos_copy
 
@@ -667,16 +496,10 @@ class Blockchain:
         # Init a blockchain list
         blockchain = Blockchain()
 
-        #print("Create temp block chain")
+        print("Create temp block chain")
 
         for block in chain:
-
-            # print(" into loop ")
-
             if blockchain.is_block_valid(block) is True:
-
-                # print("Try to add block")
-
                 blockchain.add_block(block)
             else:
                 raise Exception("The chain dump is tampered!!")
@@ -684,6 +507,18 @@ class Blockchain:
         return blockchain
 
     # ----------------------------------------- Not used yet ------------------------------------------------- #
+
+    @classmethod
+    def print_utxos_of_nodes(cls, dict_nodes_utxos):
+        print("\n\nPrint utxos of all nodes\n")
+        i = 0
+        for node_id in dict_nodes_utxos:
+            print("Node " + str(i) + " has these utxos:\n")
+            for utxo in dict_nodes_utxos[node_id]:
+                print(utxo.outputTransactionId)
+            i = i + 1
+        print("\nEnd printing\n\n")
+
 
     @classmethod
     def check_chain_validity(cls, chain):
