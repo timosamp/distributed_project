@@ -49,9 +49,6 @@ class Wallet:
         else:
             utxos = last_validated_dict_of_node[self.public_key]
 
-        # print("Balance:")
-        # print(utxos)
-
         # Init the amount variable
         total_amount = 0
 
@@ -59,7 +56,8 @@ class Wallet:
         for utxo in utxos:
             total_amount += utxo.amount
 
-        print("Wallet has balance: " + str(total_amount))
+        print("Wallet has balance: " + str(total_amount) + "\n")
+        print(blockchain)
 
         # Return the total amount
         return total_amount
@@ -87,31 +85,18 @@ class Wallet:
                 utxos_amount += utxo.amount
                 sub_list_of_utxos.append(utxo)
 
-        # print("Sublist of utxos")
-        # print(sub_list_of_utxos)
-
         # print("UTXOs has gathered from sender.")
 
         # Create a new transaction with receivers public key.
         # Sign this transaction with the private key of the sender's wallet.
         transaction = Transaction.with_utxos(self.public_key, recipient_address, amount, time.time(), sub_list_of_utxos)
 
-        # print("inputs: ")
-        # print(transaction.transaction_inputs)
-
         # Sign the transaction
         transaction.sign_transaction(self.private_key)
-
         #print("Transaction is signed.")
 
-        # Add transaction into blockchain
-        # blockchain.add_new_transaction(transaction)
 
         Wallet.broadcast_transaction_to_peers(transaction, peers)
-        # print("history")
-        # print(blockchain.get_valid_dict_nodes_utxos()[self.public_key])
-
-        # FIXME: Broadcast the transaction to the whole network
 
         # Return true if transaction creation and broadcast is finished successfully
         return True

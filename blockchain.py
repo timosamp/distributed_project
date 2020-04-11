@@ -146,12 +146,67 @@ class Blockchain:
         sender_utxos = dict_nodes_utxos[transaction.sender_address]
 
         # Check if the sender has the required utxos
-        if not Blockchain.check_and_update_node_utxos_for_transaction(transaction, dict_nodes_utxos):
+        if not Blockchain.check_node_utxos_for_transaction(transaction, dict_nodes_utxos):
             return False
 
         #print("Transaction has the required utxos")
 
         # The transaction can be added to the new block
+        return True
+
+    """
+        Check if the node has the required utxos and amount for this transaction
+    """
+    @staticmethod
+    def check_node_utxos_for_transaction(transaction: Transaction, dict_nodes_utxos_init: dict):
+        print("Check if sender has the required input transaction,\n and remove them from his utxo list")
+
+        dict_nodes_utxos = copy.deepcopy(dict_nodes_utxos_init)
+
+
+        # Check if sender there is already in the list, otherwise add him
+        if not (transaction.sender_address in dict_nodes_utxos):
+            dict_nodes_utxos[transaction.sender_address] = []
+
+        sender_utxos = dict_nodes_utxos[transaction.sender_address]
+
+        # Sum of transaction inputs
+        total_input_amount = 0
+
+        # Search every transaction input into node's utxos
+        for transaction_input in transaction.transaction_inputs:
+            transaction_output_id = transaction_input.previous_output_id
+
+            # Mark it as not existed
+            utxo_taking_place = False
+
+            # Find the transaction with this id into utxos
+            for idx, o in enumerate(sender_utxos):
+
+                if o.outputTransactionId == transaction_output_id:
+                    # Mark it as existed
+                    utxo_taking_place = True
+                    # Sum the total amount of coins from input transactions
+                    total_input_amount = total_input_amount + o.amount
+
+                    # Delete it so if someone is going to ude it again , it's going to return wrong
+                    del sender_utxos[idx]
+                    break
+
+            # Check if all input transactions are taking place
+            if not utxo_taking_place:
+                print("This input transaction is not in utxo list of sender")
+                # Then return that the transaction wasn't successful
+                return False
+
+        # Check if the sum of input transactions' coins are enough
+        if total_input_amount < transaction.amount:
+            print("There are no enough transaction inputs")
+            print(total_input_amount)
+
+            # And return that the transaction wasn't successful
+            return False
+
         return True
 
     """
@@ -354,70 +409,33 @@ class Blockchain:
         #print("Update utxos ended\n")
         return dict_of_utxos_copy
 
-    """
-        Check if the node has the required utxos and amount for this transaction
-    """
+
+
     @staticmethod
-    def check_and_update_node_utxos_for_transaction(transaction: Transaction, dict_nodes_utxos: dict):
-        # Copy the current dict in case something goes wrong
-        sender_utxos = dict_nodes_utxos[transaction.sender_address]
+    def remove_input_transactions_from_node_utxos(transaction: Transaction, dict_nodes_utxos: dict):
+        print("Check if sender has the required input transaction,\n and remove them from his utxo list")
+
 
         # Check if sender there is already in the list, otherwise add him
-        if not (sender_utxos in dict_nodes_utxos):
-            dict_nodes_utxos[sender_utxos] = []
+        if not (transaction.sender_address in dict_nodes_utxos):
+            dict_nodes_utxos[transaction.sender_address] = []
 
-        # Temporary list of used utxos. Sum of transaction inputs
-        temp_utxos_list = []
-        total_input_amount = 0
+        sender_utxos = dict_nodes_utxos[transaction.sender_address]
 
         # Search every transaction input into node's utxos
         for transaction_input in transaction.transaction_inputs:
             transaction_output_id = transaction_input.previous_output_id
 
-            # Mark it as not existed
-            utxo_taking_place = False
-
             # Find the transaction with this id into utxos
             for idx, o in enumerate(sender_utxos):
-
                 if o.outputTransactionId == transaction_output_id:
-                    # Mark it as existed
-                    utxo_taking_place = True
-                    # Sum the total amount of coins from input transactions
-                    total_input_amount = total_input_amount + o.amount
-
-                    # Save the input value in a temporary list, so it can be recoverable if the transaction
-                    # not be accepted.
-                    temp_utxos_list.append(sender_utxos[idx])
-
                     # Delete it so if someone is going to ude it again , it's going to return wrong
                     del sender_utxos[idx]
                     break
 
-            # Check if all input transactions are taking place
-            if not utxo_taking_place:
-                #print("Need utxos from unconfirmed transactions")
-
-                # if not, recover the utxo list of node
-                sender_utxos.extend(temp_utxos_list)
-                # Then return that the transaction wasn't successful
-                return False
-
-        # Check if the sum of input transactions' coins are enough
-        if total_input_amount < transaction.amount:
-            print("There are no enough transaction inputs")
-            print(total_input_amount)
-
-            # if not, recover the utxo list of node
-            sender_utxos.extend(temp_utxos_list)
-
-            # And return that the transaction wasn't successful
-            return False
-
-        return True
-
     @staticmethod
     def add_output_transactions_to_node_utxos(transaction: Transaction, dict_nodes_utxos):
+        print("Add the output transactions in the corresponding node's utxo list")
 
         # Then add the correct output transaction to node's utxos list
         for transaction_output in transaction.transaction_outputs:
