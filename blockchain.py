@@ -121,36 +121,13 @@ class Blockchain:
 
         #print("Transaction has the required utxos")
 
-        # So transaction has valid inputs and it's valid itself,
-        # then append in according node's utxos its output transaction.
-        # This way, the rest transactions in this block can use them as input.
-        Blockchain.add_outputs_of_transaction_in_node_utxos(dict_nodes_utxos, transaction)
-        #print("Output transactions has added successfully")
-
         # The transaction can be added to the new block
         return True
 
-    @staticmethod
-    def add_outputs_of_transaction_in_node_utxos(dict_of_utxos, transaction: Transaction):
-
-        # Add valid transaction's outputs in according node's utxos list
-        for transaction_output in transaction.transaction_outputs:
-
-            # Take receivers' address
-            receiver_address = transaction_output.recipient_address
-
-            # If this node there isn't in dict_of_utxos,
-            # add him and assign an empty list
-            if not (receiver_address in dict_of_utxos):
-                dict_of_utxos[receiver_address] = []
-
-            # append in his utxos the output transaction
-            dict_of_utxos[receiver_address].append(transaction_output)
 
     """
         Check if the node has the required utxos and amount for this transaction
     """
-
     @staticmethod
     def check_node_utxos_for_transaction(transaction: Transaction, sender_utxos: list):
 
@@ -412,6 +389,30 @@ class Blockchain:
 
         return True
 
+    def last_block(self):
+        # Return last block of the blockchain
+        return self.chain[-1]
+
+    @classmethod
+    def is_valid_proof(cls, block):
+        """
+        Check if block_hash is valid hash of block and satisfies
+        the difficulty criteria.
+        """
+        # If this block is the genesis
+        if block.previous_hash == "1":
+            print("pow genesis block")
+            print(block.hash)
+            print(block.compute_hash())
+            print(block.compute_hash())
+
+            return block.hash == block.compute_hash()
+        else:
+            return (block.hash.startswith('0' * cls.difficulty) and
+                    block.hash == block.compute_hash())
+
+
+
     def verify_transaction_main_branch(self, transaction):
         main_branch_utxos = []
         for tx_in in transaction.transaction_inputs:
@@ -457,7 +458,6 @@ class Blockchain:
                 print("[s_b_consensus]Error: previous hash not in chain (should never happen)...")
 
 
-
     def add_block(self, block, dict_of_fork_beginning=None):
 
         # Then update nodes' utxos list and save the current state.
@@ -467,14 +467,6 @@ class Blockchain:
         #         print(utxo.outputTransactionId)
         # print("End printing")
 
-
-        #print("print utxos after update")
-        for node_id in self.dict_nodes_utxos:
-            for utxo in self.dict_nodes_utxos[node_id]:
-                #print(utxo.outputTransactionId)
-                # x=1
-                continue
-        #print("End printing")
 
         # Save the new dict_nodes_utxos into history with key the new block's id.
         # This new dict occurred by the utxo's that the node has validated before
@@ -504,27 +496,7 @@ class Blockchain:
         self.chain.append(block)
 
 
-    def last_block(self):
-        # Return last block of the blockchain
-        return self.chain[-1]
 
-    @classmethod
-    def is_valid_proof(cls, block):
-        """
-        Check if block_hash is valid hash of block and satisfies
-        the difficulty criteria.
-        """
-        # If this block is the genesis
-        if block.previous_hash == "1":
-            print("pow genesis block")
-            print(block.hash)
-            print(block.compute_hash())
-            print(block.compute_hash())
-
-            return block.hash == block.compute_hash()
-        else:
-            return (block.hash.startswith('0' * cls.difficulty) and
-                    block.hash == block.compute_hash())
 
     @staticmethod
     def check_validity_of_block_transactions(block, dict_nodes_utxos):
@@ -556,11 +528,6 @@ class Blockchain:
         for unconfirmed_transaction in unconfirmed_transactions_to_be_updated:
             self.add_new_transaction(unconfirmed_transaction)
 
-        #print("len: " + str(len(self.unconfirmed_transactions)))
-        #print("End of unconfirmed transactions")
-
-        # If it is accepted, delete it.
-        # unconfirmed_transactions_to_be_updated.remove(unconfirmed_transaction)
 
     def mine(self):
         """
