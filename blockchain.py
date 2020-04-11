@@ -395,8 +395,8 @@ class Blockchain:
 
         # For every transaction in the block
         for transaction in block.transactions:
-            if Blockchain.remove_input_transactions_from_node_utxos(transaction, dict_of_utxos_copy):
-                Blockchain.add_output_transactions_to_node_utxos(transaction, dict_of_utxos_copy)
+            Blockchain.remove_input_transactions_from_node_utxos(transaction, dict_of_utxos_copy)
+            Blockchain.add_output_transactions_to_node_utxos(transaction, dict_of_utxos_copy)
 
         #print("Update utxos ended\n")
         return dict_of_utxos_copy
