@@ -421,18 +421,13 @@ class Blockchain:
         #         print(utxo.outputTransactionId)
         # print("End printing")
 
-        # if dict_of_fork_beginning is None:
-        #     self.dict_nodes_utxos = self.update_utxos_of_nodes(self.dict_nodes_utxos, block)
-        # else:
-        #     self.dict_nodes_utxos = self.update_utxos_of_nodes(dict_of_fork_beginning, block)
-
-        self.dict_nodes_utxos = self.update_utxos_of_nodes(self.dict_nodes_utxos, block)
 
         #print("print utxos after update")
         for node_id in self.dict_nodes_utxos:
             for utxo in self.dict_nodes_utxos[node_id]:
                 #print(utxo.outputTransactionId)
-                x=1
+                # x=1
+                continue
         #print("End printing")
 
         # Save the new dict_nodes_utxos into history with key the new block's id.
@@ -453,9 +448,8 @@ class Blockchain:
 
         # Append it into history dict
         self.dict_nodes_utxos_by_block_id[block.hash] = copy.deepcopy(current_validated_dict_nodes_utxos)
+        self.dict_nodes_utxos = copy.deepcopy(current_validated_dict_nodes_utxos)
 
-        # print("history")
-        # print(self.dict_nodes_utxos_by_block_id[block.hash])
 
         # Update unconfirmed transactions
         self.update_unconfirmed_transactions()
@@ -463,10 +457,6 @@ class Blockchain:
         # Append it into blockchain
         self.chain.append(block)
 
-        #print("list length: " + str(len(self.chain)))
-
-        # Return the new current list of all nodes' utxos
-        # return self.dict_nodes_utxos
 
     def last_block(self):
         # Return last block of the blockchain
