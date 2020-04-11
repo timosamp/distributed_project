@@ -29,6 +29,8 @@ class Blockchain:
         # the address to other participating members of the network
         self.peers = []
 
+        print("Blockchain is created")
+
     """
         Returns the utxos for the 'last_block' of chain
     """
@@ -102,9 +104,12 @@ class Blockchain:
         # Check if the sender has the required utxos
         if not Blockchain.check_node_utxos_for_transaction(transaction, dict_nodes_utxos):
             return False
+        print("Transaction is valid")
+
+
+        Blockchain.remove_input_transactions_from_node_utxos(transaction, dict_nodes_utxos)
 
         # The transaction can be added to the new block
-        print("Transaction is valid")
         return True
 
     """
@@ -112,7 +117,7 @@ class Blockchain:
     """
     @staticmethod
     def check_node_utxos_for_transaction(transaction: Transaction, dict_nodes_utxos_init: dict):
-        print("Check if sender has the required input transaction,\n and remove them from his utxo list")
+        print("Check if sender has the required input transaction, and remove them from his utxo list")
 
         dict_nodes_utxos = copy.deepcopy(dict_nodes_utxos_init)
 
@@ -225,7 +230,7 @@ class Blockchain:
         genesis_block.hash = genesis_block.compute_hash()
 
         self.add_block(genesis_block)
-        print("Genesis block is appended successfully into blockchain\n\n")
+        print("\n\n")
 
 
     def last_block(self):
@@ -258,7 +263,7 @@ class Blockchain:
         else:
             if previous_block_hash == "1":
                 # Then return true without validation
-                print("validate genesis block")
+                print("Validate genesis block")
                 return True
 
         # If dict_nodes_utxos is None, then take the last valid list of utxos
@@ -267,12 +272,12 @@ class Blockchain:
 
         # Check if the previous has is the same with previous block's hash
         if previous_block_hash != block.previous_hash:
-            print("false previous hash")
+            print("False previous hash")
             return False
 
         # Check the proof of work
         if not Blockchain.is_valid_proof(block):
-            print("false pow hash")
+            print("False pow hash")
             return False
 
         # Check if all transactions in the new block are valid accordingly with the validity transaction's rules.
@@ -331,6 +336,8 @@ class Blockchain:
         # Append it into blockchain
         self.chain.append(block)
 
+        print("Block is added in chain")
+
 
     @staticmethod
     def check_validity_of_block_transactions(block, dict_nodes_utxos):
@@ -344,7 +351,7 @@ class Blockchain:
             return True
 
     def update_unconfirmed_transactions(self):
-        #print("Update of unconfirmed transactions")
+        print("Update of unconfirmed transactions")
 
         # Save temporary the list
         unconfirmed_transactions_to_be_updated = copy.deepcopy(self.unconfirmed_transactions)
@@ -448,10 +455,10 @@ class Blockchain:
     @classmethod
     def create_chain_from_list(cls, chain):
 
+        print("Create temp block chain")
+
         # Init a blockchain list
         blockchain = Blockchain()
-
-        print("Create temp block chain")
 
         for block in chain:
             if blockchain.is_block_valid(block) is True:
@@ -507,9 +514,22 @@ class Blockchain:
         for block in blockchain:
             dict_of_utxos = self.update_utxos_of_nodes(dict_of_utxos, block)
 
+    def print_utxos(self):
+        print("--- Nodes' utxo lists ---")
+
+        last_valid_dict = self.get_valid_dict_nodes_utxos()
+
+        for node_id in last_valid_dict:
+            utxo_list = last_valid_dict[node_id]
+            print('\t+ Node %s... :' % node_id[27:40])
+            for utxo in utxo_list:
+                print('\t\tutxo id: %s...' % utxo.outputTransactionId[:20])
+
+
+
     def print_transactions(self):
         print("--- Blockchain ---")
-        for idx,block in enumerate(self.chain):
+        for idx, block in enumerate(self.chain):
             print('\t--- Block %d (hash: %s)' % (idx, block.hash))
             for tx in block.transactions:
                 print('\t\tid:%s, \t%d' % (tx.transaction_id[0:10], tx.amount))

@@ -103,6 +103,8 @@ def client_input_loop():  # maybe: ,node
             print(node.blockchain.get_transactions())
         elif str in {'help', 'h'}:
             print_help()
+        elif str.startswith('u'):
+            node.blockchain.print_utxos()
         elif str.startswith('tff'):
             transactions_from_file(str, node)
         elif str.startswith('t'):
@@ -146,7 +148,7 @@ def register_with_bootstrap(my_port):
     ip = "127.0.0.1"
     my_url = "http://" + ip + ":" + str(my_port)
 
-    print(f"my url for register is:{my_url}")
+    # print(f"my url for register is: {my_url}")
 
     # Init request's parameters
     public_key_json = jsonpickle.encode(wallet.public_key)
@@ -170,12 +172,9 @@ def register_with_bootstrap(my_port):
 
             node = global_variable.node
 
-            print("Node has created!")
             node.blockchain = Blockchain.create_chain_from_list(chain_list)
-
-            print("Blockchain is created")
             node.peers = peers
-            print("Peers has updated")
+            print("Peers has updated\n\n")
         except Exception as e:
             # if chain is tempered, then return False
             print(str(e))
