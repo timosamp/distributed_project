@@ -126,7 +126,7 @@ def client_input_loop():  # maybe: ,node
 
 
 def transactions_from_default_file(node):
-    file_path = '5nodes/transactions0.txt'
+    file_path = '5nodes/transactions' + str(node.current_id_count) + '.txt'
     f = open(file_path, "r")
     for line in f:
         client_transaction("tff " + line, node)
