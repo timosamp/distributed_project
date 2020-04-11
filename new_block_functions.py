@@ -96,7 +96,7 @@ def received_block(block, blockchain, wallet, difficulty, main_branch, orhpan_bl
         blockchain[block.hash] = block
     elif prev_block.main_branch == 1:
         if prev_block.chain_length > current_mb_block.chain_length:
-            
+
         else:
             # 17) For case 2, adding to a side branch, we don't do anything.
             block.main_branch = 1
