@@ -39,22 +39,21 @@ class Wallet:
 
         # Get nodes' utxos list from blockchain
         last_validated_dict_of_node = blockchain.get_valid_dict_nodes_utxos()
-        #print(last_validated_dict_of_node.keys())
 
         # Check if sender there is in dict_nodes_utxos, and take it if so.
         if not (self.public_key in last_validated_dict_of_node):
             # Otherwise, assign an empty list
-            utxos = []
+            utxos_dict = dict()
             print("I didn't find my self in utxos history :(")
         else:
-            utxos = last_validated_dict_of_node[self.public_key]
+            utxos_dict = last_validated_dict_of_node[self.public_key]
 
         # Init the amount variable
         total_amount = 0
 
         # Iterate the utxos list and sum the whole available amount of the wallet
-        for utxo in utxos:
-            total_amount += utxo.amount
+        for utxo_id in utxos_dict:
+            total_amount += utxos_dict[utxo_id].amount
 
         print("Wallet has balance: " + str(total_amount) + "\n")
         print(blockchain)
@@ -74,16 +73,15 @@ class Wallet:
         utxos_amount = 0
 
         # Get node's utxos list from blockchain
-        node_utxos = blockchain.dict_nodes_utxos[self.public_key]
+        node_utxos_dict = blockchain.dict_nodes_utxos[self.public_key]
 
         # Iterate utxos' list and add their amount to the utxos_amount,
         # until the required amount is reached and append them into a sub list
         # which will be given to the new transaction.
-
-        for utxo in node_utxos:
+        for utxo_id in node_utxos_dict:
             if utxos_amount < amount:
-                utxos_amount += utxo.amount
-                sub_list_of_utxos.append(utxo)
+                utxos_amount += node_utxos_dict[utxo_id].amount
+                sub_list_of_utxos.append(node_utxos_dict[utxo_id])
 
         # print("UTXOs has gathered from sender.")
 

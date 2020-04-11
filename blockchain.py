@@ -1,4 +1,5 @@
 from threading import Thread
+from threading import Timer
 
 import jsonpickle
 import requests
@@ -30,6 +31,8 @@ class Blockchain:
         self.peers = []
 
         print("Blockchain is created")
+
+        timer = Timer(10.0, self.mine)
 
     """
         Returns the utxos for the 'last_block' of chain
@@ -85,8 +88,6 @@ class Blockchain:
         return True
 
 
-
-
     """
         Check the transaction for correct hash(verify_transaction())
         Check the utxos of the sender if appropriate
@@ -106,7 +107,6 @@ class Blockchain:
             return False
         print("Transaction is valid")
 
-
         Blockchain.remove_input_transactions_from_node_utxos(transaction, dict_nodes_utxos)
 
         # The transaction can be added to the new block
@@ -123,7 +123,7 @@ class Blockchain:
 
         # Check if sender there is already in the list, otherwise add him
         if not (transaction.sender_address in dict_nodes_utxos):
-            dict_nodes_utxos[transaction.sender_address] = []
+            dict_nodes_utxos[transaction.sender_address] = dict()
 
         sender_utxos = dict_nodes_utxos[transaction.sender_address]
 
@@ -134,34 +134,19 @@ class Blockchain:
         for transaction_input in transaction.transaction_inputs:
             transaction_output_id = transaction_input.previous_output_id
 
-            # Mark it as not existed
-            utxo_taking_place = False
-
-            # Find the transaction with this id into utxos
-            for idx, o in enumerate(sender_utxos):
-
-                if o.outputTransactionId == transaction_output_id:
-                    # Mark it as existed
-                    utxo_taking_place = True
-                    # Sum the total amount of coins from input transactions
-                    total_input_amount = total_input_amount + o.amount
-
-                    # Delete it so if someone is going to ude it again , it's going to return wrong
-                    del sender_utxos[idx]
-                    break
-
-            # Check if all input transactions are taking place
-            if not utxo_taking_place:
+            # Check if input transactions are taking place
+            if transaction_output_id in sender_utxos:
+                total_input_amount = total_input_amount + sender_utxos[transaction_output_id].amount
+                del sender_utxos[transaction_output_id]
+            else:
                 print("This input transaction is not in utxo list of sender")
                 # Then return that the transaction wasn't successful
                 return False
 
+
         # Check if the sum of input transactions' coins are enough
         if total_input_amount < transaction.amount:
             print("There are no enough transaction inputs")
-            print(total_input_amount)
-
-            # And return that the transaction wasn't successful
             return False
 
         return True
@@ -416,20 +401,16 @@ class Blockchain:
 
         # Check if sender there is already in the list, otherwise add him
         if not (transaction.sender_address in dict_nodes_utxos):
-            dict_nodes_utxos[transaction.sender_address] = []
+            dict_nodes_utxos[transaction.sender_address] = dict()
 
         sender_utxos = dict_nodes_utxos[transaction.sender_address]
 
         # Search every transaction input into node's utxos
         for transaction_input in transaction.transaction_inputs:
             transaction_output_id = transaction_input.previous_output_id
+            if transaction_output_id in sender_utxos:
+                del sender_utxos[transaction_output_id]
 
-            # Find the transaction with this id into utxos
-            for idx, o in enumerate(sender_utxos):
-                if o.outputTransactionId == transaction_output_id:
-                    # Delete it so if someone is going to ude it again , it's going to return wrong
-                    del sender_utxos[idx]
-                    break
 
     @staticmethod
     def add_output_transactions_to_node_utxos(transaction: Transaction, dict_nodes_utxos):
@@ -443,13 +424,13 @@ class Blockchain:
 
             # Check if receiver there is already in the list, otherwise add him
             if not (node_address in dict_nodes_utxos):
-                dict_nodes_utxos[node_address] = []
+                dict_nodes_utxos[node_address] = dict()
 
-            # Current node's utxos list
+            # Current node's utxos dict
             nodes_utxos = dict_nodes_utxos[node_address]
 
             # Update his utxos from output transactions
-            nodes_utxos.append(transaction_output)
+            nodes_utxos[transaction_output.outputTransactionId] = transaction_output
 
 
     @classmethod
@@ -476,8 +457,8 @@ class Blockchain:
         i = 0
         for node_id in dict_nodes_utxos:
             print("Node " + str(i) + " has these utxos:\n")
-            for utxo in dict_nodes_utxos[node_id]:
-                print(utxo.outputTransactionId)
+            for utxo_id in dict_nodes_utxos[node_id]:
+                print(dict_nodes_utxos[node_id][utxo_id].outputTransactionId)
             i = i + 1
         print("\nEnd printing\n\n")
 
@@ -523,10 +504,10 @@ class Blockchain:
             last_valid_dict = self.get_valid_dict_nodes_utxos()
 
         for node_id in last_valid_dict:
-            utxo_list = last_valid_dict[node_id]
+            utxo_dict = last_valid_dict[node_id]
             print('\t+ Node %s... :' % node_id[27:40])
-            for utxo in utxo_list:
-                print('\t\tutxo id: %s...' % utxo.outputTransactionId[:20])
+            for utxo_id in utxo_dict:
+                print('\t\tutxo id: %s...' % utxo_dict[utxo_id].outputTransactionId[:20])
 
 
 
