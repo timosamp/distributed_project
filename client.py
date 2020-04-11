@@ -105,6 +105,8 @@ def client_input_loop():  # maybe: ,node
             print_help()
         elif str.startswith('u'):
             node.blockchain.print_utxos()
+        elif str.startswith('cu'):
+            node.blockchain.print_utxos(1)
         elif str.startswith('tff'):
             transactions_from_file(str, node)
         elif str.startswith('t'):

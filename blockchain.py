@@ -514,10 +514,13 @@ class Blockchain:
         for block in blockchain:
             dict_of_utxos = self.update_utxos_of_nodes(dict_of_utxos, block)
 
-    def print_utxos(self):
+    def print_utxos(self, flag = 0):
         print("--- Nodes' utxo lists ---")
 
-        last_valid_dict = self.get_valid_dict_nodes_utxos()
+        if flag == 1:
+            last_valid_dict = self.dict_nodes_utxos
+        else:
+            last_valid_dict = self.get_valid_dict_nodes_utxos()
 
         for node_id in last_valid_dict:
             utxo_list = last_valid_dict[node_id]
