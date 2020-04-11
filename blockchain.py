@@ -154,9 +154,6 @@ class Blockchain:
         # The transaction can be added to the new block
         return True
 
-
-
-
     """
         Create the genesis block
     """
@@ -260,7 +257,6 @@ class Blockchain:
 
 
     def add_block(self, block, dict_of_fork_beginning=None):
-
         # Save the new dict_nodes_utxos into history with key the new block's id.
         # This new dict occurred by the utxo's that the node has validated before
         # the addition of the last block.
@@ -301,7 +297,6 @@ class Blockchain:
             return True
 
     def update_unconfirmed_transactions(self):
-
         #print("Update of unconfirmed transactions")
 
         # Save temporary the list
@@ -353,7 +348,7 @@ class Blockchain:
 
         # For every transaction in the block
         for transaction in block.transactions:
-            if Blockchain.check_and_update_node_utxos_for_transaction(transaction, nodes_utxos):
+            if Blockchain.check_and_update_node_utxos_for_transaction(transaction, dict_of_utxos_copy):
                 Blockchain.add_output_transactions_to_node_utxos(transaction, dict_of_utxos_copy)
 
         #print("Update utxos ended\n")
