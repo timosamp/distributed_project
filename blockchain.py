@@ -487,7 +487,6 @@ class Blockchain:
                     if not it_is_in:
                         nodes_utxos.append(transaction_output)
 
-
         #print("Update utxos ended\n")
         return dict_of_utxos_copy
 
@@ -497,16 +496,10 @@ class Blockchain:
         # Init a blockchain list
         blockchain = Blockchain()
 
-        #print("Create temp block chain")
+        print("Create temp block chain")
 
         for block in chain:
-
-            # print(" into loop ")
-
             if blockchain.is_block_valid(block) is True:
-
-                # print("Try to add block")
-
                 blockchain.add_block(block)
             else:
                 raise Exception("The chain dump is tampered!!")
