@@ -213,8 +213,8 @@ class Blockchain:
             if self.is_block_valid(block, last_hash, dict_nodes_utxos):
                 # print("Block is valid")
 
-                # Then add block into blockchain
-                self.add_block(block, dict_nodes_utxos)
+                # Then update nodes' utxos list and continue
+                dict_nodes_utxos = Blockchain.update_utxos_of_nodes(dict_nodes_utxos, block)
 
                 # And the hash value
                 last_hash = block.hash

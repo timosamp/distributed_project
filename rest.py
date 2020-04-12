@@ -350,7 +350,7 @@ def consensus():
                 node.blockchain.include_the_fork(fork_blocks_list)
 
                 # Take the new length
-                current_len = len(node.blockchain.chain)
+                # current_len = len(node.blockchain.chain)
 
                 # And assign True in the flag
                 flag = True
