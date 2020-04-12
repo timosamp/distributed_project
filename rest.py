@@ -221,7 +221,8 @@ def get_chain_by_hashes():
     node = global_variable.node
 
     chain_len = len(node.blockchain.chain)
-    # print("chain len is : " + str(chain_len))
+    print("chain is : ")
+    print(node.blockchain)
 
     chain_hashes = []
 
@@ -318,7 +319,8 @@ def consensus():
 
             # Find the first block of the other's fork
             fork_hash = node.blockchain.first_fork_hash(chain_hashes)
-            #print("first diff id: " + str(fork_hash))
+            print("first diff id: " + str(fork_hash))
+            # exit()
 
             #print("edw")
 

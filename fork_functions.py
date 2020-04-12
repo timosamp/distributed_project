@@ -28,9 +28,9 @@ def first_fork_hash(self, chain_hashes_list):
 
     # Find the last common hash
     for block in self.chain:
-        print(str(block.hash))
+        # print(str(block.hash))
         if block.hash in chain_hashes_set:
-            print("common: " + str(block.hash))
+            # print("common: " + str(block.hash))
             last_common_hash = block.hash
         else:
             break

@@ -32,7 +32,7 @@ class Blockchain:
 
         print("Blockchain is created")
 
-        self.timer = Timer(5.0, self.mine)
+        # self.timer = Timer(5.0, self.mine)
 
     """
         Returns the utxos for the 'last_block' of chain
@@ -73,19 +73,21 @@ class Blockchain:
     """
     def add_new_transaction(self, transaction):
 
-        print("is alive? " + str(self.timer.is_alive()))
-
-        if self.timer.is_alive():
-            self.timer.cancel()
+        # print("is alive? " + str(self.timer.is_alive()))
+        # if self.timer.is_alive():
+        #     self.timer.cancel()
 
         # Check if transaction is valid, and if so update the utxo list of sender
         if not self.is_transaction_valid(transaction, self.dict_nodes_utxos):
-            self.timer = Timer(5.0, self.mine)
-            self.timer.start()
+            # self.timer = Timer(5.0, self.mine)
+            # self.timer.start()
             return False
 
         # update current utxos
         Blockchain.remove_input_transactions_from_node_utxos(transaction, self.dict_nodes_utxos)
+
+        # If this line is available , node can use unconfirmed transactions
+        Blockchain.add_output_transactions_to_node_utxos(transaction, self.dict_nodes_utxos)
 
         # Add transaction into blockchain's unconfirmed transactions' list
         self.unconfirmed_transactions.append(transaction)
@@ -94,9 +96,10 @@ class Blockchain:
             thr = Thread(target=self.mine)
             thr.start()
             # self.mine()
-        else:
-            self.timer = Timer(5.0, self.mine)
-            self.timer.start()
+
+        # else:
+            # self.timer = Timer(5.0, self.mine)
+            # self.timer.start()
         return True
 
 
@@ -160,6 +163,39 @@ class Blockchain:
             return False
 
         return True
+
+# ----------------------------------------- Block's functions ----------------------------------------- #
+
+    def first_fork_hash(self, chain_hashes_list):
+        chain_hashes_set = set(chain_hashes_list)
+
+        last_common_hash = ""
+        first_common_hash = ""
+        first_dif_hash = ""
+
+
+        # Find the last common hash
+        for block in self.chain:
+            print(str(block.hash) + " common?")
+            if block.hash in chain_hashes_set:
+                print("common: " + str(block.hash))
+                last_common_hash = block.hash
+            else:
+                break
+
+        print("Last common: " + str(last_common_hash))
+
+        # Find first different hash of other's fork
+        for block_hash in reversed(chain_hashes_list):
+            if block_hash != last_common_hash:
+                first_dif_hash = block_hash
+            else:
+                break
+
+        print("first dif: " + str(first_dif_hash))
+
+        # Return beginning of fork
+        return first_dif_hash
 
 # ----------------------------------------- Block's functions ----------------------------------------- #
 
