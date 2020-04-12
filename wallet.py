@@ -55,8 +55,8 @@ class Wallet:
         for utxo_id in utxos_dict:
             total_amount += utxos_dict[utxo_id].amount
 
-        print("Wallet has balance: " + str(total_amount) + "\n")
-        print(blockchain)
+        # print("Wallet has balance: " + str(total_amount) + "\n")
+        # print(blockchain)
 
         # Return the total amount
         return total_amount
@@ -92,7 +92,6 @@ class Wallet:
         # Sign the transaction
         transaction.sign_transaction(self.private_key)
         #print("Transaction is signed.")
-
 
         Wallet.broadcast_transaction_to_peers(transaction, peers)
 
