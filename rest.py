@@ -320,6 +320,12 @@ def consensus():
             # Find the first block of the other's fork
             fork_hash = node.blockchain.first_fork_hash(chain_hashes)
             print("first diff id: " + str(fork_hash))
+
+            if fork_hash == "":
+                #Then we just haven't taken the new block yet, wait.
+                print("Then we just haven't taken the new block yet, wait.")
+                return flag
+
             # exit()
 
             #print("edw")
@@ -348,9 +354,6 @@ def consensus():
                 print("--- fork is valid ---")
                 # if so, include it in our chain
                 node.blockchain.include_the_fork(fork_blocks_list)
-
-                # Take the new length
-                # current_len = len(node.blockchain.chain)
 
                 # And assign True in the flag
                 flag = True
