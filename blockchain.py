@@ -170,7 +170,6 @@ class Blockchain:
         chain_hashes_set = set(chain_hashes_list)
 
         last_common_hash = ""
-        first_common_hash = ""
         first_dif_hash = ""
 
 
@@ -196,6 +195,36 @@ class Blockchain:
 
         # Return beginning of fork
         return first_dif_hash
+
+    """
+        Check if fork is valid
+    """
+    def is_fork_valid(self, list_of_new_blocks):
+        if len(list_of_new_blocks) == 0:
+            return True
+
+        # Take last hash
+        last_hash = list_of_new_blocks[0].previous_hash
+        dict_nodes_utxos = self.dict_nodes_utxos_by_block_id[last_hash]
+
+        for block in list_of_new_blocks:
+
+            # If this block id valid then update nodes' utxos and previous hash value
+            if self.is_block_valid(block, last_hash, dict_nodes_utxos):
+                # print("Block is valid")
+
+                # Then add block into blockchain
+                self.add_block(block, dict_nodes_utxos)
+
+                # And the hash value
+                last_hash = block.hash
+
+            else:
+                print("Block is not valid")
+                return False
+
+        # Return True if all the new list of blocks can be added
+        return True
 
 # ----------------------------------------- Block's functions ----------------------------------------- #
 
