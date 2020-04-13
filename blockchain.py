@@ -98,7 +98,13 @@ class Blockchain:
         self.unconfirmed_transactions.append(transaction)
 
         if len(self.unconfirmed_transactions) > self.capacity - 1:
-            thr = Thread(target=self.mine)
+
+            sub_list_of_unconfirmed = self.unconfirmed_transactions[:self.capacity]
+            del self.unconfirmed_transactions[:self.capacity]
+
+            last_block = self.last_block()
+
+            thr = Thread(target=self.mine, args=[last_block.index + 1, sub_list_of_unconfirmed, last_block.hash])
             thr.start()
             # self.mine() # -- with these the result is correct
 
@@ -269,7 +275,7 @@ class Blockchain:
 
 # ----------------------------------------- Block's functions ----------------------------------------- #
 
-    def mine(self):
+    def mine(self, last_index, sub_list_of_unconfirmed, last_block_hash):
         """
         This function serves as an interface to add the pending
         transactions to the blockchain by adding them to the block
@@ -280,24 +286,17 @@ class Blockchain:
             print("Stop mining process, empty list..")
             return False
 
-        # Take first capacity unconfirmed transactions or block's mining.
-        sub_list_of_unconfirmed = self.unconfirmed_transactions[:self.capacity]
 
-        last_block = self.last_block()
-
-        new_block = Block(index=last_block.index + 1,
+        new_block = Block(index=last_index,
                           transactions=sub_list_of_unconfirmed,
                           timestamp=time.time(),
-                          previous_hash=last_block.hash,
+                          previous_hash=last_block_hash,
                           nonce=0)
 
         # Find the correct nonce -- Fixme: mining parameter
         if new_block.proof_of_work(Blockchain.difficulty):
             # If mining is finished, continue:
             # print("Success!! block is mined...")
-
-            # Delete this first elements from self.unconfirmed_transactions.
-            # del self.unconfirmed_transactions[:self.capacity]
 
 
             # Fixme: broadcast block
