@@ -99,6 +99,10 @@ class Blockchain:
 
         if len(self.unconfirmed_transactions) > self.capacity - 1:
 
+            while not global_variable.seq_mining_lock.acquire():
+                print("False seq mine lock")
+                continue
+
             sub_list_of_unconfirmed = self.unconfirmed_transactions[:self.capacity]
             del self.unconfirmed_transactions[:self.capacity]
 
@@ -299,8 +303,20 @@ class Blockchain:
             # print("Success!! block is mined...")
 
 
+
             # Fixme: broadcast block
             Blockchain.broadcast_block_to_peers(new_block)
+
+        else:
+            # Construct the old list
+            new_unconfirmed_list = copy.deepcopy(sub_list_of_unconfirmed)
+
+            new_unconfirmed_list.extend(self.unconfirmed_transactions)
+
+            self.unconfirmed_transactions = copy.deepcopy(new_unconfirmed_list)
+
+
+        global_variable.seq_mining_lock.release()
 
 
             # Causing consensus
