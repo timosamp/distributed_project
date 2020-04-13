@@ -1,3 +1,5 @@
+import time
+
 import blockchain
 import global_variable
 
@@ -46,7 +48,9 @@ class Block:
         self.nonce = 0
 
         # Init mine_flag
-        while not global_variable.flag_lock.acquire():
+        while not global_variable.flag_lock.acquire(False):
+            print("False acquired block mining lock")
+            time.sleep(1)
             continue
         global_variable.node.mine_flag = True
         global_variable.flag_lock.release()
@@ -55,10 +59,16 @@ class Block:
         while not computed_hash.startswith('0' * difficulty):
 
             # Check if mining is stopped
-            if not global_variable.node.mine_flag:
-                print("Mining thread force stopped")
-                # Then return False -- the mining process is interrupted by new block
-                return False
+            while True:
+                if global_variable.flag_lock.acquire(False):
+                    if not global_variable.node.mine_flag:
+                        print("Mining thread force stopped")
+                        # Then return False -- the mining process is interrupted by new block
+                        global_variable.flag_lock.release()
+                        return False
+                    else:
+                        global_variable.flag_lock.release()
+                        break
 
             self.nonce += 1
             computed_hash = self.compute_hash()
@@ -66,7 +76,7 @@ class Block:
         self.hash = computed_hash
 
         # Re-enable the mine_flag
-        while not global_variable.flag_lock.acquire():
+        while not global_variable.flag_lock.acquire(False):
             continue
         global_variable.node.mine_flag = False
         global_variable.flag_lock.release()

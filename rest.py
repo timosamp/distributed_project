@@ -60,6 +60,12 @@ def get_transactions():
 @app.route('/new_transaction', methods=['POST'])
 def new_transaction():
     #print("--- Received transaction at API ----")
+    while not global_variable.add_transaction.acquire(False):
+        print("False acquired transaction lock")
+        time.sleep(1)
+        continue
+
+    print("add_transaction has started")
 
     node = global_variable.node
 
@@ -72,12 +78,20 @@ def new_transaction():
 
     incoming_transaction = jsonpickle.decode(tx_data.get("transaction"))
 
+    print("incoming transaction id: " + str(incoming_transaction.transaction_id[:20]))
+
+
     # print(incoming_transaction.recipient_address)
 
     node.blockchain.add_new_transaction(incoming_transaction)
 
     # print("/new_transaction: ")
     # print(incoming_transaction)
+
+    print("add_transaction has ended")
+
+
+    global_variable.add_transaction.release()
 
     return "Success", 200
 
@@ -106,6 +120,15 @@ def announce_new_block(block):
 # and then added to the chain.
 @app.route('/add_block', methods=['POST'])
 def verify_and_add_block():
+
+    while not global_variable.add_block_lock.acquire(False):
+        print("False acquired block lock")
+        time.sleep(1)
+        continue
+
+    print("add_block has started")
+
+
     node = global_variable.node
 
     block_data = request.get_json()
@@ -128,20 +151,27 @@ def verify_and_add_block():
     # If block doesn't have valid pow, discard it.
     if node.blockchain.is_valid_proof(block):
 
-        # print("block is valid proof")
+        print("block is valid proof")
 
         if node.blockchain.is_block_valid(block):
 
-            # print("block is valid generally")
+            print("block is valid generally")
 
             # Stop mining
-            while not global_variable.flag_lock.acquire():
+            while not global_variable.flag_lock.acquire(False):
+                print("False acquire mine lock")
+                time.sleep(1)
                 continue
             global_variable.node.mine_flag = False
-            global_variable.flag_lock.release()
+            # global_variable.flag_lock.release()
 
             # If the rest test succeed then add block into blockchain
             node.blockchain.add_block(block)
+
+            # while not global_variable.flag_lock.acquire():
+            #     continue
+            # global_variable.node.mine_flag = False
+            global_variable.flag_lock.release()
 
             # Change the flag for the corresponding response
             verified = True
@@ -150,6 +180,9 @@ def verify_and_add_block():
             # If not, call the consesus algorithm to check
             # if there is longer valid chain available.
             consensus()
+
+    print("add_block is released")
+    global_variable.add_block_lock.release()
 
     if not verified:
         return "The block was discarded by the node", 201
@@ -218,6 +251,12 @@ def register_new_peers():
 # for find the longest chain in consesus algorithm
 @app.route('/chain_by_hash', methods=['GET'])
 def get_chain_by_hashes():
+
+    while not global_variable.add_block_lock.acquire(False):
+        print("False acquired chain_hash lock")
+        time.sleep(1)
+        continue
+
     node = global_variable.node
 
     chain_len = len(node.blockchain.chain)
@@ -232,6 +271,7 @@ def get_chain_by_hashes():
     chain_hashes_json = jsonpickle.encode(chain_hashes)
 
     # print(global_variable.node.blockchain)
+    global_variable.add_block_lock.release()
 
     return json.dumps({"length": chain_len,
                        "chain": chain_hashes_json})
@@ -239,6 +279,12 @@ def get_chain_by_hashes():
 
 @app.route('/get_block_from', methods=['POST'])
 def get_blocks_from():
+
+    while not global_variable.add_block_lock.acquire(False):
+        print("False acquired get_block_from lock")
+        time.sleep(1)
+        continue
+
     node = global_variable.node
 
     # print("ola kala")
@@ -264,12 +310,15 @@ def get_blocks_from():
             fork_blocks_reversed.append(block)
             break
 
+    global_variable.add_block_lock.release()
+
     # print("ola kala 3")
 
     for block in reversed(fork_blocks_reversed):
         fork_blocks.append(block)
 
     fork_blocks_json = jsonpickle.encode(fork_blocks)
+
 
     return json.dumps({"fork_blocks": fork_blocks_json})
 

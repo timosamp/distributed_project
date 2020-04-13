@@ -30,6 +30,8 @@ class Blockchain:
         # the address to other participating members of the network
         self.peers = []
 
+        self.losts = 0
+
         print("Blockchain is created")
 
         # self.timer = Timer(5.0, self.mine)
@@ -79,6 +81,9 @@ class Blockchain:
 
         # Check if transaction is valid, and if so update the utxo list of sender
         if not self.is_transaction_valid(transaction, self.dict_nodes_utxos):
+            # print("transaction is not valid, id: " + str(transaction.transaction_id[:20]))
+            # self.losts += transaction.amount
+            # print("losts: " + str(self.losts))
             # self.timer = Timer(5.0, self.mine)
             # self.timer.start()
             return False
@@ -95,7 +100,7 @@ class Blockchain:
         if len(self.unconfirmed_transactions) > self.capacity - 1:
             thr = Thread(target=self.mine)
             thr.start()
-            # self.mine()
+            # self.mine() # -- with these the result is correct
 
         # else:
             # self.timer = Timer(5.0, self.mine)
@@ -115,12 +120,12 @@ class Blockchain:
         if not transaction.verify_transaction():
             print("Transaction is not verified")
             return False
-        print("Transaction is verified")
+        # print("Transaction is verified")
 
         # Check if the sender has the required utxos
         if not Blockchain.check_node_utxos_for_transaction(transaction, dict_nodes_utxos):
             return False
-        print("Transaction is valid")
+        # print("Transaction is valid")
 
         # The transaction can be added to the new block
         return True
@@ -130,7 +135,7 @@ class Blockchain:
     """
     @staticmethod
     def check_node_utxos_for_transaction(transaction: Transaction, dict_nodes_utxos_init: dict):
-        print("Check if sender has the required input transaction, and remove them from his utxo list")
+        # print("Check if sender has the required input transaction, and remove them from his utxo list")
 
         dict_nodes_utxos = copy.deepcopy(dict_nodes_utxos_init)
 
@@ -175,14 +180,14 @@ class Blockchain:
 
         # Find the last common hash
         for block in self.chain:
-            print(str(block.hash) + " common?")
+            # print(str(block.hash) + " common?")
             if block.hash in chain_hashes_set:
-                print("common: " + str(block.hash))
+                # print("common: " + str(block.hash))
                 last_common_hash = block.hash
             else:
                 break
 
-        print("Last common: " + str(last_common_hash))
+        # print("Last common: " + str(last_common_hash))
 
         # Find first different hash of other's fork
         for block_hash in reversed(chain_hashes_list):
@@ -191,7 +196,7 @@ class Blockchain:
             else:
                 break
 
-        print("first dif: " + str(first_dif_hash))
+        # print("first dif: " + str(first_dif_hash))
 
         # Return beginning of fork
         return first_dif_hash
@@ -256,7 +261,7 @@ class Blockchain:
 
             self.add_block(block, dict_of_fork_beginning)
 
-        print("new fork is included...")
+        # print("new fork is included...")
         print(self)
         # Return the updated dict_nodes_utxos_by_block_id to node
         # return self.dict_nodes_utxos_by_block_id
@@ -289,7 +294,7 @@ class Blockchain:
         # Find the correct nonce -- Fixme: mining parameter
         if new_block.proof_of_work(Blockchain.difficulty):
             # If mining is finished, continue:
-            print("Success!! block is mined...")
+            # print("Success!! block is mined...")
 
             # Delete this first elements from self.unconfirmed_transactions.
             del self.unconfirmed_transactions[:self.capacity]
@@ -361,7 +366,7 @@ class Blockchain:
         else:
             if previous_block_hash == "1":
                 # Then return true without validation
-                print("Validate genesis block")
+                # print("Validate genesis block")
                 return True
 
         # If dict_nodes_utxos is None, then take the last valid list of utxos
@@ -395,10 +400,9 @@ class Blockchain:
         """
         # If this block is the genesis
         if block.previous_hash == "1":
-            print("pow genesis block")
-            print(block.hash)
-            print(block.compute_hash())
-            print(block.compute_hash())
+            # print("pow genesis block")
+            # print(block.hash)
+            # print(block.compute_hash())
 
             return block.hash == block.compute_hash()
         else:
@@ -434,7 +438,7 @@ class Blockchain:
         # Append it into blockchain
         self.chain.append(block)
 
-        print("Block is added in chain")
+        # print("Block is added in chain")
 
 
     @staticmethod
@@ -449,7 +453,7 @@ class Blockchain:
             return True
 
     def update_unconfirmed_transactions(self):
-        print("Update of unconfirmed transactions")
+        # print("Update of unconfirmed transactions")
 
         # Save temporary the list
         unconfirmed_transactions_to_be_updated = copy.deepcopy(self.unconfirmed_transactions)
@@ -510,7 +514,7 @@ class Blockchain:
 
     @staticmethod
     def remove_input_transactions_from_node_utxos(transaction: Transaction, dict_nodes_utxos: dict):
-        print("Remove the required input transactions from sender's utxo list")
+        # print("Remove the required input transactions from sender's utxo list")
 
         # Check if sender there is already in the list, otherwise add him
         if not (transaction.sender_address in dict_nodes_utxos):
@@ -527,7 +531,7 @@ class Blockchain:
 
     @staticmethod
     def add_output_transactions_to_node_utxos(transaction: Transaction, dict_nodes_utxos):
-        print("Add the output transactions in the corresponding node's utxo list")
+        # print("Add the output transactions in the corresponding node's utxo list")
 
         # Then add the correct output transaction to node's utxos list
         for transaction_output in transaction.transaction_outputs:
@@ -549,7 +553,7 @@ class Blockchain:
     @classmethod
     def create_chain_from_list(cls, chain):
 
-        print("Create temp block chain")
+        # print("Create temp block chain")
 
         # Init a blockchain list
         blockchain = Blockchain()
