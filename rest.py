@@ -58,8 +58,15 @@ def get_transactions():
 # endpoint to submit a new transaction. This will be used by
 # our application to add new data (posts) to the blockchain
 @app.route('/new_transaction', methods=['POST'])
-def new_transaction():
-    #print("--- Received transaction at API ----")
+def receive_transaction_api():
+    transaction_thread = Thread(target=receive_transaction_thread)
+    transaction_thread.start()
+
+    return "Transaction received", 200
+
+
+def receive_transaction_thread():
+    # print("--- Received transaction at API ----")
     while not global_variable.add_transaction.acquire(False):
         print("False acquired transaction lock")
         time.sleep(1)
@@ -72,14 +79,13 @@ def new_transaction():
     tx_data = request.get_json()
 
     if not tx_data.get("transaction"):
-        return "Invalid json", 400
+        return  # "Invalid json", 400
 
     # print(tx_data.get("transaction"))
 
     incoming_transaction = jsonpickle.decode(tx_data.get("transaction"))
 
     print("incoming transaction id: " + str(incoming_transaction.transaction_id[:20]))
-
 
     # print(incoming_transaction.recipient_address)
 
@@ -90,37 +96,23 @@ def new_transaction():
 
     print("add_transaction has ended")
 
-
     global_variable.add_transaction.release()
 
-    return "Success", 200
-
-
-def announce_new_block(block):
-    """
-    A function to announce to the network once a block has been mined.
-    Other blocks can simply verify the proof of work and add it to their
-    respective chains.
-    """
-
-    node = global_variable.node
-
-    for peer in node.peers:
-        url = "{}add_block".format(peer)
-        headers = {'Content-Type': "application/json"}
-        data_json = jsonpickle.encode(block)
-
-        requests.post(url,
-                      data=data_json,
-                      headers=headers)
+    return  # "Success", 200
 
 
 # endpoint to add a block mined by someone else to
 # the node's chain. The block is first verified by the node
 # and then added to the chain.
 @app.route('/add_block', methods=['POST'])
-def verify_and_add_block():
+def receive_block_api():
+    block_thread = Thread(target=verify_and_add_block)
+    block_thread.start()
 
+    return "Block received", 200
+
+
+def verify_and_add_block():
     while not global_variable.add_block_lock.acquire(False):
         print("False acquired block lock")
         time.sleep(1)
@@ -128,13 +120,12 @@ def verify_and_add_block():
 
     print("add_block has started")
 
-
     node = global_variable.node
 
     block_data = request.get_json()
 
     if not block_data.get("block"):
-        return "Invalid json", 400
+        return  # "Invalid json", 400
 
     # Decode block from json form
     incoming_block_json = block_data.get("block")
@@ -185,9 +176,9 @@ def verify_and_add_block():
     global_variable.add_block_lock.release()
 
     if not verified:
-        return "The block was discarded by the node", 201
+        return  # "The block was discarded by the node", 201
 
-    return "Block added to the chain", 200
+    return  # "Block added to the chain", 200
 
 
 # Endpoint to return the node's copy of the chain.
@@ -251,7 +242,6 @@ def register_new_peers():
 # for find the longest chain in consesus algorithm
 @app.route('/chain_by_hash', methods=['GET'])
 def get_chain_by_hashes():
-
     # while not global_variable.add_block_lock.acquire(False):
     #     print("False acquired chain_hash lock")
     #     time.sleep(1)
@@ -278,7 +268,6 @@ def get_chain_by_hashes():
 
 @app.route('/get_block_from', methods=['POST'])
 def get_blocks_from():
-
     # while not global_variable.add_block_lock.acquire(False):
     #     print("False acquired get_block_from lock")
     #     time.sleep(1)
@@ -310,7 +299,6 @@ def get_blocks_from():
 
     fork_blocks_json = jsonpickle.encode(fork_blocks)
 
-
     return json.dumps({"fork_blocks": fork_blocks_json})
 
 
@@ -341,34 +329,34 @@ def consensus():
         # Ask others for their blockchain
         response = requests.get('{}/chain_by_hash'.format(peer_url))
 
-        #print(global_variable.node.blockchain)
+        # print(global_variable.node.blockchain)
 
         # Reformat from json
         length = response.json()['length']
         chain_hashes = jsonpickle.decode(response.json()['chain'])
 
-        #print("length > current_len: " + str(length) + " " + str(current_len))
+        # print("length > current_len: " + str(length) + " " + str(current_len))
 
         # If we do not have the longest chain, replace it
         if length > current_len:  # >= current_len and current_len > 3:
-            #print("mexri_edw")
+            # print("mexri_edw")
             print("Node (%d) has bigger chain(%d) that us(%d)" % (idx, length, current_len))
-            #print("Hash")
-            #for hashh in chain_hashes:
-                #print(hashh)
+            # print("Hash")
+            # for hashh in chain_hashes:
+            # print(hashh)
 
             # Find the first block of the other's fork
             fork_hash = node.blockchain.first_fork_hash(chain_hashes)
             print("first diff id: " + str(fork_hash))
 
             if fork_hash == "":
-                #Then we just haven't taken the new block yet, wait.
+                # Then we just haven't taken the new block yet, wait.
                 print("Then we just haven't taken the new block yet, wait.")
                 return flag
 
             # exit()
 
-            #print("edw")
+            # print("edw")
 
             # Ask him for the blocks
             url = "{}/get_block_from".format(peer_url)
@@ -387,7 +375,7 @@ def consensus():
             print("\nBlocks from received blockchain are:")
             for b in fork_blocks_list:
                 b.print_transactions()
-            #print(fork_blocks_list)
+            # print(fork_blocks_list)
 
             # Check if it is valid fork, if not continue asking the rest peers
             if node.blockchain.is_fork_valid(fork_blocks_list):
@@ -401,13 +389,9 @@ def consensus():
             print("We had same length")
             print("Node (%d) has chain(%d) that us(%d)" % (idx, length, current_len))
 
-
     # In case we still have the longest blockchain return False
     print("--- Leaving consensus (flag=%d)" % flag)
     return flag
-
-
-
 
 
 # Fixme: Where this algorithm should be called?
@@ -465,7 +449,6 @@ def consensus2():
 
     # In case we still have the longest blockchain return False
     return flag
-
 
 # -------------------------------------------- the above are fixed --------------------------------------------- #
 
