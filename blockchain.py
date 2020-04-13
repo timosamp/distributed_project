@@ -297,9 +297,8 @@ class Blockchain:
             # print("Success!! block is mined...")
 
             # Delete this first elements from self.unconfirmed_transactions.
-            del self.unconfirmed_transactions[:self.capacity]
-            #self.print_transactions()
-            #print("--Mine is done--")
+            # del self.unconfirmed_transactions[:self.capacity]
+
 
             # Fixme: broadcast block
             Blockchain.broadcast_block_to_peers(new_block)
