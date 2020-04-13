@@ -252,10 +252,10 @@ def register_new_peers():
 @app.route('/chain_by_hash', methods=['GET'])
 def get_chain_by_hashes():
 
-    while not global_variable.add_block_lock.acquire(False):
-        print("False acquired chain_hash lock")
-        time.sleep(1)
-        continue
+    # while not global_variable.add_block_lock.acquire(False):
+    #     print("False acquired chain_hash lock")
+    #     time.sleep(1)
+    #     continue
 
     node = global_variable.node
 
@@ -270,8 +270,7 @@ def get_chain_by_hashes():
 
     chain_hashes_json = jsonpickle.encode(chain_hashes)
 
-    # print(global_variable.node.blockchain)
-    global_variable.add_block_lock.release()
+    # global_variable.add_block_lock.release()
 
     return json.dumps({"length": chain_len,
                        "chain": chain_hashes_json})
@@ -280,23 +279,17 @@ def get_chain_by_hashes():
 @app.route('/get_block_from', methods=['POST'])
 def get_blocks_from():
 
-    while not global_variable.add_block_lock.acquire(False):
-        print("False acquired get_block_from lock")
-        time.sleep(1)
-        continue
+    # while not global_variable.add_block_lock.acquire(False):
+    #     print("False acquired get_block_from lock")
+    #     time.sleep(1)
+    #     continue
 
     node = global_variable.node
 
-    # print("ola kala")
-
     hash_data = request.get_json()
-
-    # print("ola kala")
 
     # Save first hash of node's fork
     first_fork_hash = jsonpickle.decode(hash_data["first_fork_hash"])
-
-    # print("ola kala 2")
 
     # Init list
     fork_blocks_reversed = []
@@ -310,9 +303,7 @@ def get_blocks_from():
             fork_blocks_reversed.append(block)
             break
 
-    global_variable.add_block_lock.release()
-
-    # print("ola kala 3")
+    # global_variable.add_block_lock.release()
 
     for block in reversed(fork_blocks_reversed):
         fork_blocks.append(block)
