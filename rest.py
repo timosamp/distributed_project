@@ -59,13 +59,16 @@ def get_transactions():
 # our application to add new data (posts) to the blockchain
 @app.route('/new_transaction', methods=['POST'])
 def receive_transaction_api():
-    transaction_thread = Thread(target=receive_transaction_thread)
+
+    tx_data = request.get_json()
+
+    transaction_thread = Thread(target=receive_transaction_thread, args=[tx_data])
     transaction_thread.start()
 
     return "Transaction received", 200
 
 
-def receive_transaction_thread():
+def receive_transaction_thread(tx_data):
     # print("--- Received transaction at API ----")
     while not global_variable.add_transaction.acquire(False):
         print("False acquired transaction lock")
@@ -76,7 +79,7 @@ def receive_transaction_thread():
 
     node = global_variable.node
 
-    tx_data = request.get_json()
+    # tx_data = request.get_json()
 
     if not tx_data.get("transaction"):
         return  # "Invalid json", 400
@@ -106,13 +109,16 @@ def receive_transaction_thread():
 # and then added to the chain.
 @app.route('/add_block', methods=['POST'])
 def receive_block_api():
-    block_thread = Thread(target=verify_and_add_block)
+
+    block_data = request.get_json()
+
+    block_thread = Thread(target=verify_and_add_block, args=[block_data])
     block_thread.start()
 
     return "Block received", 200
 
 
-def verify_and_add_block():
+def verify_and_add_block(block_data):
     while not global_variable.add_block_lock.acquire(False):
         print("False acquired block lock")
         time.sleep(1)
@@ -122,7 +128,7 @@ def verify_and_add_block():
 
     node = global_variable.node
 
-    block_data = request.get_json()
+    # block_data = request.get_json()
 
     if not block_data.get("block"):
         return  # "Invalid json", 400
