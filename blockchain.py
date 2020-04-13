@@ -99,8 +99,9 @@ class Blockchain:
 
         if len(self.unconfirmed_transactions) > self.capacity - 1:
 
-            while not global_variable.seq_mining_lock.acquire():
+            while not global_variable.seq_mining_lock.acquire(False):
                 print("False seq mine lock")
+                time.sleep(1)
                 continue
 
             sub_list_of_unconfirmed = copy.deepcopy(self.unconfirmed_transactions[:self.capacity])
@@ -320,9 +321,17 @@ class Blockchain:
             # Construct the old list
             new_unconfirmed_list = copy.deepcopy(sub_list_of_unconfirmed)
 
+            # lock for changing blockchain
+            while not global_variable.reading_writing_blockchain.acquire(False):
+                print("False acquire blockchain lock")
+                continue
+
             new_unconfirmed_list.extend(self.unconfirmed_transactions)
 
             self.unconfirmed_transactions = copy.deepcopy(new_unconfirmed_list)
+
+            # Release the lock
+            global_variable.reading_writing_blockchain.release()
 
 
         global_variable.seq_mining_lock.release()
