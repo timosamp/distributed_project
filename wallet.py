@@ -51,7 +51,7 @@ class Wallet:
             # lock for changing blockchain
             while not global_variable.reading_writing_blockchain.acquire(False):
                 # print("False acquire blockchain lock")
-                time.sleep(0.2)
+                time.sleep(1)
                 continue
 
             utxos_dict = last_validated_dict_of_node[self.public_key]
@@ -85,7 +85,7 @@ class Wallet:
 
         while not global_variable.reading_writing_blockchain.acquire(False):
             # print("False acquire blockchain lock")
-            time.sleep(0.2)
+            time.sleep(1)
             continue
 
         # Get node's utxos list from blockchain
