@@ -275,14 +275,14 @@ class Blockchain:
         """
 
         while not global_variable.seq_mining_lock.acquire(False):
-            print("False seq mine lock")
-            time.sleep(1)
+            # print("False seq mine lock")
+            time.sleep(0.2)
             continue
 
         # lock for changing blockchain
         while not global_variable.reading_writing_blockchain.acquire(False):
-            print("False acquire blockchain lock")
-            time.sleep(1)
+            # print("False acquire blockchain lock")
+            time.sleep(0.2)
             continue
 
         sub_list_of_unconfirmed = self.unconfirmed_transactions[:self.capacity]
@@ -323,8 +323,8 @@ class Blockchain:
         else:
             # lock for changing blockchain
             while not global_variable.reading_writing_blockchain.acquire(False):
-                print("False acquire blockchain lock")
-                time.sleep(1)
+                # print("False acquire blockchain lock")
+                time.sleep(0.2)
                 continue
 
             del self.unconfirmed_transactions[:self.capacity]

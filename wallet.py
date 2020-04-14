@@ -9,6 +9,7 @@ from Crypto.Hash import SHA
 from Crypto.PublicKey import RSA
 from Crypto.Signature import PKCS1_v1_5
 
+import global_variable
 from transaction import Transaction, TransactionOutput
 from block import Block
 
@@ -46,7 +47,17 @@ class Wallet:
             utxos_dict = dict()
             print("I didn't find my self in utxos history :(")
         else:
+
+            # lock for changing blockchain
+            while not global_variable.reading_writing_blockchain.acquire(False):
+                # print("False acquire blockchain lock")
+                time.sleep(0.2)
+                continue
+
             utxos_dict = last_validated_dict_of_node[self.public_key]
+
+            # Release blockchain lock
+            global_variable.reading_writing_blockchain.release()
 
         # Init the amount variable
         total_amount = 0
@@ -72,8 +83,16 @@ class Wallet:
         sub_list_of_utxos = []
         utxos_amount = 0
 
+        while not global_variable.reading_writing_blockchain.acquire(False):
+            # print("False acquire blockchain lock")
+            time.sleep(0.2)
+            continue
+
         # Get node's utxos list from blockchain
         node_utxos_dict = blockchain.dict_nodes_utxos[self.public_key]
+
+        # Release the blockchain lock
+        global_variable.reading_writing_blockchain.release()
 
         # Iterate utxos' list and add their amount to the utxos_amount,
         # until the required amount is reached and append them into a sub list
