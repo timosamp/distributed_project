@@ -14,4 +14,5 @@ id4 4
 id0 3
 id4 5
 id2 9
-id0 6
+id0 1
+id0 2
