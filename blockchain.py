@@ -336,6 +336,7 @@ class Blockchain:
         global_variable.seq_mining_lock.release()
 
 
+
             # Causing consensus
             # if not(len(self.chain) > 2 and len(self.chain) < 4):
             #     print("Now broacast")
