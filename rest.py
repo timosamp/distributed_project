@@ -204,7 +204,7 @@ def verify_and_add_block(block_data):
 
             # If the rest test succeed then add block into blockchain
             node.blockchain.add_block(block)
-
+            node.blockchain.copy_of_myself = node.blockchain.chain
             # Release the lock
             global_variable.reading_writing_blockchain.release()
 
@@ -338,7 +338,47 @@ def get_chain_by_hashes():
     return json.dumps({"length": chain_len,
                        "chain": chain_hashes_json})
 
+# ### OLD CODE 124 ###
+# @app.route('/get_block_from', methods=['POST'])
+# def get_blocks_from():
+#
+#     node = global_variable.node
+#
+#     hash_data = request.get_json()
+#
+#     # Save first hash of node's fork
+#     first_fork_hash = jsonpickle.decode(hash_data["first_fork_hash"])
+#
+#     # Init list
+#     fork_blocks_reversed = []
+#     fork_blocks = []
+#
+#     # Lock for changing blockchain
+#     while not global_variable.reading_writing_blockchain.acquire(False):
+#         # print("False acquire blockchain lock")
+#         time.sleep(1)
+#         continue
+#
+#     # Collect fork's block
+#     for block in reversed(node.blockchain.chain):
+#         if block.hash != first_fork_hash:
+#             fork_blocks_reversed.append(block)
+#         else:
+#             fork_blocks_reversed.append(block)
+#             break
+#
+#     # Release the blockchain lock
+#     global_variable.reading_writing_blockchain.release()
+#
+#     for block in reversed(fork_blocks_reversed):
+#         fork_blocks.append(block)
+#
+#     fork_blocks_json = jsonpickle.encode(fork_blocks)
+#
+#     return json.dumps({"fork_blocks": fork_blocks_json})
+# ### END OLD CODE 124 ###
 
+### new CODE 124 ###
 @app.route('/get_block_from', methods=['POST'])
 def get_blocks_from():
 
@@ -354,13 +394,13 @@ def get_blocks_from():
     fork_blocks = []
 
     # Lock for changing blockchain
-    while not global_variable.reading_writing_blockchain.acquire(False):
-        # print("False acquire blockchain lock")
-        time.sleep(1)
-        continue
+    # while not global_variable.reading_writing_blockchain.acquire(False):
+    #     # print("False acquire blockchain lock")
+    #     time.sleep(1)
+    #     continue
 
     # Collect fork's block
-    for block in reversed(node.blockchain.chain):
+    for block in reversed(node.blockchain.copy_of_myself):
         if block.hash != first_fork_hash:
             fork_blocks_reversed.append(block)
         else:
@@ -368,7 +408,7 @@ def get_blocks_from():
             break
 
     # Release the blockchain lock
-    global_variable.reading_writing_blockchain.release()
+    # global_variable.reading_writing_blockchain.release()
 
     for block in reversed(fork_blocks_reversed):
         fork_blocks.append(block)
@@ -376,6 +416,7 @@ def get_blocks_from():
     fork_blocks_json = jsonpickle.encode(fork_blocks)
 
     return json.dumps({"fork_blocks": fork_blocks_json})
+### END new CODE 124 ###
 
 
 # Fixme: Where this algorithm should be called?
@@ -384,11 +425,12 @@ def consensus():
     Our naive consensus algorithm. If a longer valid chain is
     found, our chain is replaced with it.
     """
+
     print("---- Entered Consensus ----")
     node = global_variable.node
     print("My blockchain:")
     node.blockchain.print_transactions()
-
+    node.blockchain.copy_of_myself = node.blockchain.chain
     # lock for changing blockchain
     while not global_variable.reading_writing_blockchain.acquire(False):
         # print("False acquire blockchain lock")

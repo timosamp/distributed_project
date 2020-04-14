@@ -17,6 +17,7 @@ class Blockchain:
     difficulty = 3
     capacity = 2
 
+    copy_of_myself = []
     def __init__(self):
 
         self.unconfirmed_transactions = []
@@ -240,8 +241,29 @@ class Blockchain:
 
         # New chain initialization
         new_chain = []
-
+        ### OLD CODE 123 ###
+        # # Create new chain -- copy the common part of the two blockchains into a new one
+        # for block in self.chain:
+        #     if block.previous_hash == last_hash:
+        #         break
+        #     else:
+        #         new_chain.append(block)
+        #
+        # # Assign the new chain
+        # self.chain = new_chain
+        #
+        # # Add the new blocks into it
+        # for block in list_of_new_blocks:
+        #     last_hash = block.previous_hash
+        #
+        #     dict_of_fork_beginning = self.dict_nodes_utxos_by_block_id[last_hash]
+        #
+        #     self.add_block(block, dict_of_fork_beginning)
         # Create new chain -- copy the common part of the two blockchains into a new one
+        ### END OLD CODE 123 ###
+        ### NEW CODE 123 ###
+        self.copy_of_myself = self.chain
+
         for block in self.chain:
             if block.previous_hash == last_hash:
                 break
@@ -258,6 +280,8 @@ class Blockchain:
             dict_of_fork_beginning = self.dict_nodes_utxos_by_block_id[last_hash]
 
             self.add_block(block, dict_of_fork_beginning)
+        self.copy_of_myself = self.chain
+        ### END NEW CODE 123 ###
 
         # print("new fork is included...")
         print(self)
@@ -469,7 +493,6 @@ class Blockchain:
 
         # Append it into blockchain
         self.chain.append(block)
-
         # print("Block is added in chain")
 
 
