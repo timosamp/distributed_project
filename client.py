@@ -35,7 +35,7 @@ import global_variable
 @click.option('-p', '--port', default=22147, help='port to run the client on')
 @click.option('-b', '--bootstrap', is_flag=True, help='for bootstrap node only')
 def main(port, bootstrap):
-    #signal.signal(signal.SIGINT, sigint_handler())
+    # signal.signal(signal.SIGINT, sigint_handler())
     if bootstrap:
         print("This is bootstrap node")
 
@@ -84,6 +84,7 @@ def sigint_handler(sig, frame):
     print('You pressed Ctrl+C!')
     sys.exit(0)
 
+
 def client_input_loop():  # maybe: ,node
     with app.app_context():
         # global node
@@ -99,6 +100,8 @@ def client_input_loop():  # maybe: ,node
         str = input(f"[node{node.current_id_count}]>>")
         if str in {'balance', 'b'}:
             print("Balance: ", node.wallet.balance(node.blockchain))
+        elif str.startswith('init'):
+            init_nodes_coins()
         elif str.startswith('bl'):
             print(node.blockchain)
         elif str in {'view', 'v'}:
@@ -125,11 +128,24 @@ def client_input_loop():  # maybe: ,node
             print_invalid_command()
 
 
+def init_nodes_coins():
+    # Take the reference to global variance node
+    node = global_variable.node
+
+    # Send initial money to all other users
+    for idx, peer in enumerate(node.peers):
+        if not(global_variable.node.wallet.public_key == peer[0]):
+            str_in = "t " + str(idx) + " 100"
+            client_transaction(str_in, node)
+
+
+
 def transactions_from_default_file(node):
     file_path = '5nodes/transactions' + str(node.current_id_count) + '.txt'
     f = open(file_path, "r")
     for line in f:
         client_transaction("tff " + line, node)
+
 
 def transactions_from_file(str_in, node):
     args = str_in.split(' ')
@@ -139,7 +155,6 @@ def transactions_from_file(str_in, node):
         f = open(args[1], "r")
         for line in f:
             client_transaction("tff " + line, node)
-
 
 
 # This function is called so node to be registered and synced with bootstrap node

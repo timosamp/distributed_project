@@ -3,7 +3,6 @@ from wallet import Wallet
 from block import Block
 
 
-
 class Node:
     def __init__(self, node_id, wallet: Wallet):
 

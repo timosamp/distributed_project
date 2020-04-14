@@ -49,7 +49,17 @@ CORS(app)
 def get_transactions():
     node = global_variable.node
 
+    # lock for changing blockchain
+    while not global_variable.reading_writing_blockchain.acquire(False):
+        # print("False acquire blockchain lock")
+        time.sleep(1)
+        continue
+
     list_of_transactions = node.blockchain.get_transactions()
+
+    # Release blockchain lock
+    global_variable.reading_writing_blockchain.release()
+
     response = {'transactions': list_of_transactions}
     return jsonpickle.encode(response), 200
     # return jsonify(response), 200
@@ -59,7 +69,6 @@ def get_transactions():
 # our application to add new data (posts) to the blockchain
 @app.route('/new_transaction', methods=['POST'])
 def receive_transaction_api():
-
     tx_data = request.get_json()
 
     transaction_thread = Thread(target=receive_transaction_thread, args=[tx_data])
@@ -71,7 +80,7 @@ def receive_transaction_api():
 def receive_transaction_thread(tx_data):
     # print("--- Received transaction at API ----")
     while not global_variable.add_transaction.acquire(False):
-        print("False acquired transaction lock")
+        # print("False acquired transaction lock")
         time.sleep(1)
         continue
 
@@ -92,7 +101,16 @@ def receive_transaction_thread(tx_data):
 
     # print(incoming_transaction.recipient_address)
 
+    # lock for changing blockchain
+    while not global_variable.reading_writing_blockchain.acquire(False):
+        # print("False acquire blockchain lock")
+        time.sleep(1)
+        continue
+
     node.blockchain.add_new_transaction(incoming_transaction)
+
+    # Release blockchain lock
+    global_variable.reading_writing_blockchain.release()
 
     # print("/new_transaction: ")
     # print(incoming_transaction)
@@ -109,7 +127,6 @@ def receive_transaction_thread(tx_data):
 # and then added to the chain.
 @app.route('/add_block', methods=['POST'])
 def receive_block_api():
-
     block_data = request.get_json()
 
     block_thread = Thread(target=verify_and_add_block, args=[block_data])
@@ -120,7 +137,7 @@ def receive_block_api():
 
 def verify_and_add_block(block_data):
     while not global_variable.add_block_lock.acquire(False):
-        print("False acquired block lock")
+        # print("False acquired block lock")
         time.sleep(1)
         continue
 
@@ -144,39 +161,67 @@ def verify_and_add_block(block_data):
     # Verify it
     verified = False
 
+    # lock for changing blockchain
+    while not global_variable.reading_writing_blockchain.acquire(False):
+        # print("False acquire blockchain lock")
+        time.sleep(1)
+        continue
+
     # If block has the proof of work the continue with more checks.
     # If block doesn't have valid pow, discard it.
     if node.blockchain.is_valid_proof(block):
 
         print("block is valid proof")
 
+        # Release the lock
+        global_variable.reading_writing_blockchain.release()
+
+        # lock for changing blockchain
+        while not global_variable.reading_writing_blockchain.acquire(False):
+            # print("False acquire blockchain lock")
+            time.sleep(1)
+            continue
+
         if node.blockchain.is_block_valid(block):
 
             print("block is valid generally")
 
+            # Release the lock
+            global_variable.reading_writing_blockchain.release()
+
             # Stop mining
             while not global_variable.flag_lock.acquire(False):
                 print("False acquire mine lock")
-                time.sleep(1)
                 continue
             global_variable.node.mine_flag = False
-            # global_variable.flag_lock.release()
+            global_variable.flag_lock.release()
+
+            # lock for changing blockchain
+            while not global_variable.reading_writing_blockchain.acquire(False):
+                # print("False acquire blockchain lock")
+                time.sleep(1)
+                continue
 
             # If the rest test succeed then add block into blockchain
             node.blockchain.add_block(block)
 
-            # while not global_variable.flag_lock.acquire():
-            #     continue
-            # global_variable.node.mine_flag = False
-            global_variable.flag_lock.release()
+            # Release the lock
+            global_variable.reading_writing_blockchain.release()
 
             # Change the flag for the corresponding response
             verified = True
 
         else:
+            # Release the lock
+            global_variable.reading_writing_blockchain.release()
+
             # If not, call the consesus algorithm to check
             # if there is longer valid chain available.
             consensus()
+
+    # Release the lock
+    if global_variable.reading_writing_blockchain.locked():
+        global_variable.reading_writing_blockchain.release()
 
     print("add_block is released")
     global_variable.add_block_lock.release()
@@ -240,7 +285,24 @@ def register_new_peers():
     while len(node.peers) < global_variable.numOfClients:
         time.sleep(0.5)  # wait 0.5 sec
 
+    # Create a thread to send them the initial money,
+    # just after the completion of their creation.
+    thr_init_coins = Thread(target=transfer_initial_coins, args=[public_key])
+    thr_init_coins.start()
+
     return get_node_data(), 200
+
+
+def transfer_initial_coins(peer_public_key):
+    # Take your node's object address
+    node = global_variable.node
+
+    # Wait for the nodes to be created
+    time.sleep(5)
+
+    # Send 100 coins to this node
+    node.wallet.sendCoinsTo(peer_public_key, 100, node.blockchain, node.peers)
+    # print(str(peer_public_key[25:40]))
 
 
 # Get the chain only by hashes.
@@ -248,21 +310,26 @@ def register_new_peers():
 # for find the longest chain in consesus algorithm
 @app.route('/chain_by_hash', methods=['GET'])
 def get_chain_by_hashes():
-    # while not global_variable.add_block_lock.acquire(False):
-    #     print("False acquired chain_hash lock")
-    #     time.sleep(1)
-    #     continue
 
     node = global_variable.node
 
+    # lock for changing blockchain
+    while not global_variable.reading_writing_blockchain.acquire(False):
+        # print("False acquire blockchain lock")
+        time.sleep(1)
+        continue
+
     chain_len = len(node.blockchain.chain)
-    print("chain is : ")
-    print(node.blockchain)
+    # print("chain is : ")
+    # print(node.blockchain)
 
     chain_hashes = []
 
     for block in node.blockchain.chain:
         chain_hashes.append(block.hash)
+
+    # Release the blockchain lock
+    global_variable.reading_writing_blockchain.release()
 
     chain_hashes_json = jsonpickle.encode(chain_hashes)
 
@@ -274,10 +341,6 @@ def get_chain_by_hashes():
 
 @app.route('/get_block_from', methods=['POST'])
 def get_blocks_from():
-    # while not global_variable.add_block_lock.acquire(False):
-    #     print("False acquired get_block_from lock")
-    #     time.sleep(1)
-    #     continue
 
     node = global_variable.node
 
@@ -290,6 +353,12 @@ def get_blocks_from():
     fork_blocks_reversed = []
     fork_blocks = []
 
+    # Lock for changing blockchain
+    while not global_variable.reading_writing_blockchain.acquire(False):
+        # print("False acquire blockchain lock")
+        time.sleep(1)
+        continue
+
     # Collect fork's block
     for block in reversed(node.blockchain.chain):
         if block.hash != first_fork_hash:
@@ -298,7 +367,8 @@ def get_blocks_from():
             fork_blocks_reversed.append(block)
             break
 
-    # global_variable.add_block_lock.release()
+    # Release the blockchain lock
+    global_variable.reading_writing_blockchain.release()
 
     for block in reversed(fork_blocks_reversed):
         fork_blocks.append(block)
@@ -314,11 +384,22 @@ def consensus():
     Our naive consensus algorithm. If a longer valid chain is
     found, our chain is replaced with it.
     """
-    print("---- Entereed Consensus ----")
+    print("---- Entered Consensus ----")
     node = global_variable.node
     print("My blockchain:")
     node.blockchain.print_transactions()
+
+    # lock for changing blockchain
+    while not global_variable.reading_writing_blockchain.acquire(False):
+        # print("False acquire blockchain lock")
+        time.sleep(1)
+        continue
+
     current_len = len(node.blockchain.chain)
+
+    # Release blockchain lock
+    global_variable.reading_writing_blockchain.release()
+
     # print("current len is : " + str(current_len))
 
     # Init flag
@@ -351,9 +432,18 @@ def consensus():
             # for hashh in chain_hashes:
             # print(hashh)
 
+            # lock for changing blockchain
+            while not global_variable.reading_writing_blockchain.acquire(False):
+                # print("False acquire blockchain lock")
+                time.sleep(1)
+                continue
+
             # Find the first block of the other's fork
             fork_hash = node.blockchain.first_fork_hash(chain_hashes)
-            print("first diff id: " + str(fork_hash))
+            # print("first diff id: " + str(fork_hash))
+
+            # Release blockchain lock
+            global_variable.reading_writing_blockchain.release()
 
             if fork_hash == "":
                 # Then we just haven't taken the new block yet, wait.
@@ -383,14 +473,33 @@ def consensus():
                 b.print_transactions()
             # print(fork_blocks_list)
 
+            # lock for changing blockchain
+            while not global_variable.reading_writing_blockchain.acquire(False):
+                # print("False acquire blockchain lock")
+                time.sleep(1)
+                continue
+
             # Check if it is valid fork, if not continue asking the rest peers
             if node.blockchain.is_fork_valid(fork_blocks_list):
                 print("--- fork is valid ---")
                 # if so, include it in our chain
                 node.blockchain.include_the_fork(fork_blocks_list)
 
+                # Release blockchain lock
+                global_variable.reading_writing_blockchain.release()
+
+                # lock for changing blockchain
+                while not global_variable.reading_writing_blockchain.acquire(False):
+                    # print("False acquire blockchain lock")
+                    time.sleep(1)
+                    continue
+
                 # And assign True in the flag
                 flag = True
+
+            # Release blockchain lock
+            global_variable.reading_writing_blockchain.release()
+
         else:
             print("We had same length")
             print("Node (%d) has chain(%d) that us(%d)" % (idx, length, current_len))
@@ -399,102 +508,4 @@ def consensus():
     print("--- Leaving consensus (flag=%d)" % flag)
     return flag
 
-
-# Fixme: Where this algorithm should be called?
-def consensus2():
-    """
-    Our naive consensus algorithm. If a longer valid chain is
-    found, our chain is replaced with it.
-    """
-
-    node = global_variable.node
-
-    current_len = len(node.blockchain.chain)
-    print("current len is : " + str(current_len))
-
-    # Init flag
-    flag = False
-
-    for peer in node.peers:
-
-        # peer = node.peers[-1]
-        peer_url = peer[1]
-
-        if global_variable.node.wallet.public_key == peer[0]:
-            continue
-
-        # Ask others for their blockchain
-        response = requests.get('{}/chain'.format(peer_url))
-
-        print(global_variable.node.blockchain)
-
-        # Reformat from json
-        length = response.json()['length']
-        chain = jsonpickle.decode(response.json()['chain'])
-
-        print("length > current_len: " + str(length) + " " + str(current_len))
-
-        # If we do not have the longest chain, replace it
-        if length > current_len:  # >= current_len and current_len > 3:
-            print("mexri_edw")
-
-            # node.blockchain = Blockchain.create_chain_from_list(chain)
-            print(chain)
-
-            # Check if it is valid fork, if not continue asking the rest peers
-            if node.blockchain.is_fork_valid(chain):
-                print("fork is valid")
-                # if so, include it in our chain
-                node.blockchain = Blockchain.create_chain_from_list(chain)
-
-                # Take the new length
-                current_len = len(node.blockchain.chain)
-
-                # And assign True in the flag
-                flag = True
-
-    # In case we still have the longest blockchain return False
-    return flag
-
 # -------------------------------------------- the above are fixed --------------------------------------------- #
-
-# endpoint to request the node to mine the unconfirmed
-# transactions (if any). We'll be using it to initiate
-# a command to mine from our application itself.
-
-# Fixme: this function it should be maybe internal and not an API
-
-# @app.route('/mine', methods=['GET'])
-# def mine_unconfirmed_transactions():
-#     result = blockchain.mine()
-#     if not result:
-#         return "No transactions to mine"
-#     else:
-#         # Making sure we have the longest chain before announcing to the network
-#         chain_length = len(blockchain.chain)
-#         consensus()
-#         if chain_length == len(blockchain.chain):
-#             # announce the recently mined block to the network
-#             announce_new_block(blockchain.last_block)
-#         return "Block #{} is mined.".format(blockchain.last_block.index)
-#
-#
-# # endpoint to query unconfirmed transactions
-# @app.route('/pending_tx')
-# def get_pending_tx():
-#     return json.dumps(blockchain.unconfirmed_transactions)
-
-
-# run it once fore every node
-
-# if __name__ == '__main__':
-#     from argparse import ArgumentParser
-#
-#     # app.run(host='127).0.0.1', port = ""
-#
-#     parser = ArgumentParser()
-#     parser.add_argument('-p', '--port', default=5000, type=int, help='port to listen on')
-#     args = parser.parse_args()
-#     port = args.port
-
-# app.run(host='127.0.0.1', port=port)

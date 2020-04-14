@@ -75,17 +75,9 @@ class Blockchain:
     """
     def add_new_transaction(self, transaction):
 
-        # print("is alive? " + str(self.timer.is_alive()))
-        # if self.timer.is_alive():
-        #     self.timer.cancel()
-
         # Check if transaction is valid, and if so update the utxo list of sender
         if not self.is_transaction_valid(transaction, self.dict_nodes_utxos):
             # print("transaction is not valid, id: " + str(transaction.transaction_id[:20]))
-            # self.losts += transaction.amount
-            # print("losts: " + str(self.losts))
-            # self.timer = Timer(5.0, self.mine)
-            # self.timer.start()
             return False
 
         # update current utxos
@@ -98,19 +90,10 @@ class Blockchain:
         self.unconfirmed_transactions.append(transaction)
 
         if len(self.unconfirmed_transactions) > self.capacity - 1:
-
-            sub_list_of_unconfirmed = self.unconfirmed_transactions[:self.capacity]
-            del self.unconfirmed_transactions[:self.capacity]
-
-            last_block = self.last_block()
-
-            thr = Thread(target=self.mine, args=[last_block.index + 1, sub_list_of_unconfirmed, last_block.hash])
+            thr = Thread(target=self.mine)
             thr.start()
-            # self.mine() # -- with these the result is correct
 
-        # else:
-            # self.timer = Timer(5.0, self.mine)
-            # self.timer.start()
+
         return True
 
 
@@ -130,6 +113,7 @@ class Blockchain:
 
         # Check if the sender has the required utxos
         if not Blockchain.check_node_utxos_for_transaction(transaction, dict_nodes_utxos):
+            print("is valid no utxos")
             return False
         # print("Transaction is valid")
 
@@ -142,6 +126,13 @@ class Blockchain:
     @staticmethod
     def check_node_utxos_for_transaction(transaction: Transaction, dict_nodes_utxos_init: dict):
         # print("Check if sender has the required input transaction, and remove them from his utxo list")
+
+        # for node_id in dict_nodes_utxos_init:
+        #     utxo_dict = dict_nodes_utxos_init[node_id]
+        #     print('\t+ Node %s... :' % node_id[27:40])
+        #     for utxo_id in utxo_dict:
+        #         print('\t\tutxo id: %s...' % utxo_dict[utxo_id].outputTransactionId[:20])
+
 
         dict_nodes_utxos = copy.deepcopy(dict_nodes_utxos_init)
 
@@ -160,6 +151,7 @@ class Blockchain:
 
             # Check if input transactions are taking place
             if transaction_output_id in sender_utxos:
+                # print("sender has: " + str(transaction_output_id[:20]))
                 total_input_amount = total_input_amount + sender_utxos[transaction_output_id].amount
                 del sender_utxos[transaction_output_id]
             else:
@@ -275,22 +267,49 @@ class Blockchain:
 
 # ----------------------------------------- Block's functions ----------------------------------------- #
 
-    def mine(self, last_index, sub_list_of_unconfirmed, last_block_hash):
+    def mine(self):
         """
         This function serves as an interface to add the pending
         transactions to the blockchain by adding them to the block
         and figuring out Proof Of Work.
         """
+
+        while not global_variable.seq_mining_lock.acquire(False):
+            # print("False seq mine lock")
+            time.sleep(1)
+            continue
+
+        # lock for changing blockchain
+        while not global_variable.reading_writing_blockchain.acquire(False):
+            # print("False acquire blockchain lock")
+            time.sleep(1)
+            continue
+
+        sub_list_of_unconfirmed = self.unconfirmed_transactions[:self.capacity]
+        last_block = self.last_block()
+
         print("Starting mining process..")
-        if not self.unconfirmed_transactions:
+
+        if not sub_list_of_unconfirmed:
             print("Stop mining process, empty list..")
+
+            # Release blockchain lock
+            global_variable.reading_writing_blockchain.release()
+
+            # Release mining lock
+            global_variable.seq_mining_lock.release()
+
             return False
 
 
-        new_block = Block(index=last_index,
+        # Release blockchain lock
+        global_variable.reading_writing_blockchain.release()
+
+
+        new_block = Block(index=last_block.index + 1,
                           transactions=sub_list_of_unconfirmed,
                           timestamp=time.time(),
-                          previous_hash=last_block_hash,
+                          previous_hash=last_block.hash,
                           nonce=0)
 
         # Find the correct nonce -- Fixme: mining parameter
@@ -298,9 +317,24 @@ class Blockchain:
             # If mining is finished, continue:
             # print("Success!! block is mined...")
 
-
             # Fixme: broadcast block
             Blockchain.broadcast_block_to_peers(new_block)
+
+        else:
+            # lock for changing blockchain
+            while not global_variable.reading_writing_blockchain.acquire(False):
+                # print("False acquire blockchain lock")
+                time.sleep(1)
+                continue
+
+            del self.unconfirmed_transactions[:self.capacity]
+
+            # Release blockchain lock
+            global_variable.reading_writing_blockchain.release()
+
+        # Release mining lock
+        global_variable.seq_mining_lock.release()
+
 
 
             # Causing consensus
@@ -441,14 +475,22 @@ class Blockchain:
 
     @staticmethod
     def check_validity_of_block_transactions(block, dict_nodes_utxos):
-        # Make a copy because Blockchain.is_transaction_valid is going to alter the list
+        # Make a copy because Blockchain.is_transaction valid is going to alter the list
         copy_of_all_nodes_utxos = copy.deepcopy(dict_nodes_utxos)
 
         # Check the validity of each block's transaction
         for transaction in block.transactions:
             if not Blockchain.is_transaction_valid(transaction, copy_of_all_nodes_utxos):
+                # print("block's transaction has no utxos")
                 return False
-            return True
+
+            # update current utxos
+            Blockchain.remove_input_transactions_from_node_utxos(transaction, copy_of_all_nodes_utxos)
+
+            # If this line is available , node can use unconfirmed transactions
+            Blockchain.add_output_transactions_to_node_utxos(transaction, copy_of_all_nodes_utxos)
+
+        return True
 
     def update_unconfirmed_transactions(self):
         # print("Update of unconfirmed transactions")
