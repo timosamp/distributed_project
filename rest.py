@@ -60,7 +60,6 @@ def get_transactions():
     # Release blockchain lock
     global_variable.reading_writing_blockchain.release()
 
-
     response = {'transactions': list_of_transactions}
     return jsonpickle.encode(response), 200
     # return jsonify(response), 200
@@ -70,7 +69,6 @@ def get_transactions():
 # our application to add new data (posts) to the blockchain
 @app.route('/new_transaction', methods=['POST'])
 def receive_transaction_api():
-
     tx_data = request.get_json()
 
     transaction_thread = Thread(target=receive_transaction_thread, args=[tx_data])
@@ -129,7 +127,6 @@ def receive_transaction_thread(tx_data):
 # and then added to the chain.
 @app.route('/add_block', methods=['POST'])
 def receive_block_api():
-
     block_data = request.get_json()
 
     block_thread = Thread(target=verify_and_add_block, args=[block_data])
@@ -139,7 +136,6 @@ def receive_block_api():
 
 
 def verify_and_add_block(block_data):
-
     while not global_variable.add_block_lock.acquire(False):
         print("False acquired block lock")
         time.sleep(1)
@@ -200,7 +196,6 @@ def verify_and_add_block(block_data):
             global_variable.node.mine_flag = False
             global_variable.flag_lock.release()
 
-
             # lock for changing blockchain
             while not global_variable.reading_writing_blockchain.acquire(False):
                 print("False acquire blockchain lock")
@@ -212,8 +207,6 @@ def verify_and_add_block(block_data):
 
             # Release the lock
             global_variable.reading_writing_blockchain.release()
-
-
 
             # Change the flag for the corresponding response
             verified = True
@@ -288,7 +281,25 @@ def register_new_peers():
     while len(node.peers) < global_variable.numOfClients:
         time.sleep(0.5)  # wait 0.5 sec
 
+    # Create a thread to send them the initial money,
+    # just after the completion of their creation.
+    thr_init_coins = Thread(target=transfer_initial_coins, args=[public_key])
+    thr_init_coins.start()
+
     return get_node_data(), 200
+
+
+def transfer_initial_coins(peer_public_key):
+    # Take your node's object address
+    node = global_variable.node
+
+
+    # Wait for the nodes to be created
+    time.sleep(5)
+
+    # Send 100 coins to this node
+    node.wallet.sendCoinsTo(peer_public_key, 100, node.blockchain, node.peers)
+    # print(str(peer_public_key[25:40]))
 
 
 # Get the chain only by hashes.
@@ -502,7 +513,4 @@ def consensus():
     print("--- Leaving consensus (flag=%d)" % flag)
     return flag
 
-
 # -------------------------------------------- the above are fixed --------------------------------------------- #
-
-
