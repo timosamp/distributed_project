@@ -147,13 +147,13 @@ class Blockchain:
     """
     @staticmethod
     def check_node_utxos_for_transaction(transaction: Transaction, dict_nodes_utxos_init: dict):
-        print("Check if sender has the required input transaction, and remove them from his utxo list")
+        # print("Check if sender has the required input transaction, and remove them from his utxo list")
 
-        for node_id in dict_nodes_utxos_init:
-            utxo_dict = dict_nodes_utxos_init[node_id]
-            print('\t+ Node %s... :' % node_id[27:40])
-            for utxo_id in utxo_dict:
-                print('\t\tutxo id: %s...' % utxo_dict[utxo_id].outputTransactionId[:20])
+        # for node_id in dict_nodes_utxos_init:
+        #     utxo_dict = dict_nodes_utxos_init[node_id]
+        #     print('\t+ Node %s... :' % node_id[27:40])
+        #     for utxo_id in utxo_dict:
+        #         print('\t\tutxo id: %s...' % utxo_dict[utxo_id].outputTransactionId[:20])
 
 
         dict_nodes_utxos = copy.deepcopy(dict_nodes_utxos_init)
@@ -173,7 +173,7 @@ class Blockchain:
 
             # Check if input transactions are taking place
             if transaction_output_id in sender_utxos:
-                print("sender has: " + str(transaction_output_id[:20]))
+                # print("sender has: " + str(transaction_output_id[:20]))
                 total_input_amount = total_input_amount + sender_utxos[transaction_output_id].amount
                 del sender_utxos[transaction_output_id]
             else:
@@ -324,6 +324,7 @@ class Blockchain:
             # lock for changing blockchain
             while not global_variable.reading_writing_blockchain.acquire(False):
                 print("False acquire blockchain lock")
+                time.sleep(1)
                 continue
 
             new_unconfirmed_list.extend(self.unconfirmed_transactions)
@@ -481,7 +482,7 @@ class Blockchain:
         # Check the validity of each block's transaction
         for transaction in block.transactions:
             if not Blockchain.is_transaction_valid(transaction, copy_of_all_nodes_utxos):
-                print("block's transaction has no utxos")
+                # print("block's transaction has no utxos")
                 return False
 
             # update current utxos
