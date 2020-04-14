@@ -219,6 +219,10 @@ def verify_and_add_block(block_data):
             # if there is longer valid chain available.
             consensus()
 
+    # Release the lock
+    if global_variable.reading_writing_blockchain.locked():
+        global_variable.reading_writing_blockchain.release()
+
     print("add_block is released")
     global_variable.add_block_lock.release()
 
