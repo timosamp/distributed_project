@@ -1,4 +1,5 @@
 # https://github.com/satwikkansal/python_blockchain_app/blob/master/node_server.py
+import copy
 from threading import Thread
 
 import flask
@@ -217,7 +218,8 @@ def verify_and_add_block(block_data):
 
             # If not, call the consesus algorithm to check
             # if there is longer valid chain available.
-            consensus2()
+            # consensus2()
+            consensus()
 
     # # Release the lock
     # if global_variable.reading_writing_blockchain.locked():
@@ -456,137 +458,113 @@ def get_blocks_from():
 
 ### END new CODE 124 ###
 
-#
-# # Fixme: Where this algorithm should be called?
-# def consensus():
-#     """
-#     Our naive consensus algorithm. If a longer valid chain is
-#     found, our chain is replaced with it.
-#     """
-#
-#     print("---- Entered Consensus ----")
-#     node = global_variable.node
-#     print("My blockchain:")
-#     node.blockchain.print_transactions()
-#     node.blockchain.copy_of_myself = node.blockchain.chain
-#     # # lock for changing blockchain
-#     # while not global_variable.reading_writing_blockchain.acquire(False):
-#     #     # print("False acquire blockchain lock")
-#     #     time.sleep(1)
-#     #     continue
-#
-#     current_len = len(node.blockchain.chain)
-#
-#     # Init the variables we'll use
-#     max_len = current_len
-#     peer_to_get_blocks = ""
-#     chain_hashes = []
-#
-#     # # Release blockchain lock
-#     # global_variable.reading_writing_blockchain.release()
-#
-#     # print("current len is : " + str(current_len))
-#
-#     # Init flag
-#     flag = False
-#
-#     for idx, peer in enumerate(node.peers):
-#
-#         # peer = node.peers[-1]
-#         peer_url = peer[1]
-#
-#         if global_variable.node.wallet.public_key == peer[0]:
-#             continue
-#
-#         # Ask others for their blockchain
-#         response = requests.get('{}/chain_by_hash'.format(peer_url))
-#
-#         # print(global_variable.node.blockchain)
-#
-#         # Reformat from json
-#         length = response.json()['length']
-#         chain_hashes = jsonpickle.decode(response.json()['chain'])
-#
-#         # print("length > current_len: " + str(length) + " " + str(current_len))
-#
-#         # If we do not have the longest chain, replace it
-#         if length > max_len:  # >= current_len and current_len > 3:
-#             print("Node (%d) has bigger chain(%d) that us(%d)" % (idx, length, current_len))
-#
-#             max_len = length
-#             peer_to_get_blocks = peer_url
-#
-#         else:
-#             print("We had same length")
-#             print("Node (%d) has chain(%d) that us(%d)" % (idx, length, current_len))
-#
-#     # If all has same length as as leave
-#     if max_len == current_len:
-#         print("--- Leaving consensus, max_len: " + str(max_len))
-#         return flag
-#
-#     # if global_variable.node.wallet.public_key == peer[0]:
-#     #     continue
-#
-#     # # lock for changing blockchain
-#     # while not global_variable.reading_writing_blockchain.acquire(False):
-#     #     # print("False acquire blockchain lock")
-#     #     time.sleep(1)
-#     #     continue
-#
-#     # Find the first block of the other's fork
-#     fork_hash = node.blockchain.first_fork_hash(chain_hashes)
-#     # print("first diff id: " + str(fork_hash))
-#
-#     # # Release blockchain lock
-#     # global_variable.reading_writing_blockchain.release()
-#
-#     if fork_hash == "":
-#         # Then we just haven't taken the new block yet, wait.
-#         print("Then we just haven't taken the new block yet, wait.")
-#         return flag
-#
-#     # Ask him for the blocks
-#     url = "{}/get_block_from".format(peer_to_get_blocks)
-#     headers = {'Content-Type': "application/json"}
-#     data_json = {"first_fork_hash": jsonpickle.encode(fork_hash)}
-#
-#     response = requests.post(url,
-#                              data=json.dumps(data_json),
-#                              headers=headers)
-#
-#     # Take the a list of fork's block in json form
-#     fork_blocks_list_json = response.json()["fork_blocks"]
-#
-#     # Decode them
-#     fork_blocks_list = jsonpickle.decode(fork_blocks_list_json)
-#     print("\nBlocks from received blockchain are:")
-#     for b in fork_blocks_list:
-#         b.print_transactions()
-#     # print(fork_blocks_list)
-#
-#     # Check if it is valid fork, if not continue asking the rest peers
-#     if node.blockchain.is_fork_valid(fork_blocks_list):
-#
-#         # lock for changing blockchain
-#         while not global_variable.reading_writing_blockchain.acquire(False):
-#             # print("False acquire blockchain lock")
-#             time.sleep(1)
-#             continue
-#
-#         print("--- fork is valid ---")
-#         # if so, include it in our chain
-#         node.blockchain.include_the_fork(fork_blocks_list)
-#
-#         # Release blockchain lock
-#         global_variable.reading_writing_blockchain.release()
-#
-#         # And assign True in the flag
-#         flag = True
-#
-#     # In case we still have the longest blockchain return False
-#     print("--- Leaving consensus (flag=%d)" % flag)
-#     return flag
+
+# Fixme: Where this algorithm should be called?
+def consensus():
+    """
+    Our naive consensus algorithm. If a longer valid chain is
+    found, our chain is replaced with it.
+    """
+    print("---- Entered Consensus ----")
+    node = global_variable.node
+
+    print("My blockchain:")
+    node.blockchain.print_transactions()
+
+    current_len = len(node.blockchain.chain)
+
+    # Init the variables we'll use
+    max_len = copy.deepcopy(current_len)
+    peer_to_get_blocks = ""
+    chain_hashes = []
+
+    # Init flag
+    flag = False
+
+    for idx, peer in enumerate(node.peers):
+
+        peer_url = peer[1]
+
+        if global_variable.node.wallet.public_key == peer[0]:
+            continue
+
+        # Ask others for their blockchain
+        response = requests.get('{}/chain_by_hash'.format(peer_url))
+
+        # print(global_variable.node.blockchain)
+
+        # Reformat from json
+        length = response.json()['length']
+        chain_hashes = jsonpickle.decode(response.json()['chain'])
+
+        # print("length > current_len: " + str(length) + " " + str(current_len))
+
+        # If we do not have the longest chain, replace it
+        if length > max_len:  # >= current_len and current_len > 3:
+            print("Node (%d) has bigger chain(%d) that us(%d)" % (idx, length, current_len))
+
+            max_len = length
+            peer_to_get_blocks = peer_url
+
+        else:
+            print("We had same length")
+            print("Node (%d) has chain(%d) that us(%d)" % (idx, length, current_len))
+
+    # If all has same length as as leave
+    if max_len <= current_len:
+        print("--- Leaving consensus, max_len: " + str(max_len))
+        return flag
+
+
+    # Find the first block of the other's fork
+    fork_hash = node.blockchain.first_fork_hash(chain_hashes)
+
+    if fork_hash == "":
+        # Then we just haven't taken the new block yet, wait.
+        print("Then we just haven't taken the new block yet, wait.")
+        return flag
+
+    # Ask him for the blocks
+    url = "{}/get_block_from".format(peer_to_get_blocks)
+    headers = {'Content-Type': "application/json"}
+    data_json = {"first_fork_hash": jsonpickle.encode(fork_hash)}
+
+    response = requests.post(url,
+                             data=json.dumps(data_json),
+                             headers=headers)
+
+    # Take the a list of fork's block in json form
+    fork_blocks_list_json = response.json()["fork_blocks"]
+
+    # Decode them
+    fork_blocks_list = jsonpickle.decode(fork_blocks_list_json)
+    print("\nBlocks from received blockchain are:")
+    for b in fork_blocks_list:
+        b.print_transactions()
+    # print(fork_blocks_list)
+
+    # Check if it is valid fork, if not continue asking the rest peers
+    if node.blockchain.is_fork_valid(fork_blocks_list):
+
+        # lock for changing blockchain
+        while not global_variable.reading_writing_blockchain.acquire(False):
+            # print("False acquire blockchain lock")
+            time.sleep(1)
+            continue
+
+        print("--- fork is valid ---")
+        # if so, include it in our chain
+        node.blockchain.include_the_fork(fork_blocks_list)
+
+        # Release blockchain lock
+        global_variable.reading_writing_blockchain.release()
+
+        # And assign True in the flag
+        flag = True
+
+    # In case we still have the longest blockchain return False
+    print("--- Leaving consensus (flag=%d)" % flag)
+    return flag
 
 
 # Fixme: Where this algorithm should be called?

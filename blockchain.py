@@ -26,6 +26,9 @@ class Blockchain:
 
         self.dict_nodes_utxos_by_block_id = dict()
 
+        # Init previous_hash == '1', an empty dict
+        self.dict_nodes_utxos_by_block_id['1'] = dict
+
         self.chain = []
 
         # the address to other participating members of the network
