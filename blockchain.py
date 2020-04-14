@@ -75,17 +75,9 @@ class Blockchain:
     """
     def add_new_transaction(self, transaction):
 
-        # print("is alive? " + str(self.timer.is_alive()))
-        # if self.timer.is_alive():
-        #     self.timer.cancel()
-
         # Check if transaction is valid, and if so update the utxo list of sender
         if not self.is_transaction_valid(transaction, self.dict_nodes_utxos):
             # print("transaction is not valid, id: " + str(transaction.transaction_id[:20]))
-            # self.losts += transaction.amount
-            # print("losts: " + str(self.losts))
-            # self.timer = Timer(5.0, self.mine)
-            # self.timer.start()
             return False
 
         # update current utxos
@@ -98,24 +90,10 @@ class Blockchain:
         self.unconfirmed_transactions.append(transaction)
 
         if len(self.unconfirmed_transactions) > self.capacity - 1:
-
-            while not global_variable.seq_mining_lock.acquire(False):
-                print("False seq mine lock")
-                time.sleep(1)
-                continue
-
-            sub_list_of_unconfirmed = copy.deepcopy(self.unconfirmed_transactions[:self.capacity])
-            del self.unconfirmed_transactions[:self.capacity]
-
-            last_block = self.last_block()
-
-            thr = Thread(target=self.mine, args=[last_block.index + 1, sub_list_of_unconfirmed, last_block.hash])
+            thr = Thread(target=self.mine)
             thr.start()
-            # self.mine() # -- with these the result is correct
 
-        # else:
-            # self.timer = Timer(5.0, self.mine)
-            # self.timer.start()
+
         return True
 
 
@@ -289,22 +267,49 @@ class Blockchain:
 
 # ----------------------------------------- Block's functions ----------------------------------------- #
 
-    def mine(self, last_index, sub_list_of_unconfirmed, last_block_hash):
+    def mine(self):
         """
         This function serves as an interface to add the pending
         transactions to the blockchain by adding them to the block
         and figuring out Proof Of Work.
         """
+
+        while not global_variable.seq_mining_lock.acquire(False):
+            print("False seq mine lock")
+            time.sleep(1)
+            continue
+
+        # lock for changing blockchain
+        while not global_variable.reading_writing_blockchain.acquire(False):
+            print("False acquire blockchain lock")
+            time.sleep(1)
+            continue
+
+        sub_list_of_unconfirmed = self.unconfirmed_transactions[:self.capacity]
+        last_block = self.last_block()
+
         print("Starting mining process..")
+
         if not sub_list_of_unconfirmed:
             print("Stop mining process, empty list..")
+
+            # Release blockchain lock
+            global_variable.reading_writing_blockchain.release()
+
+            # Release mining lock
+            global_variable.seq_mining_lock.release()
+
             return False
 
 
-        new_block = Block(index=last_index,
+        # Release blockchain lock
+        global_variable.reading_writing_blockchain.release()
+
+
+        new_block = Block(index=last_block.index + 1,
                           transactions=sub_list_of_unconfirmed,
                           timestamp=time.time(),
-                          previous_hash=last_block_hash,
+                          previous_hash=last_block.hash,
                           nonce=0)
 
         # Find the correct nonce -- Fixme: mining parameter
@@ -312,29 +317,22 @@ class Blockchain:
             # If mining is finished, continue:
             # print("Success!! block is mined...")
 
-
-
             # Fixme: broadcast block
             Blockchain.broadcast_block_to_peers(new_block)
 
         else:
-            # Construct the old list
-            new_unconfirmed_list = copy.deepcopy(sub_list_of_unconfirmed)
-
             # lock for changing blockchain
             while not global_variable.reading_writing_blockchain.acquire(False):
                 print("False acquire blockchain lock")
                 time.sleep(1)
                 continue
 
-            new_unconfirmed_list.extend(self.unconfirmed_transactions)
+            del self.unconfirmed_transactions[:self.capacity]
 
-            self.unconfirmed_transactions = copy.deepcopy(new_unconfirmed_list)
-
-            # Release the lock
+            # Release blockchain lock
             global_variable.reading_writing_blockchain.release()
 
-
+        # Release mining lock
         global_variable.seq_mining_lock.release()
 
 
