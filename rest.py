@@ -161,11 +161,11 @@ def verify_and_add_block(block_data):
     # Verify it
     verified = False
 
-    # lock for changing blockchain
-    while not global_variable.reading_writing_blockchain.acquire(False):
-        # print("False acquire blockchain lock")
-        time.sleep(1)
-        continue
+    # # lock for changing blockchain
+    # while not global_variable.reading_writing_blockchain.acquire(False):
+    #     # print("False acquire blockchain lock")
+    #     time.sleep(1)
+    #     continue
 
     # If block has the proof of work the continue with more checks.
     # If block doesn't have valid pow, discard it.
@@ -173,21 +173,21 @@ def verify_and_add_block(block_data):
 
         print("block is valid proof")
 
-        # Release the lock
-        global_variable.reading_writing_blockchain.release()
+        # # Release the lock
+        # global_variable.reading_writing_blockchain.release()
 
-        # lock for changing blockchain
-        while not global_variable.reading_writing_blockchain.acquire(False):
-            # print("False acquire blockchain lock")
-            time.sleep(1)
-            continue
+        # # lock for changing blockchain
+        # while not global_variable.reading_writing_blockchain.acquire(False):
+        #     # print("False acquire blockchain lock")
+        #     time.sleep(1)
+        #     continue
 
         if node.blockchain.is_block_valid(block):
 
             print("block is valid generally")
 
-            # Release the lock
-            global_variable.reading_writing_blockchain.release()
+            # # Release the lock
+            # global_variable.reading_writing_blockchain.release()
 
             # Stop mining
             while not global_variable.flag_lock.acquire(False):
@@ -212,16 +212,16 @@ def verify_and_add_block(block_data):
             verified = True
 
         else:
-            # Release the lock
-            global_variable.reading_writing_blockchain.release()
+            # # Release the lock
+            # global_variable.reading_writing_blockchain.release()
 
             # If not, call the consesus algorithm to check
             # if there is longer valid chain available.
             consensus()
 
-    # Release the lock
-    if global_variable.reading_writing_blockchain.locked():
-        global_variable.reading_writing_blockchain.release()
+    # # Release the lock
+    # if global_variable.reading_writing_blockchain.locked():
+    #     global_variable.reading_writing_blockchain.release()
 
     print("add_block is released")
     global_variable.add_block_lock.release()
@@ -431,11 +431,11 @@ def consensus():
     print("My blockchain:")
     node.blockchain.print_transactions()
     node.blockchain.copy_of_myself = node.blockchain.chain
-    # lock for changing blockchain
-    while not global_variable.reading_writing_blockchain.acquire(False):
-        # print("False acquire blockchain lock")
-        time.sleep(1)
-        continue
+    # # lock for changing blockchain
+    # while not global_variable.reading_writing_blockchain.acquire(False):
+    #     # print("False acquire blockchain lock")
+    #     time.sleep(1)
+    #     continue
 
     current_len = len(node.blockchain.chain)
 
@@ -444,8 +444,8 @@ def consensus():
     peer_to_get_blocks = ""
     chain_hashes = []
 
-    # Release blockchain lock
-    global_variable.reading_writing_blockchain.release()
+    # # Release blockchain lock
+    # global_variable.reading_writing_blockchain.release()
 
     # print("current len is : " + str(current_len))
 
@@ -485,22 +485,25 @@ def consensus():
 
     # If all has same length as as leave
     if max_len == current_len:
-        print("--- Leaving consensus (flag=%d)" % flag)
+        print("--- Leaving consensus, max_len: " + str(max_len))
         return flag
 
+    # if global_variable.node.wallet.public_key == peer[0]:
+    #     continue
 
-    # lock for changing blockchain
-    while not global_variable.reading_writing_blockchain.acquire(False):
-        # print("False acquire blockchain lock")
-        time.sleep(1)
-        continue
+
+    # # lock for changing blockchain
+    # while not global_variable.reading_writing_blockchain.acquire(False):
+    #     # print("False acquire blockchain lock")
+    #     time.sleep(1)
+    #     continue
 
     # Find the first block of the other's fork
     fork_hash = node.blockchain.first_fork_hash(chain_hashes)
     # print("first diff id: " + str(fork_hash))
 
-    # Release blockchain lock
-    global_variable.reading_writing_blockchain.release()
+    # # Release blockchain lock
+    # global_variable.reading_writing_blockchain.release()
 
     if fork_hash == "":
         # Then we just haven't taken the new block yet, wait.
@@ -527,24 +530,27 @@ def consensus():
         b.print_transactions()
     # print(fork_blocks_list)
 
-    # lock for changing blockchain
-    while not global_variable.reading_writing_blockchain.acquire(False):
-        # print("False acquire blockchain lock")
-        time.sleep(1)
-        continue
-
 
     # Check if it is valid fork, if not continue asking the rest peers
     if node.blockchain.is_fork_valid(fork_blocks_list):
+
+        # lock for changing blockchain
+        while not global_variable.reading_writing_blockchain.acquire(False):
+            # print("False acquire blockchain lock")
+            time.sleep(1)
+            continue
+
         print("--- fork is valid ---")
         # if so, include it in our chain
         node.blockchain.include_the_fork(fork_blocks_list)
 
+
+        # Release blockchain lock
+        global_variable.reading_writing_blockchain.release()
+
         # And assign True in the flag
         flag = True
 
-    # Release blockchain lock
-    global_variable.reading_writing_blockchain.release()
 
 
     # In case we still have the longest blockchain return False
