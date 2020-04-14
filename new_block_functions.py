@@ -109,11 +109,11 @@ def received_block(block, blockchain, wallet, difficulty, main_branch, orhpan_bl
         print("[received_block]Error: duplicate block")
         return False
 
-    # Do 3) - 11) checks
+    # Do 3) - 10) checks
     if not check_block(block, difficulty):
         return False
 
-    # 8) Check if prev block (matching prev hash) is in main branch
+    # 11) Check if prev block (matching prev hash) is in main branch
     # οr side branches.
     if blockchain[block.previous_hash] is None:
         # If not, add this to orphan blocks, then query
@@ -128,8 +128,10 @@ def received_block(block, blockchain, wallet, difficulty, main_branch, orhpan_bl
         add_block_main_branch(block, wallet, blockchain)
     elif prev_block.main_branch == 1:
         if prev_block.chain_length > current_mb_block.chain_length:
+            # 18) For case 3, a side branch becoming the main branch:
             add_block_side_branch_consensus(block, blockchain, difficulty)
         else:
+            # 17) For case 2, adding to a side branch, we don't do anything.
             add_block_side_branch(block, blockchain)
 
     return True
