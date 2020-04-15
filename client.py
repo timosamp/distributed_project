@@ -116,6 +116,8 @@ def client_input_loop():  # maybe: ,node
             print_help()
         elif str_in == 'test1':
             test_case_1()
+        elif str_in == 'test1v':
+            test_case_1_verify()
         elif str_in.startswith('u'):
             node.blockchain.print_utxos()
         elif str_in.startswith('cu'):
@@ -314,6 +316,23 @@ def test_case_1():
         node.sent_transactions_test[(recipient_id, amount)] = False
         total_c += 1
     inf.close()
+
+
+def test_case_1_verify():
+    node = global_variable.node
+    my_id = node.current_id_count
+    infile = '5nodes/transactions%d.txt' % my_id
+    inf = open(infile)
+    total_c = 0
+    for line in inf:
+        words = line.split(" ")
+        recipient_id = int(re.sub("[^0-9]", "", words[0]))
+        amount = int(words[1])
+        recipient_pubkey = node.peers[recipient_id][0]
+
+        node.sent_transactions_test[(recipient_id, amount)] = False
+        total_c += 1
+    inf.close()
     my_sent_txs = node.sent_transactions_test
     outfile = 'logs/test1/test1_node%d.log' % my_id
     outf = open(outfile, 'w')
@@ -329,18 +348,22 @@ def test_case_1():
                     print(s, end ='')
                     outf.write(s)
                 else:
+                    s = "Success(test1): i see transaction in block %d (%d to node%d)\n" % (block.index, transaction.amount, receiver)
+                    print(s, end ='')
+                    outf.write(s)
                     my_sent_txs[(receiver, transaction.amount)] = True
     c = 0
     for tx in my_sent_txs:
         if my_sent_txs[tx] == False:
-            s = "Error(test1):I don't see in blockchain my transaction!(%d to node%d)\n" % tx
+            s = "Error(test1):I don't see in blockchain my transaction!(id%d %d)\n" % tx
             print(s, end='')
             outf.write(s)
             c += 1
-    s = "test case 1 finish!! %d out of %d transactions sucessfull\n" % (total_c, total_c -c)
+    s = "test case 1 finish!! %d out of %d transactions sucessfull\n" % (total_c - c, total_c)
     print(s)
     outf.write(s)
     outf.close()
+
 
 def print_help():
     print(
