@@ -25,6 +25,8 @@ class Node:
 
 
 
+        self.sent_transactions_test = dict()
+
     # def create_new_block(self):
     #     pass
 

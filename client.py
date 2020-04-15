@@ -1,3 +1,4 @@
+import re
 import signal
 import socket
 import string
@@ -112,6 +113,8 @@ def client_input_loop():  # maybe: ,node
             print(node.blockchain.get_transactions())
         elif str_in in {'help', 'h'}:
             print_help()
+        elif str_in == 'test1':
+            test_case_1()
         elif str_in.startswith('u'):
             node.blockchain.print_utxos()
         elif str_in.startswith('cu'):
@@ -254,8 +257,42 @@ def client_transaction(str_in, node):
     amount = args[2]
     recipient_pubkey = node.peers[recipient_id][0]
     node.wallet.sendCoinsTo(recipient_pubkey, int(amount), node.blockchain, node.peers)
-    # edw gia kathe peer IP kanoume broadcast sto /new_transaction
+    # edw gia kathe peer IP kanme broadcast sto /new_transaction
 
+def test_case_1():
+    node = global_variable.node
+    my_id = node.current_id_count
+    infile = '5nodes/transactions%d.txt' % my_id
+    f = open(infile)
+    total_c = 0
+    for line in f:
+        words = line.split(" ")
+        recipient_id = int(re.sub("[^0-9]", "", words[0]))
+        amount = int(words[1])
+        recipient_pubkey = node.peers[recipient_id][0]
+
+        node.wallet.sendCoinsTo(recipient_pubkey, int(amount), node.blockchain, node.peers)
+
+        node.sent_transactions_test[(recipient_id, amount)] = False
+        total_c += 1
+
+    my_sent_txs = node.sent_transactions_test
+    for block in node.blockchain.chain:
+        for transaction in block.transactions:
+            my_pkey = node.peers[my_id][0]
+            receiver = [idx for idx, peer in enumerate(node.peers) if peer[0] == transaction.recipient_address][0]
+            sender = [idx for idx, peer in enumerate(node.peers) if peer[0] == transaction.sender_address][0]
+            if transaction.sender_address == my_pkey:
+                if (receiver, transaction.amount) not in my_sent_txs:
+                    print("Error(test1): i see transaction i did not send! (%d to node%d)" % (transaction.amount, receiver))
+                else:
+                    my_sent_txs[(receiver, transaction.amount)] = True
+    c = 0
+    for tx in my_sent_txs:
+        if my_sent_txs[tx] == False:
+            print("Error(test1):I don't see in blockchain my transaction!(%d to node%d)", (my_sent_txs[tx]))
+            c += 1
+    print("test case 1 finish!! %d out of %d transactions sucessfull", (total_c, total_c -c))
 
 def print_help():
     print(
