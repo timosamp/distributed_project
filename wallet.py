@@ -74,6 +74,11 @@ class Wallet:
 
     def sendCoinsTo(self, recipient_address, amount, blockchain, peers):
 
+        # while not global_variable.sendCoinsTo_lock.acquire(False):
+        #     # print("False acquire blockchain lock")
+        #     time.sleep(1)
+        #     continue
+
 
         while not global_variable.reading_writing_blockchain.acquire(False):
             # print("False acquire blockchain lock")
