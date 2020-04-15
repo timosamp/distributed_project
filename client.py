@@ -99,34 +99,36 @@ def client_input_loop():  # maybe: ,node
     sleep(0.5)
     print("Client started...")
     while True:
-        str = input(f"[node{node.current_id_count}]>>")
-        if str in {'balance', 'b'}:
+        # str = input(f"[node{node.current_id_count}]>>")
+        str_in = input("[node" + str(node.current_id_count) + "]>>")
+
+        if str_in in {'balance', 'b'}:
             print("Balance: ", node.wallet.balance(node.blockchain))
-        elif str.startswith('init'):
+        elif str_in.startswith('init'):
             init_nodes_coins()
-        elif str.startswith('bl'):
+        elif str_in.startswith('bl'):
             print(node.blockchain)
-        elif str in {'view', 'v'}:
+        elif str_in in {'view', 'v'}:
             print(node.blockchain.get_transactions())
-        elif str in {'help', 'h'}:
+        elif str_in in {'help', 'h'}:
             print_help()
-        elif str.startswith('u'):
+        elif str_in.startswith('u'):
             node.blockchain.print_utxos()
-        elif str.startswith('cu'):
+        elif str_in.startswith('cu'):
             node.blockchain.print_utxos(1)
-        elif str.startswith('tff'):
+        elif str_in.startswith('tff'):
             transactions_from_default_file(node)
-        elif str.startswith('tffs'):
+        elif str_in.startswith('tffs'):
             transactions_from_default_file_time_delay(node)
             # transactions_from_file(str, node)
-        elif str.startswith('t'):
-            client_transaction(str, node)
-        elif str in {'q', 'quit', 'e', 'exit'}:
+        elif str_in.startswith('t'):
+            client_transaction(str_in, node)
+        elif str_in in {'q', 'quit', 'e', 'exit'}:
             print("Exiting...")
             # exit()
             return
 
-        elif str in {'\n', ''}:
+        elif str_in in {'\n', ''}:
             continue
         else:
             print_invalid_command()
@@ -148,7 +150,6 @@ def transactions_from_default_file(node):
     f = open(file_path, "r")
     for line in f:
         client_transaction("tff " + line, node)
-        time.sleep(2)
 
 
 def transactions_from_default_file_time_delay(node):
@@ -156,6 +157,8 @@ def transactions_from_default_file_time_delay(node):
     f = open(file_path, "r")
     for line in f:
         client_transaction("tff " + line, node)
+        time.sleep(2)
+
 
 
 def transactions_from_file(str_in, node):

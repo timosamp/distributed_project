@@ -224,9 +224,9 @@ class Transaction:
         # Return the list of input_transactions
         self.transaction_inputs = input_transactions
 
-    def __str__(self):
-        return f"Transaction\n\t\tid: {self.transaction_id[0:20]}...\n\t\tSender: {self.sender_address[27:50]}..." \
-               f"\n\t\tAmount: {self.amount}"
+    # def __str__(self):
+    #     return f"Transaction\n\t\tid: {self.transaction_id[0:20]}...\n\t\tSender: {self.sender_address[27:50]}..." \
+    #            f"\n\t\tAmount: {self.amount}"
 
 
 class TransactionOutput:
@@ -247,17 +247,17 @@ class TransactionOutput:
 
         return sha.hexdigest()
 
-    def __str__(self):
-        return f"tx_out:\n" \
-            f"\tid:{self.transaction_id[0:20]}...\n" \
-               f"\trecipient:{self.recipient_address[0:10]}...\n" \
-                    f"\tammount:{self.amount}"
+    # def __str__(self):
+    #     return f"tx_out:\n" \
+    #         f"\tid:{self.transaction_id[0:20]}...\n" \
+    #            f"\trecipient:{self.recipient_address[0:10]}...\n" \
+    #                 f"\tammount:{self.amount}"
 
-    def __repr__(self):
-        return f"tx_out:\n" \
-            f"\tid:{self.transaction_id[0:20]}...\n" \
-               f"\trecipient:{self.recipient_address[0:10]}...\n" \
-                    f"\tammount:{self.amount}"
+    # def __repr__(self):
+    #     return f"tx_out:\n" \
+    #         f"\tid:{self.transaction_id[0:20]}...\n" \
+    #            f"\trecipient:{self.recipient_address[0:10]}...\n" \
+    #                 f"\tammount:{self.amount}"
 
 
 
