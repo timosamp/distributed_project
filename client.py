@@ -148,7 +148,6 @@ def transactions_from_default_file(node):
     f = open(file_path, "r")
     for line in f:
         client_transaction("tff " + line, node)
-        time.sleep(2)
 
 
 def transactions_from_default_file_time_delay(node):
@@ -156,6 +155,8 @@ def transactions_from_default_file_time_delay(node):
     f = open(file_path, "r")
     for line in f:
         client_transaction("tff " + line, node)
+        time.sleep(2)
+
 
 
 def transactions_from_file(str_in, node):
