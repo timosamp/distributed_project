@@ -163,15 +163,19 @@ def write_results_to_file():
 
     filename = "nodes_" + str(peers_len) + "_capacity_" + str(capacity) + "_difficulty_" + str(difficulty) + ".json"
 
-    path_file = "./results/" + filename
+    current_dir = os.getcwd()
 
-    if os.path.exists(filename):
+    path_file = current_dir + "/result/" + filename
+
+    if os.path.exists(path_file):
         os.remove(path_file)
+
+    # open(path_file, 'w').close()
 
     with open(path_file, 'w') as file:
         json.dump({"first_transaction_timestamp": first_transaction_timestamp,
                     "last_block_timestamp": last_block_timestamp,
-                    "chain_len": chain_len}, path_file)
+                    "chain_len": chain_len}, file)
 
 
 def init_nodes_coins():
