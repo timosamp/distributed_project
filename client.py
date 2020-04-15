@@ -31,7 +31,7 @@ import global_variable
 # global node
 # node = global_variable.node
 
-
+# !!! this is a comment intended for master branch ONLY !!!!
 @click.command()
 @click.option('-p', '--port', default=22147, help='port to run the client on')
 @click.option('-b', '--bootstrap', is_flag=True, help='for bootstrap node only')
