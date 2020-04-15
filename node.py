@@ -23,7 +23,7 @@ class Node:
 
         self.peers = list()
 
-
+        self.peers_ids = dict()
 
         self.sent_transactions_test = dict()
 

@@ -211,6 +211,8 @@ def register_with_bootstrap(my_port):
 
         # Search index of node's ip address
         node_id = [idx for idx, x in enumerate(peers) if x[0] == wallet.public_key][0]
+        global_variable.peers_ids = {peers[i][0]: i for i,x in enumerate(peers)}
+
         try:
             global_variable.node = Node(node_id, wallet)
 

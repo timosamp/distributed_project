@@ -15,27 +15,27 @@ def main():
     n = int(sys.argv[1])
     port = 22147
 
-    proc0 = Popen(['gnome-terminal', '--', 'python3', 'client.py', '-b'], stdin=PIPE, preexec_fn=os.setpgrp())
-    sleep(1)
+    proc0 = Popen(['gnome-terminal', '--', 'python3', 'client.py', '-b'], preexec_fn=os.setpgrp())
+    sleep(2)
     proc = {}
     for i in range(1,n):
         port_option = port+i
-        proc[i] = Popen('gnome-terminal -- python3 client.py -p %d' % port_option, stdin=PIPE, shell=True, preexec_fn=os.setpgrp())
+        proc[i] = Popen('gnome-terminal -- python3 client.py -p %d' % port_option, shell=True, preexec_fn=os.setpgrp())
         sleep(1)
 
-    c = proc0.pid
-    print(c)
-    c1  = proc[1].pid
-    print(c1)
-    proc0.stdin.write(bytes('tff 5nodes/transactions0.txt', 'ascii'))
-
-
-    print('node0 says: ')
-    proc0.stdin.write(bytes('t id1 5', 'ascii'))
-    print('node0 says: %s')
-    sleep(2)
-    out, err = proc[1].communicate(bytes('t id1 5', 'ascii'))
-    print('node1 says: %s', out)
+    # c = proc0.pid
+    # print(c)
+    # c1  = proc[1].pid
+    # print(c1)
+    # proc0.stdin.write(bytes('tff 5nodes/transactions0.txt', 'ascii'))
+    #
+    #
+    # print('node0 says: ')
+    # proc0.stdin.write(bytes('t id1 5', 'ascii'))
+    # print('node0 says: %s')
+    # sleep(2)
+    # out, err = proc[1].communicate(bytes('t id1 5', 'ascii'))
+    # print('node1 says: %s', out)
 
     input("press key to close threads")
     os.killpg(os.getpgid(proc0.pid), signal.SIGTERM)  # Send the signal to all the process groups

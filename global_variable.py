@@ -8,5 +8,6 @@ add_block_lock = threading.Lock()
 add_transaction = threading.Lock()
 seq_mining_lock = threading.Lock()
 reading_writing_blockchain = threading.Lock()
+peers_ids = dict()
 
 

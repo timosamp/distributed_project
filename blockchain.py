@@ -697,10 +697,20 @@ class Blockchain:
 
     def print_transactions(self):
         print("--- Blockchain ---")
+        peers_ids = global_variable.peers_ids
         for idx, block in enumerate(self.chain):
             print('\t--- Block %d (hash: %s)' % (idx, block.hash))
             for tx in block.transactions:
-                print('\t\tid:%s, \t%d' % (tx.transaction_id[0:10], tx.amount))
+                if tx.sender_address == '':
+                    sender = '?'
+                else:
+                    sender = peers_ids[tx.sender_address]
+                if peers_ids[tx.recipient_address] is None:
+                    recipient = '??'
+                else:
+                    recipient = peers_ids[tx.recipient_address]
+                print('\t\tid:%s, \tid%s to id%s: %dcoins'
+                      % (tx.transaction_id[0:10], sender, recipient, tx.amount))
 
     def __str__(self):
         ret = "\n---Blockchain(blocks:" + str(len(self.chain)) + ")---\n"
