@@ -323,7 +323,7 @@ def test_case_1_verify():
     my_id = node.current_id_count
     infile = '5nodes/transactions%d.txt' % my_id
     inf = open(infile)
-    total_c = 0
+    total_txs = 0
     tx_indexes = {}
     for line in inf:
         words = line.split(" ")
@@ -332,8 +332,8 @@ def test_case_1_verify():
         recipient_pubkey = node.peers[recipient_id][0]
 
         node.sent_transactions_test[(recipient_id, amount)] = False
-        tx_indexes[(recipient_id, amount)] = total_c
-        total_c += 1
+        tx_indexes[(recipient_id, amount)] = total_txs
+        total_txs += 1
     inf.close()
     my_sent_txs = node.sent_transactions_test
     outfile = 'logs/test1/test1_node%d.log' % my_id
@@ -356,15 +356,16 @@ def test_case_1_verify():
                     outf.write(s)
                     my_sent_txs[(receiver, transaction.amount)] = True
 
-    c = 0
+    failed_txs = 0
     for tx in my_sent_txs:
         if my_sent_txs[tx] == False:
             idx = tx_indexes[tx]
             s = "Error(test1):I don't see my transaction %d in blockchain!(id%d %d)\n" % (idx, tx[0], tx[1])
             print(s, end='')
             outf.write(s)
-            c += 1
-    s = "test case 1 finish!! %d out of %d transactions sucessfull\n" % (total_c - c, total_c)
+            failed_txs += 1
+
+    s = "test case 1 finish!! %d out of %d transactions sucessfull\n" % (total_txs - failed_txs, total_txs)
     print(s)
     outf.write(s)
     outf.close()
