@@ -117,7 +117,7 @@ class Blockchain:
 
         # Check if the sender has the required utxos
         if not Blockchain.check_node_utxos_for_transaction(transaction, dict_nodes_utxos):
-            print("is valid no utxos")
+            # print("is valid no utxos")
             return False
         # print("Transaction is valid")
 
@@ -152,10 +152,11 @@ class Blockchain:
         # Search every transaction input into node's utxos
         for transaction_input in transaction.transaction_inputs:
             transaction_output_id = transaction_input.previous_output_id
+            print("required: " + str(transaction_output_id[:20]))
 
             # Check if input transactions are taking place
             if transaction_output_id in sender_utxos:
-                # print("sender has: " + str(transaction_output_id[:20]))
+                print("sender has: " + str(transaction_output_id[:20]))
                 total_input_amount = total_input_amount + sender_utxos[transaction_output_id].amount
                 del sender_utxos[transaction_output_id]
             else:
@@ -317,8 +318,8 @@ class Blockchain:
 
         print("Starting mining process..")
 
-        if not sub_list_of_unconfirmed:
-            print("Stop mining process, empty list..")
+        if len(sub_list_of_unconfirmed) < self.capacity:
+            print("Stop mining process, small list..")
 
             # Release blockchain lock
             global_variable.reading_writing_blockchain.release()

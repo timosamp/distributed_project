@@ -81,6 +81,7 @@ def count_final_balances(n):
     for sender_node in range (0,n):
         final_balances[sender_node] = initial_balance
         filename = '/backup/transactions%d.txt' % sender_node
+        # filename = '/transactions%d.txt' % sender_node
         sent_txs = count_tx_py_n(dirname + filename, n)
         #sent_txs_u10[sender_node] = sent_txs[:][0]
         sent_txs_u10[sender_node] = sent_txs

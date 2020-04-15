@@ -94,6 +94,7 @@ def client_input_loop():  # maybe: ,node
 
         # node.print_balance()
         # node.wallet.balance(node.blockchain)
+    # node = global_variable.node
 
     sleep(0.5)
     print("Client started...")
@@ -245,7 +246,7 @@ def client_transaction(str_in, node):
         print("Found more than num in", recipient_ids)
     recipient_id = recipient_ids[0]
     if recipient_id > len(node.peers) - 1:
-        print("Error: No node with this id")
+        print("Error: No node with this id: " + str(recipient_id))
         return
     amount = args[2]
     recipient_pubkey = node.peers[recipient_id][0]

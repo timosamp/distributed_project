@@ -48,16 +48,16 @@ class Wallet:
             print("I didn't find my self in utxos history :(")
         else:
 
-            # lock for changing blockchain
-            while not global_variable.reading_writing_blockchain.acquire(False):
-                # print("False acquire blockchain lock")
-                time.sleep(1)
-                continue
+            # # lock for changing blockchain
+            # while not global_variable.reading_writing_blockchain.acquire(False):
+            #     # print("False acquire blockchain lock")
+            #     time.sleep(1)
+            #     continue
 
             utxos_dict = last_validated_dict_of_node[self.public_key]
 
-            # Release blockchain lock
-            global_variable.reading_writing_blockchain.release()
+            # # Release blockchain lock
+            # global_variable.reading_writing_blockchain.release()
 
         # Init the amount variable
         total_amount = 0
@@ -73,8 +73,17 @@ class Wallet:
         return total_amount
 
     def sendCoinsTo(self, recipient_address, amount, blockchain, peers):
+
+
+        while not global_variable.reading_writing_blockchain.acquire(False):
+            # print("False acquire blockchain lock")
+            time.sleep(1)
+            continue
+
         # check if the sender have the amount which is trying to send (check balance)
         if self.balance(blockchain) < amount:
+            # Release the blockchain lock
+            global_variable.reading_writing_blockchain.release()
             return False
 
         # Collect a bunch of utxos with sum amount bigger than amount want to be sent
@@ -82,11 +91,6 @@ class Wallet:
         # Init the sub list and utxos_amount
         sub_list_of_utxos = []
         utxos_amount = 0
-
-        while not global_variable.reading_writing_blockchain.acquire(False):
-            # print("False acquire blockchain lock")
-            time.sleep(1)
-            continue
 
         # Get node's utxos list from blockchain
         node_utxos_dict = blockchain.dict_nodes_utxos[self.public_key]
