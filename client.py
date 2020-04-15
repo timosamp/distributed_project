@@ -1,3 +1,4 @@
+import os
 import re
 import signal
 import socket
@@ -126,6 +127,8 @@ def client_input_loop():  # maybe: ,node
         elif str_in.startswith('tffs'):
             transactions_from_default_file_time_delay(node)
             # transactions_from_file(str, node)
+        elif str_in.startswith('results'):
+            write_results_to_file()
         elif str_in.startswith('t'):
             client_transaction(str_in, node)
         elif str_in in {'q', 'quit', 'e', 'exit'}:
@@ -137,6 +140,38 @@ def client_input_loop():  # maybe: ,node
             continue
         else:
             print_invalid_command()
+
+
+def write_results_to_file():
+    node = global_variable.node
+
+    chain_len = len(node.blockchain.chain)
+
+    first_block = node.blockchain.chain[0]
+    first_transaction = first_block.transactions[0]
+    first_transaction_timestamp = first_transaction.timestamp
+
+    last_block = node.blockchain.last_block()
+    last_block_timestamp = last_block.timestamp
+
+
+    capacity = node.blockchain.capacity
+
+    difficulty = node.blockchain.difficulty
+
+    peers_len = len(node.blockchain.peers)
+
+    filename = "nodes_" + str(peers_len) + "_capacity_" + str(capacity) + "_difficulty_" + str(difficulty) + ".json"
+
+    path_file = "./results/" + filename
+
+    if os.path.exists(filename):
+        os.remove(path_file)
+
+    with open(path_file, 'w') as file:
+        json.dump({"first_transaction_timestamp": first_transaction_timestamp,
+                    "last_block_timestamp": last_block_timestamp,
+                    "chain_len": chain_len}, path_file)
 
 
 def init_nodes_coins():

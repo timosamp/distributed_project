@@ -80,6 +80,15 @@ def receive_transaction_api():
 
 def receive_transaction_thread(tx_data):
     # print("--- Received transaction at API ----")
+
+
+    # tx_data = request.get_json()
+
+    if not tx_data.get("transaction"):
+        return  # "Invalid json", 400
+
+
+
     while not global_variable.add_transaction.acquire(False):
         # print("False acquired transaction lock")
         time.sleep(1)
@@ -89,12 +98,6 @@ def receive_transaction_thread(tx_data):
 
     node = global_variable.node
 
-    # tx_data = request.get_json()
-
-    if not tx_data.get("transaction"):
-        return  # "Invalid json", 400
-
-    # print(tx_data.get("transaction"))
 
     incoming_transaction = jsonpickle.decode(tx_data.get("transaction"))
 
@@ -117,6 +120,10 @@ def receive_transaction_thread(tx_data):
     # print(incoming_transaction)
 
     print("add_transaction has ended")
+
+    if incoming_transaction.sender_address == node.wallet.public_key:
+        if global_variable.sendCoinsTo_lock.locked():
+            global_variable.sendCoinsTo_lock.release()
 
     global_variable.add_transaction.release()
 
