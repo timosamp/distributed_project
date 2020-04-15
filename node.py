@@ -23,7 +23,7 @@ class Node:
 
         self.peers = list()
 
-
+        self.peers_ids = dict()
 
     # def create_new_block(self):
     #     pass
