@@ -289,6 +289,7 @@ def test_case_1_verify():
     infile = '5nodes/transactions%d.txt' % my_id
     inf = open(infile)
     total_c = 0
+    tx_indexes = {}
     for line in inf:
         words = line.split(" ")
         recipient_id = int(re.sub("[^0-9]", "", words[0]))
@@ -296,6 +297,7 @@ def test_case_1_verify():
         recipient_pubkey = node.peers[recipient_id][0]
 
         node.sent_transactions_test[(recipient_id, amount)] = False
+        tx_indexes[(recipient_id, amount)] = total_c
         total_c += 1
     inf.close()
     my_sent_txs = node.sent_transactions_test
@@ -313,14 +315,17 @@ def test_case_1_verify():
                     print(s, end ='')
                     outf.write(s)
                 else:
-                    s = "Success(test1): i see transaction in block %d (%d to node%d)\n" % (block.index, transaction.amount, receiver)
+                    idx = tx_indexes[(receiver, transaction.amount)]
+                    s = "Success(test1): i see transaction % in block %d (%d to node%d)\n" % (idx, block.index, transaction.amount, receiver)
                     print(s, end ='')
                     outf.write(s)
                     my_sent_txs[(receiver, transaction.amount)] = True
+
     c = 0
     for tx in my_sent_txs:
         if my_sent_txs[tx] == False:
-            s = "Error(test1):I don't see in blockchain my transaction!(id%d %d)\n" % tx
+            idx = tx_indexes[tx]
+            s = "Error(test1):I don't see my transaction %d in blockchain!(id%d %d)\n" % (idx, tx[0], tx[1])
             print(s, end='')
             outf.write(s)
             c += 1
