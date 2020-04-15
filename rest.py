@@ -183,35 +183,36 @@ def verify_and_add_block(block_data):
         #     time.sleep(1)
         #     continue
 
-        if node.blockchain.is_block_valid(block):
+        if node.blockchain.last_block().hash == block.previous_hash:
 
-            print("block is valid generally")
+            if node.blockchain.is_block_valid(block):
 
-            # # Release the lock
-            # global_variable.reading_writing_blockchain.release()
+                print("block is valid generally")
 
-            # Stop mining
-            while not global_variable.flag_lock.acquire(False):
-                print("False acquire mine lock")
-                continue
-            global_variable.node.mine_flag = False
-            global_variable.flag_lock.release()
+                # # Release the lock
+                # global_variable.reading_writing_blockchain.release()
 
-            # lock for changing blockchain
-            while not global_variable.reading_writing_blockchain.acquire(False):
-                # print("False acquire blockchain lock")
-                time.sleep(1)
-                continue
+                # Stop mining
+                while not global_variable.flag_lock.acquire(False):
+                    print("False acquire mine lock")
+                    continue
+                global_variable.node.mine_flag = False
+                global_variable.flag_lock.release()
 
-            # If the rest test succeed then add block into blockchain
-            node.blockchain.add_block(block)
-            node.blockchain.copy_of_myself = node.blockchain.chain
-            # Release the lock
-            global_variable.reading_writing_blockchain.release()
+                # lock for changing blockchain
+                while not global_variable.reading_writing_blockchain.acquire(False):
+                    # print("False acquire blockchain lock")
+                    time.sleep(1)
+                    continue
 
-            # Change the flag for the corresponding response
-            verified = True
+                # If the rest test succeed then add block into blockchain
+                node.blockchain.add_block(block)
+                node.blockchain.copy_of_myself = node.blockchain.chain
+                # Release the lock
+                global_variable.reading_writing_blockchain.release()
 
+                # Change the flag for the corresponding response
+                verified = True
         else:
             # # Release the lock
             # global_variable.reading_writing_blockchain.release()

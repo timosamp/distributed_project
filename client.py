@@ -2,6 +2,7 @@ import signal
 import socket
 import string
 import sys
+import time
 from threading import Thread
 from time import sleep
 
@@ -114,6 +115,8 @@ def client_input_loop():  # maybe: ,node
             node.blockchain.print_utxos(1)
         elif str.startswith('tff'):
             transactions_from_default_file(node)
+        elif str.startswith('tffs'):
+            transactions_from_default_file_time_delay(node)
             # transactions_from_file(str, node)
         elif str.startswith('t'):
             client_transaction(str, node)
@@ -134,13 +137,20 @@ def init_nodes_coins():
 
     # Send initial money to all other users
     for idx, peer in enumerate(node.peers):
-        if not(global_variable.node.wallet.public_key == peer[0]):
+        if not (global_variable.node.wallet.public_key == peer[0]):
             str_in = "t " + str(idx) + " 100"
             client_transaction(str_in, node)
 
 
-
 def transactions_from_default_file(node):
+    file_path = '5nodes/transactions' + str(node.current_id_count) + '.txt'
+    f = open(file_path, "r")
+    for line in f:
+        client_transaction("tff " + line, node)
+        time.sleep(2)
+
+
+def transactions_from_default_file_time_delay(node):
     file_path = '5nodes/transactions' + str(node.current_id_count) + '.txt'
     f = open(file_path, "r")
     for line in f:
