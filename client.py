@@ -266,9 +266,9 @@ def test_case_1():
     node = global_variable.node
     my_id = node.current_id_count
     infile = '5nodes/transactions%d.txt' % my_id
-    f = open(infile)
+    inf = open(infile)
     total_c = 0
-    for line in f:
+    for line in inf:
         words = line.split(" ")
         recipient_id = int(re.sub("[^0-9]", "", words[0]))
         amount = int(words[1])
@@ -278,24 +278,34 @@ def test_case_1():
 
         node.sent_transactions_test[(recipient_id, amount)] = False
         total_c += 1
-
+    inf.close()
     my_sent_txs = node.sent_transactions_test
+    outfile = 'logs/test1/test1_node%d.log' % my_id
+    outf = open(outfile, 'w')
+
     for block in node.blockchain.chain:
         for transaction in block.transactions:
             my_pkey = node.peers[my_id][0]
             receiver = [idx for idx, peer in enumerate(node.peers) if peer[0] == transaction.recipient_address][0]
-            sender = [idx for idx, peer in enumerate(node.peers) if peer[0] == transaction.sender_address][0]
+            #sender = [idx for idx, peer in enumerate(node.peers) if peer[0] == transaction.sender_address][0]
             if transaction.sender_address == my_pkey:
                 if (receiver, transaction.amount) not in my_sent_txs:
-                    print("Error(test1): i see transaction i did not send! (%d to node%d)" % (transaction.amount, receiver))
+                    s = "Error(test1): i see transaction i did not send! (%d to node%d)\n" % (transaction.amount, receiver)
+                    print(s, end ='')
+                    outf.write(s)
                 else:
                     my_sent_txs[(receiver, transaction.amount)] = True
     c = 0
     for tx in my_sent_txs:
         if my_sent_txs[tx] == False:
-            print("Error(test1):I don't see in blockchain my transaction!(%d to node%d)", (my_sent_txs[tx]))
+            s = "Error(test1):I don't see in blockchain my transaction!(%d to node%d)\n" % tx
+            print(s, end='')
+            outf.write(s)
             c += 1
-    print("test case 1 finish!! %d out of %d transactions sucessfull", (total_c, total_c -c))
+    s = "test case 1 finish!! %d out of %d transactions sucessfull\n" % (total_c, total_c -c)
+    print(s)
+    outf.write(s)
+    outf.close()
 
 def print_help():
     print(

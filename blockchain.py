@@ -705,7 +705,7 @@ class Blockchain:
                     sender = '?'
                 else:
                     sender = peers_ids[tx.sender_address]
-                if peers_ids[tx.recipient_address] is None:
+                if tx.recipient_address not in peers_ids:
                     recipient = '??'
                 else:
                     recipient = peers_ids[tx.recipient_address]
