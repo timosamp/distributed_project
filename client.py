@@ -154,12 +154,11 @@ def write_results_to_file():
     last_block = node.blockchain.last_block()
     last_block_timestamp = last_block.timestamp
 
-
     capacity = node.blockchain.capacity
 
     difficulty = node.blockchain.difficulty
 
-    peers_len = len(node.blockchain.peers)
+    peers_len = len(node.peers)
 
     filename = "nodes_" + str(peers_len) + "_capacity_" + str(capacity) + "_difficulty_" + str(difficulty) + ".json"
 
@@ -170,12 +169,12 @@ def write_results_to_file():
     if os.path.exists(path_file):
         os.remove(path_file)
 
-    # open(path_file, 'w').close()
-
     with open(path_file, 'w') as file:
-        json.dump({"first_transaction_timestamp": first_transaction_timestamp,
-                    "last_block_timestamp": last_block_timestamp,
-                    "chain_len": chain_len}, file)
+        json.dump({"capacity": capacity,
+                   "difficulty": difficulty,
+                   "first_transaction_timestamp": first_transaction_timestamp,
+                   "last_block_timestamp": last_block_timestamp,
+                   "chain_len": chain_len}, file)
 
 
 def init_nodes_coins():
