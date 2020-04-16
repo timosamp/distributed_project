@@ -37,7 +37,8 @@ import global_variable
 @click.command()
 @click.option('-p', '--port', default=22147, help='port to run the client on')
 @click.option('-b', '--bootstrap', is_flag=True, help='for bootstrap node only')
-def main(port, bootstrap):
+@click.option('-test1', '--test1', is_flag=True, default=False, help='everyone calls test1 5sec after register')
+def main(port, bootstrap, test1):
     # signal.signal(signal.SIGINT, sigint_handler())
     if bootstrap:
         print("This is bootstrap node")
@@ -69,11 +70,12 @@ def main(port, bootstrap):
         # edw perimenoume anagastika na mas apantisei o bootstrap
         # to register request
 
+
     # ksekinaei se thread to loop pou diavazei input kai kalei
     # tis antistoixes sinartiseis tou node gia na parei
     # to balance, teleutaia transactions
 
-    thr = Thread(target=client_input_loop)
+    thr = Thread(target=client_input_loop, args=[bootstrap, test1])
     thr.start()
 
     app.run(host='127.0.0.1', port=port)
@@ -88,7 +90,7 @@ def sigint_handler(sig, frame):
     sys.exit(0)
 
 
-def client_input_loop():  # maybe: ,node
+def client_input_loop(bootstrap, test1):  # maybe: ,node
     with app.app_context():
         # global node
 
@@ -97,6 +99,17 @@ def client_input_loop():  # maybe: ,node
         # node.print_balance()
         # node.wallet.balance(node.blockchain)
     # node = global_variable.node
+    if test1:
+        if bootstrap:
+            print("Will execute test1 when all nodes register plus 5(+-0.5)sec...")
+            while global_variable.test1_start_flag == False:
+                sleep(0.5)
+            sleep(5)
+            test_case_1()
+        else:
+            print("Will execute test1 in 5sec...")
+            sleep(5)
+            test_case_1()
 
     sleep(0.5)
     print("Client started...")

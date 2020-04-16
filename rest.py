@@ -296,7 +296,7 @@ def register_new_peers():
         time.sleep(0.5)  # wait 0.5 sec
 
     global_variable.peers_ids = {node.peers[i][0]: i for i, x in enumerate(node.peers)}
-
+    global_variable.test1_start_flag = True
     # Create a thread to send them the initial money,
     # just after the completion of their creation.
     thr_init_coins = Thread(target=transfer_initial_coins, args=[public_key])
@@ -310,7 +310,7 @@ def transfer_initial_coins(peer_public_key):
     node = global_variable.node
 
     # Wait for the nodes to be created
-    time.sleep(5)
+    time.sleep(1)
 
     # Send 100 coins to this node
     node.wallet.sendCoinsTo(peer_public_key, 100, node.blockchain, node.peers)
