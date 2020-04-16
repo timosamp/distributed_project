@@ -122,8 +122,7 @@ def receive_transaction_thread(tx_data):
     print("add_transaction has ended")
 
     if incoming_transaction.sender_address == node.wallet.public_key:
-        if global_variable.sendCoinsTo_lock.locked():
-            global_variable.sendCoinsTo_lock.release()
+        global_variable.sendCoinsTo_lock.release()
 
     global_variable.add_transaction.release()
 
