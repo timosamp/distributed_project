@@ -54,7 +54,8 @@ class Wallet:
             #     time.sleep(1)
             #     continue
 
-            utxos_dict = last_validated_dict_of_node[self.public_key]
+            # utxos_dict = last_validated_dict_of_node[self.public_key]
+            utxos_dict = blockchain.dict_nodes_utxos[self.public_key]
 
             # # Release blockchain lock
             # global_variable.reading_writing_blockchain.release()
@@ -87,7 +88,6 @@ class Wallet:
 
         # check if the sender have the amount which is trying to send (check balance)
         if self.balance(blockchain) < amount:
-
             if global_variable.sendCoinsTo_lock.locked():
                 print("unlock")
                 global_variable.sendCoinsTo_lock.release()
