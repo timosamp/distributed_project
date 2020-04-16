@@ -226,8 +226,8 @@ def verify_and_add_block(block_data):
 
             # If not, call the consesus algorithm to check
             # if there is longer valid chain available.
-            consensus2()
-            # consensus()
+            # consensus2()
+            consensus()
 
     # # Release the lock
     # if global_variable.reading_writing_blockchain.locked():
