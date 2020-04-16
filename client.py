@@ -37,8 +37,7 @@ import global_variable
 @click.command()
 @click.option('-p', '--port', default=22147, help='port to run the client on')
 @click.option('-b', '--bootstrap', is_flag=True, help='for bootstrap node only')
-@click.option('-test1', '--test1', is_flag=True, default=False, help='everyone calls test1 5sec after register')
-def main(port, bootstrap, test1):
+def main(port, bootstrap):
     # signal.signal(signal.SIGINT, sigint_handler())
     if bootstrap:
         print("This is bootstrap node")
@@ -70,12 +69,11 @@ def main(port, bootstrap, test1):
         # edw perimenoume anagastika na mas apantisei o bootstrap
         # to register request
 
-
     # ksekinaei se thread to loop pou diavazei input kai kalei
     # tis antistoixes sinartiseis tou node gia na parei
     # to balance, teleutaia transactions
 
-    thr = Thread(target=client_input_loop, args=[bootstrap, test1])
+    thr = Thread(target=client_input_loop)
     thr.start()
 
     app.run(host='127.0.0.1', port=port)
@@ -90,7 +88,7 @@ def sigint_handler(sig, frame):
     sys.exit(0)
 
 
-def client_input_loop(bootstrap, test1):  # maybe: ,node
+def client_input_loop():  # maybe: ,node
     with app.app_context():
         # global node
 
@@ -99,17 +97,6 @@ def client_input_loop(bootstrap, test1):  # maybe: ,node
         # node.print_balance()
         # node.wallet.balance(node.blockchain)
     # node = global_variable.node
-    if test1:
-        if bootstrap:
-            print("Will execute test1 when all nodes register plus 5(+-0.5)sec...")
-            while global_variable.test1_start_flag == False:
-                sleep(0.5)
-            sleep(5)
-            test_case_1()
-        else:
-            print("Will execute test1 in 5sec...")
-            sleep(5)
-            test_case_1()
 
     sleep(0.5)
     print("Client started...")
@@ -172,7 +159,7 @@ def write_results_to_file():
 
     difficulty = node.blockchain.difficulty
 
-    peers_len = len(node.peers)
+    peers_len = len(node.blockchain.peers)
 
     filename = "nodes_" + str(peers_len) + "_capacity_" + str(capacity) + "_difficulty_" + str(difficulty) + ".json"
 
@@ -207,7 +194,7 @@ def transactions_from_default_file(node):
     f = open(file_path, "r")
     for line in f:
         client_transaction("tff " + line, node)
-        # time.sleep(2)
+        time.sleep(2)
 
 
 def transactions_from_default_file_time_delay(node):
@@ -340,8 +327,7 @@ def test_case_1_verify():
     my_id = node.current_id_count
     infile = '5nodes/transactions%d.txt' % my_id
     inf = open(infile)
-    total_txs = 0
-    tx_indexes = {}
+    total_c = 0
     for line in inf:
         words = line.split(" ")
         recipient_id = int(re.sub("[^0-9]", "", words[0]))
@@ -349,8 +335,7 @@ def test_case_1_verify():
         recipient_pubkey = node.peers[recipient_id][0]
 
         node.sent_transactions_test[(recipient_id, amount)] = False
-        tx_indexes[(recipient_id, amount)] = total_txs
-        total_txs += 1
+        total_c += 1
     inf.close()
     my_sent_txs = node.sent_transactions_test
     outfile = 'logs/test1/test1_node%d.log' % my_id
@@ -367,22 +352,18 @@ def test_case_1_verify():
                     print(s, end ='')
                     outf.write(s)
                 else:
-                    idx = tx_indexes[(receiver, transaction.amount)]
-                    s = "Success(test1): i see transaction % in block %d (%d to node%d)\n" % (idx, block.index, transaction.amount, receiver)
+                    s = "Success(test1): i see transaction in block %d (%d to node%d)\n" % (block.index, transaction.amount, receiver)
                     print(s, end ='')
                     outf.write(s)
                     my_sent_txs[(receiver, transaction.amount)] = True
-
-    failed_txs = 0
+    c = 0
     for tx in my_sent_txs:
         if my_sent_txs[tx] == False:
-            idx = tx_indexes[tx]
-            s = "Error(test1):I don't see my transaction %d in blockchain!(id%d %d)\n" % (idx, tx[0], tx[1])
+            s = "Error(test1):I don't see in blockchain my transaction!(id%d %d)\n" % tx
             print(s, end='')
             outf.write(s)
-            failed_txs += 1
-
-    s = "test case 1 finish!! %d out of %d transactions sucessfull\n" % (total_txs - failed_txs, total_txs)
+            c += 1
+    s = "test case 1 finish!! %d out of %d transactions sucessfull\n" % (total_c - c, total_c)
     print(s)
     outf.write(s)
     outf.close()

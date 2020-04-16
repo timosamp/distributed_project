@@ -296,7 +296,7 @@ def register_new_peers():
         time.sleep(0.5)  # wait 0.5 sec
 
     global_variable.peers_ids = {node.peers[i][0]: i for i, x in enumerate(node.peers)}
-    global_variable.test1_start_flag = True
+
     # Create a thread to send them the initial money,
     # just after the completion of their creation.
     thr_init_coins = Thread(target=transfer_initial_coins, args=[public_key])
@@ -310,7 +310,7 @@ def transfer_initial_coins(peer_public_key):
     node = global_variable.node
 
     # Wait for the nodes to be created
-    time.sleep(1)
+    time.sleep(5)
 
     # Send 100 coins to this node
     node.wallet.sendCoinsTo(peer_public_key, 100, node.blockchain, node.peers)
@@ -529,10 +529,6 @@ def consensus():
     # Find the first block of the other's fork
     fork_hash = node.blockchain.first_fork_hash(chain_hashes)
 
-    if fork_hash == "":
-        # Then we just haven't taken the new block yet, wait.
-        print("Then we just haven't taken the new block yet, wait.")
-        return flag
 
     # Ask him for the blocks
     url = "{}/get_block_from".format(peer_to_get_blocks)
@@ -588,16 +584,9 @@ def consensus2():
     # print("My blockchain:")
     # node.blockchain.print_transactions()
 
-    # # lock for changing blockchain
-    # while not global_variable.reading_writing_blockchain.acquire(False):
-    #     # print("False acquire blockchain lock")
-    #     time.sleep(0.2)
-    #     continue
 
     current_len = len(node.blockchain.chain)
 
-    # # Release blockchain lock
-    # global_variable.reading_writing_blockchain.release()
 
     # print("current len is : " + str(current_len))
 
@@ -615,7 +604,6 @@ def consensus2():
         # Ask others for their blockchain
         response = requests.get('{}/chain_by_hash'.format(peer_url))
 
-        # print(global_variable.node.blockchain)
 
         # Reformat from json
         length = response.json()['length']
@@ -627,28 +615,11 @@ def consensus2():
         if length > current_len:  # >= current_len and current_len > 3:
             # print("mexri_edw")
             print("Node (%d) has bigger chain(%d) that us(%d)" % (idx, length, current_len))
-            # print("Hash")
-            # for hashh in chain_hashes:
-            # print(hashh)
 
-            # lock for changing blockchain
-            # while not global_variable.reading_writing_blockchain.acquire(False):
-            #     # print("False acquire blockchain lock")
-            #     time.sleep(0.2)
-            #     continue
 
             # Find the first block of the other's fork
             fork_hash = node.blockchain.first_fork_hash(chain_hashes)
             # print("first diff id: " + str(fork_hash))
-
-            # # Release blockchain lock
-            # global_variable.reading_writing_blockchain.release()
-
-            if fork_hash == "":
-                # Then we just haven't taken the new block yet, wait.
-                print("Then we just haven't taken the new block yet, wait.")
-                return flag
-
 
 
             # Ask him for the blocks
