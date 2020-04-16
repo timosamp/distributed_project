@@ -107,7 +107,7 @@ def receive_transaction_thread(tx_data):
 
     # lock for changing blockchain
     while not global_variable.reading_writing_blockchain.acquire(False):
-        # print("False acquire blockchain lock")
+        print("False acquire blockchain lock")
         time.sleep(1)
         continue
 
@@ -478,8 +478,8 @@ def consensus():
     print("---- Entered Consensus ----")
     node = global_variable.node
 
-    print("My blockchain:")
-    node.blockchain.print_transactions()
+    # print("My blockchain:")
+    # node.blockchain.print_transactions()
 
     current_len = len(node.blockchain.chain)
 
@@ -585,8 +585,8 @@ def consensus2():
     """
     print("---- Entered Consensus ----")
     node = global_variable.node
-    print("My blockchain:")
-    node.blockchain.print_transactions()
+    # print("My blockchain:")
+    # node.blockchain.print_transactions()
 
     # # lock for changing blockchain
     # while not global_variable.reading_writing_blockchain.acquire(False):
