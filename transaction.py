@@ -79,32 +79,32 @@ class Transaction:
     @classmethod
     def with_utxos(cls, sender_address, recipient_address, amount, timestamp, utxos):
 
-        #print("Create transaction with utxos' list")
+        # print("Create transaction with utxos' list")
 
         # create transaction
         transaction = Transaction(sender_address, recipient_address, amount, timestamp)
 
-        #print("Transaction's object has created")
+        # print("Transaction's object has created")
 
         # self.transaction_inputs: λίστα από Transaction Input (ids)
         transaction.create_list_of_input_transactions(utxos)
 
-        #print("Inputs Transaction list is created")
-        #print(transaction.transaction_inputs)
+        # print("Inputs Transaction list is created")
+        # print(transaction.transaction_inputs)
 
         # self.transaction_outputs: λίστα από Transaction Output
         transaction.create_list_of_output_transactions(utxos)
 
-        #print("Outputs Transaction list is created")
+        # print("Outputs Transaction list is created")
 
-        #print(transaction.transaction_outputs)
+        # print(transaction.transaction_outputs)
 
         return transaction
 
     @classmethod
     def generic(cls, recipient_address, amount, timestamp):
 
-        #print("Start creating generic transaction")
+        # print("Start creating generic transaction")
 
         # create transaction
         transaction = Transaction("", recipient_address, amount, timestamp)
@@ -112,7 +112,7 @@ class Transaction:
         # Create the transaction_outputs list with only one Output Transaction
         transaction.transaction_outputs = [TransactionOutput(transaction.transaction_id, recipient_address, amount)]
 
-        #print("Generic transaction is created")
+        # print("Generic transaction is created")
 
         return transaction
 
@@ -135,7 +135,7 @@ class Transaction:
         # Import private key
         key = RSA.importKey(private_key)
 
-        #print(sha_hash)
+        # print(sha_hash)
 
         # Construct an instance of the crypto object
         cipher = PKCS1_v1_5.new(key)
@@ -146,7 +146,7 @@ class Transaction:
     def verify_transaction(self):
         # Fixme: it will appear an error for the key
 
-        #print("Internal verification function")
+        # print("Internal verification function")
 
         to_be_hashed = (str(self.timestamp) +
                         str(self.sender_address) +
@@ -224,9 +224,22 @@ class Transaction:
         # Return the list of input_transactions
         self.transaction_inputs = input_transactions
 
-    # def __str__(self):
-    #     return f"Transaction\n\t\tid: {self.transaction_id[0:20]}...\n\t\tSender: {self.sender_address[27:50]}..." \
-    #            f"\n\t\tAmount: {self.amount}"
+    def __str__(self):
+
+        output_list_str = "\n"
+        for output in self.transaction_outputs:
+            output_list_str += str(output) + "\n"
+
+        input_list_str = "\n"
+        for input in self.transaction_inputs:
+            input_list_str += str(input) + "\n"
+
+
+        return "Transaction\n\t\tid: " + str(self.transaction_id)[0:20] + \
+               "...\n\t\tSender: + " + str(self.sender_address)[27:50] + "..." + \
+               "\n\t\tAmount: + " + str(self.amount) + \
+               "\nOutputs list: " + output_list_str + \
+               "\nInputs list: " + input_list_str
 
 
 class TransactionOutput:
@@ -247,11 +260,11 @@ class TransactionOutput:
 
         return sha.hexdigest()
 
-    # def __str__(self):
-    #     return f"tx_out:\n" \
-    #         f"\tid:{self.transaction_id[0:20]}...\n" \
-    #            f"\trecipient:{self.recipient_address[0:10]}...\n" \
-    #                 f"\tammount:{self.amount}"
+    def __str__(self):
+        return "tx_out:\n" + \
+               "\tid:" + str(self.outputTransactionId[0:20]) + "...\n" + \
+               "\trecipient:" + str(self.recipient_address[0:10]) + "...\n" + \
+               "\tamount:" + str(self.amount)
     #
     # def __repr__(self):
     #     return f"tx_out:\n" \
@@ -260,11 +273,12 @@ class TransactionOutput:
     #                 f"\tammount:{self.amount}"
 
 
-
 class TransactionInput:
     def __init__(self, _previous_output_id):
         self.previous_output_id = _previous_output_id
+
     def __str__(self):
-        return str(self.previous_output_id)
+        return "tx_in:\n\t" + str(self.previous_output_id)[0:20]
+
     def __repr__(self):
         return str(self.previous_output_id)

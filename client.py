@@ -109,7 +109,8 @@ def client_input_loop():  # maybe: ,node
         elif str_in.startswith('init'):
             init_nodes_coins()
         elif str_in.startswith('bl'):
-            print(node.blockchain)
+            # print(node.blockchain)
+            node.blockchain.print_transactions()
         elif str_in in {'view', 'v'}:
             print(node.blockchain.get_transactions())
         elif str_in in {'help', 'h'}:

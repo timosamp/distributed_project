@@ -97,13 +97,24 @@ def receive_transaction_thread(tx_data):
 
     incoming_transaction = jsonpickle.decode(tx_data.get("transaction"))
 
-    print("incoming transaction id: " + str(incoming_transaction.transaction_id[:20]))
+    sender_idx = ""
+    for idx, peer in enumerate(node.peers):
+        if incoming_transaction.sender_address == peer[0]:
+            sender_idx = idx
 
-    # print(incoming_transaction.recipient_address)
+    receiver_idx = ""
+    for idx, peer in enumerate(node.peers):
+        if incoming_transaction.recipient_address == peer[0]:
+            receiver_idx = idx
+
+    print("id" + str(receiver_idx) + " " + str(incoming_transaction.amount) + " - sender: " + str(sender_idx))
+
+    print("incoming transaction id: " + str(incoming_transaction.transaction_id[:20]))
+    print(incoming_transaction)
 
     # lock for changing blockchain
     while not global_variable.reading_writing_blockchain.acquire(False):
-        print("False acquire blockchain lock")
+        print("False acquire blockchain lock transaction api")
         time.sleep(0.5)
         continue
 
@@ -161,6 +172,7 @@ def verify_and_add_block(block_data):
     block = jsonpickle.decode(incoming_block_json)
 
     print("Incoming block's hash: " + str(block.hash[:20]))
+    print(block)
 
     # Verify it
     verified = False
@@ -187,7 +199,9 @@ def verify_and_add_block(block_data):
                 while not global_variable.flag_lock.acquire(False):
                     print("False acquire mine lock")
                     continue
+
                 global_variable.node.mine_flag = False
+
                 global_variable.flag_lock.release()
 
                 # lock for changing blockchain

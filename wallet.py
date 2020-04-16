@@ -74,7 +74,7 @@ class Wallet:
 
 
         while not global_variable.reading_writing_blockchain.acquire(False):
-            print("False acquire blockchain lock")
+            print("False acquire blockchain lock wallet")
             time.sleep(0.5)
             continue
 

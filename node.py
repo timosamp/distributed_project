@@ -18,6 +18,8 @@ class Node:
 
         self.mine_flag = False
 
+        self.mine_cnt = 0
+
         if node_id == 0:
             self.blockchain.create_genesis_block(self.node_address)
 
