@@ -76,7 +76,7 @@ def main(port, bootstrap):
     thr = Thread(target=client_input_loop)
     thr.start()
 
-    app.run(host='127.0.0.1', port=port)
+    app.run(host='0.0.0.0', port=port)
 
     thr.join()
 
@@ -204,7 +204,6 @@ def transactions_from_default_file_time_delay(node):
         time.sleep(2)
 
 
-
 def transactions_from_file(str_in, node):
     args = str_in.split(' ')
     if (len(args) != 2):
@@ -226,18 +225,18 @@ def register_with_bootstrap(my_port):
 
     # global node
     wallet = Wallet()
-    host_name = socket.gethostname()
-    ip = socket.gethostbyname(host_name)
-    print(ip)
-    ip = "127.0.0.1"
-    my_url = "http://" + ip + ":" + str(my_port)
+    # host_name = socket.gethostname()
+    # host_name = socket.getfqdn()
+    # ip = socket.gethostbyname(host_name)
 
-    # print(f"my url for register is: {my_url}")
+    # my_url = "http://" + ip + ":" + str(my_port)
+    #
+    # print("my url for register is: " + my_url)
 
     # Init request's parameters
     public_key_json = jsonpickle.encode(wallet.public_key)
     data = {"public_key": public_key_json,
-            "node_url": my_url}
+            "node_port": str(my_port)}
     headers = {'Content-Type': "application/json"}
     url = "{}/register_node".format(global_variable.bootstrapIp)
 
@@ -251,7 +250,7 @@ def register_with_bootstrap(my_port):
 
         # Search index of node's ip address
         node_id = [idx for idx, x in enumerate(peers) if x[0] == wallet.public_key][0]
-        global_variable.peers_ids = {peers[i][0]: i for i,x in enumerate(peers)}
+        global_variable.peers_ids = {peers[i][0]: i for i, x in enumerate(peers)}
 
         try:
             global_variable.node = Node(node_id, wallet)
@@ -260,7 +259,7 @@ def register_with_bootstrap(my_port):
 
             node.blockchain = Blockchain.create_chain_from_list(chain_list)
             node.peers = peers
-            print("Peers has updated\n\n")
+
         except Exception as e:
             # if chain is tempered, then return False
             print(str(e))
@@ -301,6 +300,7 @@ def client_transaction(str_in, node):
     recipient_pubkey = node.peers[recipient_id][0]
     node.wallet.sendCoinsTo(recipient_pubkey, int(amount), node.blockchain, node.peers)
     # edw gia kathe peer IP kanme broadcast sto /new_transaction
+
 
 def test_case_1():
     node = global_variable.node
@@ -344,15 +344,17 @@ def test_case_1_verify():
         for transaction in block.transactions:
             my_pkey = node.peers[my_id][0]
             receiver = [idx for idx, peer in enumerate(node.peers) if peer[0] == transaction.recipient_address][0]
-            #sender = [idx for idx, peer in enumerate(node.peers) if peer[0] == transaction.sender_address][0]
+            # sender = [idx for idx, peer in enumerate(node.peers) if peer[0] == transaction.sender_address][0]
             if transaction.sender_address == my_pkey:
                 if (receiver, transaction.amount) not in my_sent_txs:
-                    s = "Error(test1): i see transaction i did not send! (%d to node%d)\n" % (transaction.amount, receiver)
-                    print(s, end ='')
+                    s = "Error(test1): i see transaction i did not send! (%d to node%d)\n" % (
+                    transaction.amount, receiver)
+                    print(s, end='')
                     outf.write(s)
                 else:
-                    s = "Success(test1): i see transaction in block %d (%d to node%d)\n" % (block.index, transaction.amount, receiver)
-                    print(s, end ='')
+                    s = "Success(test1): i see transaction in block %d (%d to node%d)\n" % (
+                    block.index, transaction.amount, receiver)
+                    print(s, end='')
                     outf.write(s)
                     my_sent_txs[(receiver, transaction.amount)] = True
     c = 0

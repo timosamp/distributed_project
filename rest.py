@@ -81,13 +81,10 @@ def receive_transaction_api():
 def receive_transaction_thread(tx_data):
     # print("--- Received transaction at API ----")
 
-
     # tx_data = request.get_json()
 
     if not tx_data.get("transaction"):
         return  # "Invalid json", 400
-
-
 
     while not global_variable.add_transaction.acquire(False):
         # print("False acquired transaction lock")
@@ -97,7 +94,6 @@ def receive_transaction_thread(tx_data):
     print("add_transaction has started")
 
     node = global_variable.node
-
 
     incoming_transaction = jsonpickle.decode(tx_data.get("transaction"))
 
@@ -271,20 +267,22 @@ def register_new_peers():
     public_key = jsonpickle.decode(public_key_json)
 
     # Get node's ip address
-    node_url = req_data["node_url"]
+    node_port = req_data["node_port"]
 
-    # print("node_url: " + node_url)
 
-    if (not public_key) or (not node_url):
+    if (not public_key) or (not node_port):
         return "Invalid data", 400
 
     # Maybe it is useful
-    # ip_address = request.remote_addr
+    ip_address = request.remote_addr
     # remote_port = request.environ.get('REMOTE_PORT')
-    # node_url = str(ip_address) + ":" + str(remote_port)
+    node_url = "http://" + str(ip_address) + ":" + str(node_port)
 
     # Build tuple for peer's list
     node_register_data = (public_key, node_url)
+
+    print("node_url: " + node_url)
+
 
     # Add it into the peer's list
     # global node
@@ -310,87 +308,12 @@ def transfer_initial_coins(peer_public_key):
     node = global_variable.node
 
     # Wait for the nodes to be created
-    time.sleep(5)
+    time.sleep(2)
 
     # Send 100 coins to this node
     node.wallet.sendCoinsTo(peer_public_key, 100, node.blockchain, node.peers)
     # print(str(peer_public_key[25:40]))
 
-
-### OLD CODE 125 ###
-# # Get the chain only by hashes.
-# # This endpoint will be used by our app
-# # for find the longest chain in consesus algorithm
-# @app.route('/chain_by_hash', methods=['GET'])
-# def get_chain_by_hashes():
-#     node = global_variable.node
-#
-#     # lock for changing blockchain
-#     while not global_variable.reading_writing_blockchain.acquire(False):
-#         # print("False acquire blockchain lock")
-#         time.sleep(1)
-#         continue
-#
-#     chain_len = len(node.blockchain.chain)
-#     # print("chain is : ")
-#     # print(node.blockchain)
-#
-#     chain_hashes = []
-#
-#     for block in node.blockchain.chain:
-#         chain_hashes.append(block.hash)
-#
-#     # Release the blockchain lock
-#     global_variable.reading_writing_blockchain.release()
-#
-#     chain_hashes_json = jsonpickle.encode(chain_hashes)
-#
-#     # global_variable.add_block_lock.release()
-#
-#     return json.dumps({"length": chain_len,
-#                        "chain": chain_hashes_json})
-### OLD CODE 125 ###
-
-
-# ### OLD CODE 124 ###
-# @app.route('/get_block_from', methods=['POST'])
-# def get_blocks_from():
-#
-#     node = global_variable.node
-#
-#     hash_data = request.get_json()
-#
-#     # Save first hash of node's fork
-#     first_fork_hash = jsonpickle.decode(hash_data["first_fork_hash"])
-#
-#     # Init list
-#     fork_blocks_reversed = []
-#     fork_blocks = []
-#
-#     # Lock for changing blockchain
-#     while not global_variable.reading_writing_blockchain.acquire(False):
-#         # print("False acquire blockchain lock")
-#         time.sleep(1)
-#         continue
-#
-#     # Collect fork's block
-#     for block in reversed(node.blockchain.chain):
-#         if block.hash != first_fork_hash:
-#             fork_blocks_reversed.append(block)
-#         else:
-#             fork_blocks_reversed.append(block)
-#             break
-#
-#     # Release the blockchain lock
-#     global_variable.reading_writing_blockchain.release()
-#
-#     for block in reversed(fork_blocks_reversed):
-#         fork_blocks.append(block)
-#
-#     fork_blocks_json = jsonpickle.encode(fork_blocks)
-#
-#     return json.dumps({"fork_blocks": fork_blocks_json})
-# ### END OLD CODE 124 ###
 
 ### new CODE 125 ###
 # Get the chain only by hashes.
@@ -424,6 +347,8 @@ def get_chain_by_hashes():
 
     return json.dumps({"length": chain_len,
                        "chain": chain_hashes_json})
+
+
 ### new CODE 125 ###
 
 
@@ -525,10 +450,8 @@ def consensus():
         print("--- Leaving consensus, max_len: " + str(max_len))
         return flag
 
-
     # Find the first block of the other's fork
     fork_hash = node.blockchain.first_fork_hash(chain_hashes)
-
 
     # Ask him for the blocks
     url = "{}/get_block_from".format(peer_to_get_blocks)
@@ -584,9 +507,7 @@ def consensus2():
     # print("My blockchain:")
     # node.blockchain.print_transactions()
 
-
     current_len = len(node.blockchain.chain)
-
 
     # print("current len is : " + str(current_len))
 
@@ -604,7 +525,6 @@ def consensus2():
         # Ask others for their blockchain
         response = requests.get('{}/chain_by_hash'.format(peer_url))
 
-
         # Reformat from json
         length = response.json()['length']
         chain_hashes = jsonpickle.decode(response.json()['chain'])
@@ -616,11 +536,9 @@ def consensus2():
             # print("mexri_edw")
             print("Node (%d) has bigger chain(%d) that us(%d)" % (idx, length, current_len))
 
-
             # Find the first block of the other's fork
             fork_hash = node.blockchain.first_fork_hash(chain_hashes)
             # print("first diff id: " + str(fork_hash))
-
 
             # Ask him for the blocks
             url = "{}/get_block_from".format(peer_url)
@@ -640,7 +558,6 @@ def consensus2():
             for b in fork_blocks_list:
                 b.print_transactions()
             # print(fork_blocks_list)
-
 
             # Check if it is valid fork, if not continue asking the rest peers
             if node.blockchain.is_fork_valid(fork_blocks_list):
