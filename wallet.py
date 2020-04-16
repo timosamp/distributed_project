@@ -42,23 +42,15 @@ class Wallet:
         last_validated_dict_of_node = blockchain.get_valid_dict_nodes_utxos()
 
         # Check if sender there is in dict_nodes_utxos, and take it if so.
-        if not (self.public_key in last_validated_dict_of_node):
+        # if not (self.public_key in last_validated_dict_of_node):
+        if not (self.public_key in blockchain.dict_nodes_utxos):
             # Otherwise, assign an empty list
             utxos_dict = dict()
             print("I didn't find my self in utxos history :(")
         else:
-
-            # # lock for changing blockchain
-            # while not global_variable.reading_writing_blockchain.acquire(False):
-            #     # print("False acquire blockchain lock")
-            #     time.sleep(1)
-            #     continue
-
             # utxos_dict = last_validated_dict_of_node[self.public_key]
             utxos_dict = blockchain.dict_nodes_utxos[self.public_key]
 
-            # # Release blockchain lock
-            # global_variable.reading_writing_blockchain.release()
 
         # Init the amount variable
         total_amount = 0
@@ -77,19 +69,19 @@ class Wallet:
 
         while not global_variable.sendCoinsTo_lock.acquire(False):
             print("False acquire send coins to lock")
-            time.sleep(1)
+            time.sleep(0.5)
             continue
 
 
         while not global_variable.reading_writing_blockchain.acquire(False):
-            # print("False acquire blockchain lock")
-            time.sleep(1)
+            print("False acquire blockchain lock")
+            time.sleep(0.5)
             continue
 
         # check if the sender have the amount which is trying to send (check balance)
         if self.balance(blockchain) < amount:
             if global_variable.sendCoinsTo_lock.locked():
-                print("unlock")
+                print("Doesn't have this amount coin:" + str(self.balance(blockchain)) + " " + str(amount))
                 global_variable.sendCoinsTo_lock.release()
 
             # Release the blockchain lock

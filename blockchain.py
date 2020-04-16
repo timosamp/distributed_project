@@ -152,11 +152,11 @@ class Blockchain:
         # Search every transaction input into node's utxos
         for transaction_input in transaction.transaction_inputs:
             transaction_output_id = transaction_input.previous_output_id
-            print("required: " + str(transaction_output_id[:20]))
+            # print("required: " + str(transaction_output_id[:20]))
 
             # Check if input transactions are taking place
             if transaction_output_id in sender_utxos:
-                print("sender has: " + str(transaction_output_id[:20]))
+                # print("sender has: " + str(transaction_output_id[:20]))
                 total_input_amount = total_input_amount + sender_utxos[transaction_output_id].amount
                 del sender_utxos[transaction_output_id]
             else:
@@ -304,13 +304,13 @@ class Blockchain:
 
         while not global_variable.seq_mining_lock.acquire(False):
             # print("False seq mine lock")
-            time.sleep(1)
+            time.sleep(0.5)
             continue
 
         # lock for changing blockchain
         while not global_variable.reading_writing_blockchain.acquire(False):
             # print("False acquire blockchain lock")
-            time.sleep(1)
+            time.sleep(0.5)
             continue
 
         sub_list_of_unconfirmed = self.unconfirmed_transactions[:self.capacity]
@@ -352,7 +352,7 @@ class Blockchain:
             # lock for changing blockchain
             while not global_variable.reading_writing_blockchain.acquire(False):
                 # print("False acquire blockchain lock")
-                time.sleep(1)
+                time.sleep(0.5)
                 continue
 
             del self.unconfirmed_transactions[:self.capacity]
