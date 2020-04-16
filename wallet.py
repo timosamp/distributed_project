@@ -89,7 +89,6 @@ class Wallet:
         if self.balance(blockchain) < amount:
 
             if global_variable.sendCoinsTo_lock.locked():
-                # print("unlock")
                 global_variable.sendCoinsTo_lock.release()
 
             # Release the blockchain lock

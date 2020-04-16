@@ -159,7 +159,7 @@ def write_results_to_file():
 
     difficulty = node.blockchain.difficulty
 
-    peers_len = len(node.blockchain.peers)
+    peers_len = len(node.peers)
 
     filename = "nodes_" + str(peers_len) + "_capacity_" + str(capacity) + "_difficulty_" + str(difficulty) + ".json"
 
