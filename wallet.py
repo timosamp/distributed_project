@@ -87,6 +87,11 @@ class Wallet:
 
         # check if the sender have the amount which is trying to send (check balance)
         if self.balance(blockchain) < amount:
+
+            if global_variable.sendCoinsTo_lock.locked():
+                print("unlock")
+                global_variable.sendCoinsTo_lock.release()
+
             # Release the blockchain lock
             global_variable.reading_writing_blockchain.release()
             return False
