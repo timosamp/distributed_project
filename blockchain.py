@@ -14,7 +14,7 @@ import copy
 
 class Blockchain:
     # difficulty of our PoW algorithm
-    difficulty = 3
+    difficulty = 4
     capacity = 2
 
     copy_of_myself = []
@@ -384,10 +384,7 @@ class Blockchain:
             del self.unconfirmed_transactions[:self.capacity]
 
             # Add block's transaction into pool dict
-            if new_block.index in self.sent_but_not_received_blocks_dict:
-                self.sent_but_not_received_blocks_dict[new_block.index].extend(new_block.transactions)
-            else:
-                self.sent_but_not_received_blocks_dict[new_block.index] = new_block.transactions
+            self.sent_but_not_received_blocks_dict[new_block.index] = new_block.transactions
 
             # Release blockchain lock
             global_variable.reading_writing_blockchain.release()
@@ -546,9 +543,6 @@ class Blockchain:
 
                     self.add_transaction_in_unconfirmed(transaction)
 
-            self.sent_but_not_received_blocks_dict[block.index].extend(block.transactions)
-        else:
-            self.sent_but_not_received_blocks_dict[block.index] = block.transactions
 
 
 
