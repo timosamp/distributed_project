@@ -382,12 +382,11 @@ class Blockchain:
             del self.unconfirmed_transactions[:self.capacity]
 
             # Add block's transaction into pool dict
-            # self.sent_but_not_received_blocks_dict[new_block.index] = new_block.transactions
-            # Add block's transaction into pool dict
-            if new_block.index in self.sent_but_not_received_blocks_dict:
-                self.sent_but_not_received_blocks_dict[new_block.index].extend(new_block.transactions)
-            else:
-                self.sent_but_not_received_blocks_dict[new_block.index] = new_block.transactions
+            self.sent_but_not_received_blocks_dict[new_block.index] = new_block.transactions
+            # if new_block.index in self.sent_but_not_received_blocks_dict:
+            #     self.sent_but_not_received_blocks_dict[new_block.index].extend(new_block.transactions)
+            # else:
+            #     self.sent_but_not_received_blocks_dict[new_block.index] = new_block.transactions
 
             # Release blockchain lock
             global_variable.reading_writing_blockchain.release()
@@ -543,12 +542,11 @@ class Blockchain:
             for transaction in self.sent_but_not_received_blocks_dict[block.index]:
                 # Find orphan transaction and add them into unconfirmed
                 if not (transaction.transaction_id in temp_block_transaction_dict):
-
                     self.add_transaction_in_unconfirmed(transaction)
 
-            self.sent_but_not_received_blocks_dict[block.index].extend(block.transactions)
-        else:
-            self.sent_but_not_received_blocks_dict[block.index] = block.transactions
+        #     self.sent_but_not_received_blocks_dict[block.index].extend(block.transactions)
+        # else:
+        #     self.sent_but_not_received_blocks_dict[block.index] = block.transactions
 
 
 
