@@ -181,7 +181,7 @@ def write_results_to_file():
     chain_len = len(node.blockchain.chain)
 
     # Take the first block after the initial coins blocks
-    idx = (len(node.peers) - 1) / node.blockchain.capacity + 1  # plus one because there is the genesis block
+    idx = int((len(node.peers) - 1) / node.blockchain.capacity) + 1  # plus one because there is the genesis block
     first_block = node.blockchain.chain[idx]
 
     # From these block take the first transaction's timestamp
@@ -343,7 +343,7 @@ def client_transaction(str_in, node):
 def test_case_1():
     node = global_variable.node
     my_id = node.current_id_count
-    infile = '5nodes/transactions%d.txt' % my_id
+    infile = str(global_variable.numOfClients) + "nodes/transactions" + str(my_id) + ".txt"
     inf = open(infile)
     total_c = 0
     for line in inf:
@@ -353,7 +353,7 @@ def test_case_1():
         recipient_pubkey = node.peers[recipient_id][0]
 
         node.wallet.sendCoinsTo(recipient_pubkey, int(amount), node.blockchain, node.peers)
-        time.sleep(2)
+        # time.sleep(2)
 
 
         node.sent_transactions_test[(recipient_id, amount)] = False

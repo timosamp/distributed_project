@@ -14,7 +14,7 @@ import copy
 
 class Blockchain:
     # difficulty of our PoW algorithm
-    difficulty = 4
+    difficulty = 3
     capacity = 2
 
     copy_of_myself = []
@@ -98,9 +98,7 @@ class Blockchain:
 
         # Add transaction into blockchain's unconfirmed transactions' list
         self.add_transaction_in_unconfirmed(transaction)
-        # if not (transaction.transaction_id in self.unconfirmed_transactions_dict):
-        #     self.unconfirmed_transactions.append(transaction)
-        #     self.unconfirmed_transactions_dict[transaction.transaction_id] = transaction
+
 
         for transaction_output in transaction.transaction_outputs:
             if transaction_output.outputTransactionId in self.without_input:
@@ -384,7 +382,12 @@ class Blockchain:
             del self.unconfirmed_transactions[:self.capacity]
 
             # Add block's transaction into pool dict
-            self.sent_but_not_received_blocks_dict[new_block.index] = new_block.transactions
+            # self.sent_but_not_received_blocks_dict[new_block.index] = new_block.transactions
+            # Add block's transaction into pool dict
+            if new_block.index in self.sent_but_not_received_blocks_dict:
+                self.sent_but_not_received_blocks_dict[new_block.index].extend(new_block.transactions)
+            else:
+                self.sent_but_not_received_blocks_dict[new_block.index] = new_block.transactions
 
             # Release blockchain lock
             global_variable.reading_writing_blockchain.release()
@@ -543,6 +546,10 @@ class Blockchain:
 
                     self.add_transaction_in_unconfirmed(transaction)
 
+            self.sent_but_not_received_blocks_dict[block.index].extend(block.transactions)
+        else:
+            self.sent_but_not_received_blocks_dict[block.index] = block.transactions
+
 
 
 
@@ -561,15 +568,11 @@ class Blockchain:
 
 
     def recover_deleted_transactions(self, transaction):
-
         for transaction_output in transaction.transaction_outputs:
             if transaction_output.outputTransactionId in self.without_input:
                 transaction = self.without_input[transaction_output.outputTransactionId]
-
                 self.add_transaction_in_unconfirmed(transaction)
-                # if not (transaction.transaction_id in self.unconfirmed_transactions_dict):
-                #     self.unconfirmed_transactions.append(transaction)
-                #     self.unconfirmed_transactions_dict[transaction.transaction_id] = transaction
+
 
     @staticmethod
     def check_validity_of_block_transactions(block, dict_nodes_utxos):
