@@ -353,7 +353,7 @@ def test_case_1():
         recipient_pubkey = node.peers[recipient_id][0]
 
         node.wallet.sendCoinsTo(recipient_pubkey, int(amount), node.blockchain, node.peers)
-        # time.sleep(2)
+        time.sleep(2)
 
 
         node.sent_transactions_test[(recipient_id, amount)] = False
