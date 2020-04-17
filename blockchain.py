@@ -14,8 +14,8 @@ import copy
 
 class Blockchain:
     # difficulty of our PoW algorithm
-    difficulty = 3
-    capacity = 2
+    difficulty = 4
+    capacity = 1
 
     copy_of_myself = []
     def __init__(self):
@@ -424,7 +424,7 @@ class Blockchain:
         print("Create genesis transaction")
 
         # Transaction with sender's wallet address 0
-        first_transaction = Transaction.generic(recipient_addr, 100 * 5, time.time())
+        first_transaction = Transaction.generic(recipient_addr, 100 * global_variable.numOfClients, time.time())
 
         genesis_block = Block(len(self.chain), [first_transaction], 0, "1", 0)
         genesis_block.hash = genesis_block.compute_hash()
