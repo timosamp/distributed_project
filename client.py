@@ -30,14 +30,13 @@ from rest import app
 import global_variable
 
 
-# global node
-# node = global_variable.node
-
 # !!! this is a comment intended for master branch ONLY !!!!
 @click.command()
 @click.option('-p', '--port', default=22147, help='port to run the client on')
 @click.option('-b', '--bootstrap', is_flag=True, help='for bootstrap node only')
-def main(port, bootstrap):
+@click.option('-a', '--auto', is_flag=True, default=False,
+              help='Everyone starts send coins automatically, after takes the initial coins')
+def main(port, bootstrap, auto):
     # signal.signal(signal.SIGINT, sigint_handler())
     if bootstrap:
         print("This is bootstrap node")
@@ -73,14 +72,38 @@ def main(port, bootstrap):
     # tis antistoixes sinartiseis tou node gia na parei
     # to balance, teleutaia transactions
 
-    thr = Thread(target=client_input_loop)
-    thr.start()
+    thr_client = Thread(target=client_input_loop)
+    thr_client.start()
+
+    thr_auto = Thread(target=send_coins_auto_after_initial_coins, args=[auto])
+    thr_auto.start()
 
     app.run(host='0.0.0.0', port=port)
 
-    thr.join()
+    thr_auto.join()
+    thr_client.join()
 
     # exit()
+
+
+def send_coins_auto_after_initial_coins(auto):
+    # If chain has the genesis block wait 10sec and start auto paying
+
+    node = global_variable.node
+
+    # If auto is disable return
+    if auto is False:
+        return
+    else:
+        # Otherwise wait till the genesis block is sent and first of all, all users have been register!
+        while len(node.blockchain.chain) < 1 and len(node.peers) == global_variable.numOfClients:
+            sleep(1)
+
+        # Wait for another 10sec, so the system be stabilized
+        sleep(20)
+
+        # Call the function which reads the transactions from a default file, and keep logs for verify
+        test_case_1()
 
 
 def sigint_handler(sig, frame):
@@ -132,6 +155,8 @@ def client_input_loop():  # maybe: ,node
             write_results_to_file()
         elif str_in.startswith('t'):
             client_transaction(str_in, node)
+        elif str_in.startswith('nu'):
+            print_unconfirmed()
         elif str_in in {'q', 'quit', 'e', 'exit'}:
             print("Exiting...")
             # exit()
@@ -143,12 +168,23 @@ def client_input_loop():  # maybe: ,node
             print_invalid_command()
 
 
+def print_unconfirmed():
+    node = global_variable.node
+
+    for transaction in global_variable.node.blockchain.unconfirmed_transactions:
+        print(transaction)
+
+
 def write_results_to_file():
     node = global_variable.node
 
     chain_len = len(node.blockchain.chain)
 
-    first_block = node.blockchain.chain[0]
+    # Take the first block after the initial coins blocks
+    idx = (len(node.peers) - 1) / node.blockchain.capacity + 1  # plus one because there is the genesis block
+    first_block = node.blockchain.chain[idx]
+
+    # From these block take the first transaction's timestamp
     first_transaction = first_block.transactions[0]
     first_transaction_timestamp = first_transaction.timestamp
 
@@ -194,7 +230,8 @@ def transactions_from_default_file(node):
     f = open(file_path, "r")
     for line in f:
         client_transaction("tff " + line, node)
-        time.sleep(2)
+        time.sleep(1)
+
 
 
 def transactions_from_default_file_time_delay(node):
@@ -316,6 +353,8 @@ def test_case_1():
         recipient_pubkey = node.peers[recipient_id][0]
 
         node.wallet.sendCoinsTo(recipient_pubkey, int(amount), node.blockchain, node.peers)
+        time.sleep(2)
+
 
         node.sent_transactions_test[(recipient_id, amount)] = False
         total_c += 1
@@ -349,12 +388,12 @@ def test_case_1_verify():
             if transaction.sender_address == my_pkey:
                 if (receiver, transaction.amount) not in my_sent_txs:
                     s = "Error(test1): i see transaction i did not send! (%d to node%d)\n" % (
-                    transaction.amount, receiver)
+                        transaction.amount, receiver)
                     print(s, end='')
                     outf.write(s)
                 else:
                     s = "Success(test1): i see transaction in block %d (%d to node%d)\n" % (
-                    block.index, transaction.amount, receiver)
+                        block.index, transaction.amount, receiver)
                     print(s, end='')
                     outf.write(s)
                     my_sent_txs[(receiver, transaction.amount)] = True

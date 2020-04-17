@@ -120,6 +120,7 @@ def receive_transaction_thread(tx_data):
 
     node.blockchain.add_new_transaction(incoming_transaction)
 
+
     # Release blockchain lock
     global_variable.reading_writing_blockchain.release()
 
@@ -195,6 +196,8 @@ def verify_and_add_block(block_data):
                 # # Release the lock
                 # global_variable.reading_writing_blockchain.release()
 
+                # if block.index >= global_variable.node.blockchain.last_block().index:
+
                 # Stop mining
                 while not global_variable.flag_lock.acquire(False):
                     print("False acquire mine lock")
@@ -213,6 +216,12 @@ def verify_and_add_block(block_data):
                 # If the rest test succeed then add block into blockchain
                 node.blockchain.add_block(block)
                 node.blockchain.copy_of_myself = node.blockchain.chain
+
+                # for transaction in block.transactions:
+                #     for transaction_output in transaction.transaction_outputs:
+                #         if transaction_output.outputTransactionId in node.blockchain.without_input:
+                #             node.blockchain.add_new_transaction(node.blockchain.without_input[transaction_output.outputTransactionId])
+
                 # Release the lock
                 global_variable.reading_writing_blockchain.release()
 
@@ -557,6 +566,13 @@ def consensus2():
                     # print("False acquire blockchain lock")
                     time.sleep(0.5)
                     continue
+
+                # for block in fork_blocks_list:
+                #     for transaction in block.transactions:
+                #         for transaction_output in transaction.transaction_outputs:
+                #             if transaction_output.outputTransactionId in node.blockchain.without_input:
+                #                 node.blockchain.add_new_transaction(
+                #                     node.blockchain.without_input[transaction_output.outputTransactionId])
 
                 print("--- fork is valid ---")
                 # if so, include it in our chain

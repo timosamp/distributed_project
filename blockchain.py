@@ -14,13 +14,15 @@ import copy
 
 class Blockchain:
     # difficulty of our PoW algorithm
-    difficulty = 4
-    capacity = 1
+    difficulty = 3
+    capacity = 2
 
     copy_of_myself = []
     def __init__(self):
 
         self.unconfirmed_transactions = []
+
+        self.unconfirmed_transactions_dict = dict()
 
         self.without_input = dict()
 
@@ -95,10 +97,19 @@ class Blockchain:
         Blockchain.add_output_transactions_to_node_utxos(transaction, self.dict_nodes_utxos)
 
         # Add transaction into blockchain's unconfirmed transactions' list
-        self.unconfirmed_transactions.append(transaction)
+        self.add_transaction_in_unconfirmed(transaction)
+        # if not (transaction.transaction_id in self.unconfirmed_transactions_dict):
+        #     self.unconfirmed_transactions.append(transaction)
+        #     self.unconfirmed_transactions_dict[transaction.transaction_id] = transaction
+
+        for transaction_output in transaction.transaction_outputs:
+            if transaction_output.outputTransactionId in self.without_input:
+                self.add_new_transaction(self.without_input[transaction_output.outputTransactionId])
+
+
 
         if len(self.unconfirmed_transactions) > self.capacity - 1:
-            print("self.unconfirmed_transactions === " + str(len(self.unconfirmed_transactions)))
+            # print("self.unconfirmed_transactions === " + str(len(self.unconfirmed_transactions)))
 
             mine_should_exist = len(self.unconfirmed_transactions) / self.capacity
 
@@ -109,6 +120,17 @@ class Blockchain:
 
 
         return True
+
+    def add_transaction_in_unconfirmed(self, transaction):
+
+        if not (transaction.transaction_id in self.unconfirmed_transactions_dict):
+            self.unconfirmed_transactions.append(transaction)
+            self.unconfirmed_transactions_dict[transaction.transaction_id] = transaction
+
+        self.unconfirmed_transactions.sort(key=lambda x: x.timestamp)
+
+
+
 
 
     """
@@ -125,11 +147,11 @@ class Blockchain:
             return False
         # print("Transaction is verified")
 
+        for transaction_input in transaction.transaction_inputs:
+            global_variable.node.blockchain.without_input[transaction_input.previous_output_id] = transaction
+
         # Check if the sender has the required utxos
         if not Blockchain.check_node_utxos_for_transaction(transaction, dict_nodes_utxos):
-
-            for transaction_input in transaction.transaction_inputs:
-                global_variable.node.blockchain.without_input[transaction_input.previous_output_id] = transaction
 
             # print("is valid no utxos")
             return False
@@ -174,7 +196,7 @@ class Blockchain:
                 total_input_amount = total_input_amount + sender_utxos[transaction_output_id].amount
                 del sender_utxos[transaction_output_id]
             else:
-                print("This input transaction is not in utxo list of sender, transaction: " + str(transaction.transaction_id)[:20])
+                print("This input transaction: " + str(transaction_output_id) + " is not in utxo list of sender, transaction: " + str(transaction.transaction_id)[:20])
                 print(transaction)
                 # Then return that the transaction wasn't successful
                 return False
@@ -320,8 +342,8 @@ class Blockchain:
         # print("Starting mining process..")
 
         if len(sub_list_of_unconfirmed) < self.capacity:
-            print("Stop mining process, small list.. len: " + str(len(sub_list_of_unconfirmed)))
-            print("self.unconfirmed_transactions = " + str(len(self.unconfirmed_transactions)))
+            # print("Stop mining process, small list.. len: " + str(len(sub_list_of_unconfirmed)))
+            # print("self.unconfirmed_transactions = " + str(len(self.unconfirmed_transactions)))
 
             global_variable.node.mine_cnt -= 1
 
@@ -356,10 +378,16 @@ class Blockchain:
                 time.sleep(0.5)
                 continue
 
+            for transaction in self.unconfirmed_transactions[:self.capacity]:
+                del self.unconfirmed_transactions_dict[transaction.transaction_id]
+
             del self.unconfirmed_transactions[:self.capacity]
 
             # Add block's transaction into pool dict
-            self.sent_but_not_received_blocks_dict[new_block.index] = new_block.transactions
+            if new_block.index in self.sent_but_not_received_blocks_dict:
+                self.sent_but_not_received_blocks_dict[new_block.index].extend(new_block.transactions)
+            else:
+                self.sent_but_not_received_blocks_dict[new_block.index] = new_block.transactions
 
             # Release blockchain lock
             global_variable.reading_writing_blockchain.release()
@@ -511,19 +539,22 @@ class Blockchain:
 
         # Update the pool
         if block.index in self.sent_but_not_received_blocks_dict:
-
             # Search every transaction from the old block to the new one
             for transaction in self.sent_but_not_received_blocks_dict[block.index]:
-
                 # Find orphan transaction and add them into unconfirmed
-                if not (transaction in temp_block_transaction_dict):
-                    self.unconfirmed_transactions.append(transaction)
+                if not (transaction.transaction_id in temp_block_transaction_dict):
 
-            # Then delete this block from pool
-            # del self.sent_but_not_received_blocks_dict[block.previous_hash]
+                    self.add_transaction_in_unconfirmed(transaction)
+
+            self.sent_but_not_received_blocks_dict[block.index].extend(block.transactions)
+        else:
+            self.sent_but_not_received_blocks_dict[block.index] = block.transactions
+
+
 
         # Recover deleted transactions
-        self.recover_deleted_transactions(block)
+        for transaction in block.transactions:
+            self.recover_deleted_transactions(transaction)
 
         # Update unconfirmed transactions -- not when including a fork
         if dict_of_fork_beginning is None:
@@ -535,17 +566,16 @@ class Blockchain:
         # print("Block is added in chain")
 
 
-    def recover_deleted_transactions(self, block):
-        for transaction in block.transactions:
-            for transaction_output in transaction.transaction_outputs:
-                if transaction_output.outputTransactionId in self.without_input:
-                    self.unconfirmed_transactions.append(self.without_input[transaction_output.outputTransactionId])
+    def recover_deleted_transactions(self, transaction):
 
-            for transaction_input in transaction.transaction_inputs:
-                if transaction_input.previous_output_id in self.without_input:
-                    del self.without_input[transaction_input.previous_output_id]
+        for transaction_output in transaction.transaction_outputs:
+            if transaction_output.outputTransactionId in self.without_input:
+                transaction = self.without_input[transaction_output.outputTransactionId]
 
-
+                self.add_transaction_in_unconfirmed(transaction)
+                # if not (transaction.transaction_id in self.unconfirmed_transactions_dict):
+                #     self.unconfirmed_transactions.append(transaction)
+                #     self.unconfirmed_transactions_dict[transaction.transaction_id] = transaction
 
     @staticmethod
     def check_validity_of_block_transactions(block, dict_nodes_utxos):
@@ -574,41 +604,11 @@ class Blockchain:
 
         # Init the list
         self.unconfirmed_transactions = []
+        self.unconfirmed_transactions_dict = dict()
 
         # Add its transaction again so to gather if its possible to be accepted
         for unconfirmed_transaction in unconfirmed_transactions_to_be_updated:
             self.add_new_transaction(unconfirmed_transaction)
-
-
-    # def update_unconfirmed_transactions(self, block):
-    #     # print("Update of unconfirmed transactions")
-    #
-    #
-    #     # 0) Init and append block's transactions
-    #     temp_block_transaction_dict = dict()
-    #
-    #     # Create block's dict
-    #     for transaction in block.transactions:
-    #         temp_block_transaction_dict[transaction.transaction_id] = transaction
-    #
-    #     # 1) Find transaction that already added into block chain
-    #     for transaction in self.unconfirmed_transactions:
-    #         if transaction.transaction_id in temp_block_transaction_dict:
-    #             self.unconfirmed_transactions.remove(transaction)
-    #
-    #
-    #     # 2) Find transactions that they considered done, but they have been lost
-    #     if block.previous_hash in self.sent_but_not_received_blocks_dict:
-    #
-    #         # Search every transaction from the old block to the new one
-    #         for transaction in self.sent_but_not_received_blocks_dict[block.previous_hash]:
-    #
-    #             # Find orphan transaction and add them into unconfirmed
-    #             if not (transaction in temp_block_transaction_dict):
-    #                 self.unconfirmed_transactions.append(transaction)
-    #
-    #         # Then delete this block from pool
-    #         del self.sent_but_not_received_blocks_dict[block.previous_hash]
 
 
 

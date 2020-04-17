@@ -50,7 +50,7 @@ class Block:
         # Init mine_flag
         while not global_variable.flag_lock.acquire(False):
             print("False acquired block mining lock")
-            time.sleep(1)
+            time.sleep(0.5)
             continue
         global_variable.node.mine_flag = True
         global_variable.flag_lock.release()

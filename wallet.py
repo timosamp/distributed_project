@@ -39,7 +39,7 @@ class Wallet:
     def balance(self, blockchain):
 
         # Get nodes' utxos list from blockchain
-        last_validated_dict_of_node = blockchain.get_valid_dict_nodes_utxos()
+        # last_validated_dict_of_node = blockchain.get_valid_dict_nodes_utxos()
 
         # Check if sender there is in dict_nodes_utxos, and take it if so.
         # if not (self.public_key in last_validated_dict_of_node):
