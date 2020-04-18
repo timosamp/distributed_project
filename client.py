@@ -1,18 +1,13 @@
+import logging
 import os
 import re
-import signal
-import socket
-import string
 import sys
 import time
 from threading import Thread
 from time import sleep
 
 import click
-import flask
 import requests
-from flask import Flask
-from flask_cors import CORS
 
 import json
 
@@ -21,10 +16,6 @@ from wallet import Wallet
 import jsonpickle
 from blockchain import Blockchain
 
-# app = Flask(__name__)
-# CORS(app)
-
-import rest
 from rest import app
 
 import global_variable
@@ -78,6 +69,8 @@ def main(port, bootstrap, auto):
     thr_auto = Thread(target=send_coins_auto_after_initial_coins, args=[auto])
     thr_auto.start()
 
+    logging.getLogger('werkzeug').disabled = True
+    os.environ['WERKZEUG_RUN_MAIN'] = 'true'
     app.run(host='0.0.0.0', port=port)
 
     thr_auto.join()
@@ -135,16 +128,16 @@ def client_input_loop():  # maybe: ,node
             # print(node.blockchain)
             node.blockchain.print_transactions()
         elif str_in in {'view', 'v'}:
-            print(node.blockchain.get_transactions())
+            print_view()
         elif str_in in {'help', 'h'}:
             print_help()
-        elif str_in == 'test1':
+        elif str_in == 'test':
             test_case_1()
-        elif str_in == 'test1v':
+        elif str_in == 'test_v':
             test_case_1_verify()
-        elif str_in.startswith('u'):
+        elif str_in.startswith('utxos'):
             node.blockchain.print_utxos()
-        elif str_in.startswith('cu'):
+        elif str_in.startswith('cutxos'):
             node.blockchain.print_utxos(1)
         elif str_in.startswith('tff'):
             transactions_from_default_file(node)
@@ -155,7 +148,7 @@ def client_input_loop():  # maybe: ,node
             write_results_to_file()
         elif str_in.startswith('t'):
             client_transaction(str_in, node)
-        elif str_in.startswith('nu'):
+        elif str_in.startswith('un'):
             print_unconfirmed()
         elif str_in in {'q', 'quit', 'e', 'exit'}:
             print("Exiting...")
@@ -166,6 +159,15 @@ def client_input_loop():  # maybe: ,node
             continue
         else:
             print_invalid_command()
+
+
+
+
+def print_view():
+    node = global_variable.node
+
+    for transaction in node.blockchain.get_transactions():
+        print(transaction)
 
 
 def print_unconfirmed():
@@ -226,25 +228,24 @@ def init_nodes_coins():
 
 
 def transactions_from_default_file(node):
-    file_path = '5nodes/transactions' + str(node.current_id_count) + '.txt'
+    file_path = str(global_variable.numOfClients) + "nodes/transactions" + str(node.current_id_count) + ".txt"
     f = open(file_path, "r")
     for line in f:
         client_transaction("tff " + line, node)
         time.sleep(1)
 
 
-
 def transactions_from_default_file_time_delay(node):
-    file_path = '5nodes/transactions' + str(node.current_id_count) + '.txt'
+    file_path = str(global_variable.numOfClients) + "nodes/transactions" + str(node.current_id_count) + ".txt"
     f = open(file_path, "r")
     for line in f:
         client_transaction("tff " + line, node)
-        time.sleep(2)
+        time.sleep(3)
 
 
 def transactions_from_file(str_in, node):
     args = str_in.split(' ')
-    if (len(args) != 2):
+    if len(args) != 2:
         print('usage: tff <filename>')
     else:
         f = open(args[1], "r")
@@ -355,7 +356,6 @@ def test_case_1():
         node.wallet.sendCoinsTo(recipient_pubkey, int(amount), node.blockchain, node.peers)
         time.sleep(2)
 
-
         node.sent_transactions_test[(recipient_id, amount)] = False
         total_c += 1
     inf.close()
@@ -416,6 +416,13 @@ def print_help():
         Welcome to Noobcash!
         commands:
             t <recipient_address> <amount>      Transfer coins to public key specified
+            tff                                 Transfer money from default file fast but unsafe
+            tff                                 Transfer money from default file safer, but with a delay
+            test                                Same as ttf but you can verify the results with test_v
+            test_v                              Verify which transaction from the send ones is in the blockchain
+            bl                                  Print all the blockchain
+            results                             Rights the statistic results in the result folder (testing use)
+            init                                Send initial money to all registered nodes if you are the bootstrap node
             view                                View previous transactions
             balance                             View wallet balance
             help                                Print this help message
@@ -447,8 +454,6 @@ def print_balance():
     print("balance")
 
 
-def print_view():
-    print("view")
 
 
 main()

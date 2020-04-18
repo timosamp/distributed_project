@@ -1,23 +1,14 @@
-import binascii
 
-import Crypto
-import Crypto.Random
 import jsonpickle
 import requests
 
-from Crypto.Hash import SHA
 from Crypto.PublicKey import RSA
-from Crypto.Signature import PKCS1_v1_5
 
 import global_variable
-from transaction import Transaction, TransactionOutput
-from block import Block
+from transaction import Transaction
 
-import hashlib
 import json
 import time
-from urllib.parse import urlparse
-from uuid import uuid4
 
 
 class Wallet:
@@ -46,7 +37,7 @@ class Wallet:
         if not (self.public_key in blockchain.dict_nodes_utxos):
             # Otherwise, assign an empty list
             utxos_dict = dict()
-            print("I didn't find my self in utxos history :(")
+            # print("I didn't find my self in utxos history :(")
         else:
             # utxos_dict = last_validated_dict_of_node[self.public_key]
             utxos_dict = blockchain.dict_nodes_utxos[self.public_key]
@@ -68,20 +59,20 @@ class Wallet:
     def sendCoinsTo(self, recipient_address, amount, blockchain, peers):
 
         while not global_variable.sendCoinsTo_lock.acquire(False):
-            print("False acquire send coins to lock")
+            # print("False acquire send coins to lock")
             time.sleep(0.5)
             continue
 
 
         while not global_variable.reading_writing_blockchain.acquire(False):
-            print("False acquire blockchain lock wallet")
+            # print("False acquire blockchain lock wallet")
             time.sleep(0.5)
             continue
 
         # check if the sender have the amount which is trying to send (check balance)
         if self.balance(blockchain) < amount:
             if global_variable.sendCoinsTo_lock.locked():
-                print("Doesn't have this amount coin:" + str(self.balance(blockchain)) + " " + str(amount))
+                print("Doesn't have this amount coin:" + str(amount))
                 global_variable.sendCoinsTo_lock.release()
 
             # Release the blockchain lock
@@ -146,8 +137,8 @@ class Wallet:
             else:
                 #print("Error: broadcast to peer ", idx)
                 x=1
-        if cntr == len(peers):
-            print("Broadcast to all peers successfull")
+        # if cntr == len(peers):
+            # print("Broadcast to all peers successfull")
 
     @staticmethod
     def create_RSA_pairKeys():
