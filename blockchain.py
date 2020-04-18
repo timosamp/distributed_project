@@ -1,5 +1,4 @@
 from threading import Thread
-from threading import Timer
 
 import jsonpickle
 import requests
@@ -43,7 +42,7 @@ class Blockchain:
 
         self.sent_but_not_received_blocks_dict = dict()
 
-        print("Blockchain is created")
+        # print("Blockchain is created")
 
         # self.timer = Timer(5.0, self.mine)
 
@@ -406,9 +405,9 @@ class Blockchain:
         the chain. The block has index 0, previous_hash as 1, nonce 0
         and a valid hash.
         """
-        print("\n\nGenesis block is created")
+        # print("\n\nGenesis block is created")
 
-        print("Create genesis transaction")
+        # print("Create genesis transaction")
 
         # Transaction with sender's wallet address 0
         first_transaction = Transaction.generic(recipient_addr, 100 * global_variable.numOfClients, time.time())
@@ -417,7 +416,7 @@ class Blockchain:
         genesis_block.hash = genesis_block.compute_hash()
 
         self.add_block(genesis_block)
-        print("\n\n")
+        # print("\n\n")
 
     def last_block(self):
         # Return last block of the blockchain

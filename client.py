@@ -30,7 +30,7 @@ import global_variable
 def main(port, bootstrap, auto):
     # signal.signal(signal.SIGINT, sigint_handler())
     if bootstrap:
-        print("This is bootstrap node")
+        # print("This is bootstrap node")
 
         wallet = Wallet()
 
@@ -50,7 +50,7 @@ def main(port, bootstrap, auto):
         # giati to diktuo den exei arxikopoihthei akoma, ara de mporoume na kanoume
         # transactions
     else:
-        print("This is user node")
+        # print("This is user node")
 
         if register_with_bootstrap(port) is False:
             print("Problem establishing connecion -- exit")
@@ -92,8 +92,12 @@ def send_coins_auto_after_initial_coins(auto):
         while len(node.blockchain.chain) < 1 and len(node.peers) == global_variable.numOfClients:
             sleep(1)
 
+        print("In 20 sec automatic payments will start, run without -a flag to disable this.")
+
         # Wait for another 10sec, so the system be stabilized
         sleep(20)
+
+        print("Auto payments have just started.")
 
         # Call the function which reads the transactions from a default file, and keep logs for verify
         test_case_1()
@@ -129,6 +133,8 @@ def client_input_loop():  # maybe: ,node
             node.blockchain.print_transactions()
         elif str_in in {'view', 'v'}:
             print_view()
+        elif str_in in {'view_d', 'vv'}:
+            print_view_details()
         elif str_in in {'help', 'h'}:
             print_help()
         elif str_in == 'test':
@@ -150,6 +156,8 @@ def client_input_loop():  # maybe: ,node
             client_transaction(str_in, node)
         elif str_in.startswith('un'):
             print_unconfirmed()
+        elif str_in.startswith('id'):
+            print_my_id()
         elif str_in in {'q', 'quit', 'e', 'exit'}:
             print("Exiting...")
             # exit()
@@ -161,20 +169,46 @@ def client_input_loop():  # maybe: ,node
             print_invalid_command()
 
 
+def print_my_id():
+    node = global_variable.node
+
+    peers = node.peers
+    wallet = node.wallet
+
+    node_id = [idx for idx, x in enumerate(peers) if x[0] == wallet.public_key][0]
+
+    print("Client's id is: " + str(node_id))
 
 
 def print_view():
     node = global_variable.node
 
+    print("\t\t\tAll transactions")
+
+    for idx, transaction in enumerate(node.blockchain.get_transactions()):
+        print(str(idx) + ": " + transaction.transaction_id)
+
+    print("\n")
+
+
+def print_view_details():
+    node = global_variable.node
+
+    print("\t\t\tAll transactions in datails")
+
     for transaction in node.blockchain.get_transactions():
         print(transaction)
+
+    print("\n")
 
 
 def print_unconfirmed():
     node = global_variable.node
 
-    for transaction in global_variable.node.blockchain.unconfirmed_transactions:
-        print(transaction)
+    print("\t\tAll unconfirmed transactions")
+
+    for idx, transaction in enumerate(global_variable.node.blockchain.unconfirmed_transactions):
+        print(str(idx) + ": " + transaction.transaction_id)
 
 
 def write_results_to_file():
@@ -424,7 +458,9 @@ def print_help():
             results                             Rights the statistic results in the result folder (testing use)
             init                                Send initial money to all registered nodes if you are the bootstrap node
             view                                View previous transactions
+            vv                                  View previous transactions in more details
             balance                             View wallet balance
+            id                                  Print client's id
             help                                Print this help message
             q                                   Quit
         '''
@@ -452,8 +488,6 @@ def valid_ammount(str):
 
 def print_balance():
     print("balance")
-
-
 
 
 main()

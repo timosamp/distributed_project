@@ -1,12 +1,11 @@
 from blockchain import Blockchain
 from wallet import Wallet
-from block import Block
 
 
 class Node:
     def __init__(self, node_id, wallet: Wallet):
 
-        print("\n\nStart creating node with id: " + str(node_id))
+        # print("\n\nStart creating node with id: " + str(node_id))
 
         self.current_id_count = node_id
 

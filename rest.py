@@ -2,21 +2,18 @@
 import copy
 from threading import Thread
 
-import flask
 import requests
 from flask import Flask, jsonify, request, render_template
 from flask_cors import CORS
 
 import time
-import datetime
 import json
 
-from blockchain import Blockchain
-from block import Block
-from node import Node
-from wallet import Wallet
-from transaction import Transaction
-
+# from blockchain import Blockchain
+# from block import Block
+# from node import Node
+# from wallet import Wallet
+# from transaction import Transaction
 # from test_threads_flask import node, app
 
 import jsonpickle

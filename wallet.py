@@ -21,7 +21,7 @@ class Wallet:
         # Set the public key as the wallet's adders
         self.address = self.public_key
 
-        print("Wallet is created")
+        # print("Wallet is created")
 
     def wallet_address(self):
         # Return the address of the wallet's owner
